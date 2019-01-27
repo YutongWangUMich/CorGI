@@ -14,4 +14,4 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 Imports:
-    ggplot2
+    doParallel

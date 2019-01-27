@@ -76,7 +76,7 @@
       <h1>Get started</h1>
                         <h4 class="author">Yutong Wang</h4>
             
-            <h4 class="date">2019-01-26</h4>
+            <h4 class="date">2019-01-27</h4>
       
       
       <div class="hidden name"><code>corgi.Rmd</code></div>
@@ -85,10 +85,53 @@
 
     
     
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">yan &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/readRDS">readRDS</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"</span>))
+deng &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/readRDS">readRDS</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"</span>))
 
+cell_type &lt;-<span class="st"> </span>forcats<span class="op">::</span><span class="kw"><a href="https://forcats.tidyverse.org/reference/fct_c.html">fct_c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">as.factor</a></span>(yan<span class="op">$</span>cell_type1),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">as.factor</a></span>(deng<span class="op">$</span>cell_type1))
+batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Human"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(yan)),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Mouse"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(deng)))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(yan) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/chartr">toupper</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(yan))
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(deng) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/chartr">toupper</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(deng))
+shared_genes &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">intersect</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(yan),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(deng))</code></pre></div>
+<p>Get rid of the spike-in genes</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">shared_genes &lt;-<span class="st"> </span>shared_genes[<span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grep</a></span>(<span class="st">"ERCC"</span>,shared_genes)]</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">yan &lt;-<span class="st"> </span>yan[shared_genes,]
+deng &lt;-<span class="st"> </span>deng[shared_genes,]</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scran)
+out &lt;-<span class="st"> </span>scran<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(yan,deng,<span class="dt">assay.type =</span> <span class="st">"logcounts"</span>)
+
+yan &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]
+deng &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]
+
+X &lt;-<span class="st"> </span><span class="kw">logcounts</span>(yan)
+Y &lt;-<span class="st"> </span><span class="kw">logcounts</span>(deng)
+
+Z &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(X,Y)
+
+pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
+
+<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type,<span class="dt">shape =</span> batch)</code></pre></div>
+<p><img src="corgi_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<div id="using-the-gene-set-produced-by-corgi" class="section level1">
+<h1 class="hasAnchor">
+<a href="#using-the-gene-set-produced-by-corgi" class="anchor"></a>Using the gene set produced by CorGI</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"corgi_gene_set"</span>)
+pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z[corgi_gene_set,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x
+<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type,<span class="dt">shape =</span> batch)</code></pre></div>
+<p><img src="corgi_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#using-the-gene-set-produced-by-corgi">Using the gene set produced by CorGI</a></li>
+      </ul>
+</div>
       </div>
 
 </div>

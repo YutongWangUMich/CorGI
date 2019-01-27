@@ -12,7 +12,71 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
   comment = "#>"
 )
+```
+
+
+```{r}
+library(corgi)
+```
+
+```{r}
+yan <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"))
+deng <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"))
+
+cell_type <- forcats::fct_c(as.factor(yan$cell_type1),as.factor(deng$cell_type1))
+batch <- c(rep("Human",ncol(yan)),rep("Mouse",ncol(deng)))
+
+```
+
+
+```{r}
+rownames(yan) <- toupper(rownames(yan))
+rownames(deng) <- toupper(rownames(deng))
+shared_genes <- intersect(rownames(yan),rownames(deng))
+```
+
+
+Get rid of the spike-in genes
+```{r}
+shared_genes <- shared_genes[-grep("ERCC",shared_genes)]
+```
+
+
+```{r}
+yan <- yan[shared_genes,]
+deng <- deng[shared_genes,]
+```
+
+```{r}
+library(scran)
+out <- scran::multiBatchNorm(yan,deng,assay.type = "logcounts")
+
+yan <- out[[1]]
+deng <- out[[2]]
+
+X <- logcounts(yan)
+Y <- logcounts(deng)
+
+Z <- cbind(X,Y)
+
+pc <- prcomp(t(Z),rank. = 2)$x
+```
+
+
+```{r}
+library(ggplot2)
+
+qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
+```
+
+# Using the gene set produced by CorGI
+```{r}
+data("corgi_gene_set")
+pc <- prcomp(t(Z[corgi_gene_set,]),rank. = 2)$x
+qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
 ```
 

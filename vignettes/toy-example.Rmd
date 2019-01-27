@@ -73,31 +73,50 @@ batch_effects[good_genes,] <- 0
 
 ```{r}
 makeData <- function(batch_id){
-  dat <- rnorm_mat(n_genes,n_cells)
+  dat <- (1/sqrt(2))*rnorm_mat(n_genes,n_cells)
   for(i in 1:ncol(dat)){
     dat[,i] <- dat[,i] + centroids[,cell_labels[i]] + batch_effects[,batch_id]
   }
+  rownames(dat) <- paste0("g",1:nrow(dat))
   return(dat)
 }
 
 X <- makeData(batch_id = 1)
 Y <- makeData(batch_id = 2)
-
+colnames(X) <- paste0("X",1:ncol(X))
+colnames(Y) <- paste0("Y",1:ncol(Y))
 Z <- cbind(X,Y)
 
 ```
 
 Use all the genes to run PCA
 ```{r}
+library(ggplot2)
 pc <- prcomp(t(Z),rank. = 2)$x
-ggplot2::qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
+qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
 ```
 
 Using only the good genes to run PCA
 
 ```{r}
 pc <- prcomp(t(Z[good_genes,]),rank. = 2)$x
-ggplot2::qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
+qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
+
+```
+
+
+```{r}
+
+res_list <- corgi::corgi(X,Y,n_phases = 2,time_per_phase = 10)
+
+
+res <- res_list[[1]]
+
+SVG3 <- res[,"SVG3"]/res[,"num.times.sampled"]
+NTS <- res[,"num.times.sampled"]
+
+gene_type <- c(rep("Good",10),rep("Bad",90))
+qplot(SVG3,NTS,color = gene_type)
 
 ```
 
