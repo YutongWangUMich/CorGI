@@ -1,12 +1,17 @@
 Package: corgi
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Gene Filter for Comparative Analysis of Single-cell Gene Expression Data
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Yutong Wang
+Maintainer: Yutong Wang <yutongw@umich.umich>
+Description: Gene filter (unsupervised feature selection) to rank genes in terms of their usefulness for comparing two datasets.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Imports:
+    ggplot2

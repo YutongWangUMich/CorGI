@@ -1,0 +1,103 @@
+---
+title: "Using CorGI on a synthetic example"
+author: "Yutong"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r}
+set.seed(0)
+```
+
+We'll make two batches of data.
+
+Each batch has the following paraemeters
+```{r}
+n_clusters <- 3 # number of clusters
+n_cells_per_cluster <- 20 # number of cells per cluster
+n_cells <- n_clusters*n_cells_per_cluster # number of cells per batch
+```
+
+Batch labels
+```{r}
+batch_ids <- factor(rep(1:2,each = n_cells))
+```
+
+For this toy example, each batch has the same proportion of cells
+```{r}
+cell_labels <- factor(rep(1:n_clusters,each=n_cells_per_cluster))
+```
+
+
+First ten genes are _good_, containing information about the cluster identity.
+The remaining genes are _bad_, containing only batch effects.
+```{r}
+n_genes <- 100
+good_genes <- 1:10
+bad_genes <- 11:100
+```
+
+Helper function
+```{r}
+# Returns a m-by-n matrix of normal random variables with zero mean and unit variance
+rnorm_mat <- function(m,n){
+  return(matrix(rnorm(m*n),m,n))
+}
+```
+
+Simulate cluster centroids
+```{r}
+centroids <- rnorm_mat(n_genes,n_clusters)
+centroids[bad_genes,] <- 0
+```
+
+Simulate batch effects
+```{r}
+batch_effects <- rnorm_mat(n_genes,2)
+batch_effects[good_genes,] <- 0
+
+```
+
+
+```{r}
+makeData <- function(batch_id){
+  dat <- rnorm_mat(n_genes,n_cells)
+  for(i in 1:ncol(dat)){
+    dat[,i] <- dat[,i] + centroids[,cell_labels[i]] + batch_effects[,batch_id]
+  }
+  return(dat)
+}
+
+X <- makeData(batch_id = 1)
+Y <- makeData(batch_id = 2)
+
+Z <- cbind(X,Y)
+
+```
+
+Use all the genes to run PCA
+```{r}
+pc <- prcomp(t(Z),rank. = 2)$x
+ggplot2::qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
+```
+
+Using only the good genes to run PCA
+
+```{r}
+pc <- prcomp(t(Z[good_genes,]),rank. = 2)$x
+ggplot2::qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
+
+```
+
