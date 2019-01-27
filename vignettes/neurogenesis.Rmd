@@ -1,0 +1,109 @@
+---
+title: "Neurogenesis in the SVZ"
+author: "Yutong Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+In this vignette, we the semi-supervised version of `corgi` applied to the neurogenesis in SVZ datasets
+
+
+# Loading Llorens-Bobadilla et al. 2015 dataset
+
+Load data from Llorens-Bobadilla. This code is obtained from the [GitHub code for Figure 6B in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure6_FigureS6/Llorens%20Projections%20_%20Figure%206B%2C%20S6A%2C%20S6B.R)
+
+```{r}
+Llorens_allcounts<-read.table(url("https://github.com/bdulken/SVZ_NSC_Dulken_2/raw/master/Files/Llorens_counts_allgenes.txt"))
+
+allcounts_allcells<-Llorens_allcounts
+
+#Remove neuroblasts from Llorenss data
+#allcounts_allcells_notaps<-allcounts_allcells[!grepl("tap",colnames(allcounts_allcells))]
+allcounts_allcells_noblasts<-allcounts_allcells[!grepl("PSA",colnames(allcounts_allcells))]
+
+#Remove oligodendrocytes from Llorenss data
+oligos<-as.vector(read.table(url("https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/comp_oligos.txt"))[,1])
+allcounts_allcells_noblasts_nooligo<-allcounts_allcells_noblasts[,-na.omit(match(oligos,colnames(allcounts_allcells_noblasts)))]
+allcounts_allcells_noblasts_nooligo_noERCC<-allcounts_allcells_noblasts_nooligo[!grepl("ERCC-",rownames(allcounts_allcells_noblasts_nooligo)),]
+
+llorens <- allcounts_allcells_noblasts_nooligo_noERCC
+
+llorens_cell_type <-  factor(
+  unlist(
+    lapply(X = colnames(llorens),
+           FUN = function(x){substr(x,1,1)})
+    )
+  )
+```
+
+# Loading Dulken et al 2017 dataset
+
+This code is adapted obtained from the [GitHub code for Figure 1 in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure1/PCA%20-%20Outliers%20Removed%20_%20Figure%201C.R)
+
+The difference is we don't filter genes by cell-cycle.
+
+```{r}
+#Loading all high quality cells and filtering for lowly expressed genes
+spec_pops<-read.table(url("https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/AllCounts_specPops_read_gene_ERCC_filt_FINAL.txt"))
+
+allcounts_allcells<-spec_pops
+
+#Removing Oligodendrocytes and Outliers
+oligos<-as.vector(read.table(url("https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/STAR_oligos_updated_09232015.txt"))[,1])
+allcounts_allcells_nooligo<-allcounts_allcells[,-na.omit(match(oligos,colnames(allcounts_allcells)))]
+
+#Filtering for expressed by 5 cells at 10 counts
+greaterthan0<-allcounts_allcells_nooligo>10
+greaterthan0sum<-rowSums(greaterthan0)
+allcounts_allcells_nooligo_genefilt<-allcounts_allcells_nooligo[greaterthan0sum>=5,]
+dulken <- allcounts_allcells_nooligo_genefilt
+
+dulken_cell_type <- 
+  factor(
+    unlist(
+      lapply(X=colnames(dulken),
+             FUN=function(x){strsplit(x,split = "_",fixed=T)[[1]][1]})
+      )
+    )
+  
+```
+
+
+
+```{r}
+shared_genes <- intersect(rownames(dulken),rownames(llorens))
+length(shared_genes)
+dulken <- dulken[shared_genes,]
+llorens <- llorens[shared_genes,]
+comb <- cbind(dulken,llorens)
+cell_type <- forcats::fct_c(dulken_cell_type,llorens_cell_type)
+batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens-Bobadilla",ncol(llorens)))
+```
+
+
+```{r}
+library(corgi)
+library(ggplot2)
+data("gs_neurogenesis")
+
+corgi_gene_set <- gs_neurogenesis[[3]]
+length(corgi_gene_set)
+
+D <- (1-cor(comb[corgi_gene_set,],method = "spearman"))/2
+mds <- cmdscale(D,k=2)
+
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
+
+```
+

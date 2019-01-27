@@ -56,6 +56,12 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/liver-bud.html">Liver bud development</a>
+    </li>
+    <li>
+      <a href="../articles/neurogenesis.html">Neurogenesis in the SVZ</a>
+    </li>
+    <li>
       <a href="../articles/toy-example.html">Using CorGI on a synthetic example</a>
     </li>
   </ul>
@@ -85,7 +91,8 @@
 
     
     
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">0</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">0</span>)</code></pre></div>
 <p>We’ll make two batches of data.</p>
 <p>Each batch has the following paraemeters</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n_clusters &lt;-<span class="st"> </span><span class="dv">3</span> <span class="co"># number of clusters</span>
@@ -133,24 +140,18 @@ pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocument
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z[good_genes,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x
 <span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(cell_labels,<span class="dv">2</span>),<span class="dt">shape =</span> batch_ids)</code></pre></div>
 <p><img src="toy-example_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
-res_list &lt;-<span class="st"> </span>corgi<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/corgi/topics/corgi">corgi</a></span>(X,Y,<span class="dt">n_phases =</span> <span class="dv">2</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span>)
-<span class="co">#&gt; [1] "2019-01-27 02:25:27 EST"</span>
-<span class="co">#&gt; [1] 100</span>
-<span class="co">#&gt; Time difference of 11.52126 secs</span>
-<span class="co">#&gt; [1] "2019-01-27 02:25:38 EST"</span>
-<span class="co">#&gt; [1] 62</span>
-<span class="co">#&gt; Time difference of 11.56358 secs</span>
-
-
-res &lt;-<span class="st"> </span>res_list[[<span class="dv">1</span>]]
+<p>The following is precomputed.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res_list_toy_example &lt;-<span class="st"> </span><span class="kw"><a href="../reference/corgi.html">corgi</a></span>(X,Y,<span class="dt">n_phases =</span> <span class="dv">2</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span>)</code></pre></div>
+<p>The following load the precomputed corgi output.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"res_list_toy_example"</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]
 
 SVG3 &lt;-<span class="st"> </span>res[,<span class="st">"SVG3"</span>]<span class="op">/</span>res[,<span class="st">"num.times.sampled"</span>]
 NTS &lt;-<span class="st"> </span>res[,<span class="st">"num.times.sampled"</span>]
 
 gene_type &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Good"</span>,<span class="dv">10</span>),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Bad"</span>,<span class="dv">90</span>))
 <span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(SVG3,NTS,<span class="dt">color =</span> gene_type)</code></pre></div>
-<p><img src="toy-example_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="toy-example_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
