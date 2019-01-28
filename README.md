@@ -7,5 +7,5 @@ Correlation matrix singular value Gap Inflation (CorGI) is an unsupervised featu
 In `R`, run
 
 ```
-devtools::install_github("hadley/devtools")
+devtools::install_github("YutongWangUMich/corgi")
 ```
