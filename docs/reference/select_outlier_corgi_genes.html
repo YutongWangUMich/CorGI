@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get the gene set after running corgi — select_top_corgi_genes • corgi</title>
+<title>Get the gene set after running corgi — select_outlier_corgi_genes • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,7 +30,7 @@
 
 
 
-<meta property="og:title" content="Get the gene set after running corgi — select_top_corgi_genes" />
+<meta property="og:title" content="Get the gene set after running corgi — select_outlier_corgi_genes" />
 
 <meta property="og:description" content="Get the gene set after running corgi" />
 <meta name="twitter:card" content="summary" />
@@ -117,7 +117,7 @@
     <div class="page-header">
     <h1>Get the gene set after running corgi</h1>
     
-    <div class="hidden name"><code>select_top_corgi_genes.Rd</code></div>
+    <div class="hidden name"><code>select_outlier_corgi_genes.Rd</code></div>
     </div>
 
     <div class="ref-description">
@@ -126,7 +126,7 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>select_top_corgi_genes</span>(<span class='no'>corgi_output</span>, <span class='no'>n</span>, <span class='kw'>phase_use</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+    <pre class="usage"><span class='fu'>select_outlier_corgi_genes</span>(<span class='no'>corgi_output</span>, <span class='kw'>cut_off</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>phase_use</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>SVG_use</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -137,8 +137,8 @@
       <td><p>the output of run_corgi</p></td>
     </tr>
     <tr>
-      <th>n</th>
-      <td><p>number of genes in the returned gene set</p></td>
+      <th>cut_off</th>
+      <td><p>how many standard deviations above for the corgi gene score to be kept</p></td>
     </tr>
     <tr>
       <th>phase_use</th>
@@ -157,9 +157,7 @@
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/data'>data</a></span>(<span class='st'>"res_list_liver_bud"</span>)
-<span class='no'>corgi_gene_set</span> <span class='kw'>&lt;-</span> <span class='fu'>select_top_corgi_genes</span>(<span class='no'>corgi_output_toy_example</span>,<span class='fl'>10</span>)
-<span class='no'>corgi_gene_set</span></div><div class='output co'>#&gt;  [1] "g6good"  "g5good"  "g3good"  "g1good"  "g8good"  "g10good" "g9good" 
-#&gt;  [8] "g4good"  "g26bad"  "g41bad" </div></pre>
+<span class='no'>corgi_gene_set</span> <span class='kw'>&lt;-</span> <span class='fu'>select_outlier_corgi_genes</span>(<span class='no'>corgi_output_toy_example</span>)</div><div class='output co'>#&gt; <span class='error'>Error in hist.default(x, breaks = round(length(x)/10)): invalid number of 'breaks'</span></div><div class='input'><span class='no'>corgi_gene_set</span></div><div class='output co'>#&gt; [1] "g6good"  "g5good"  "g3good"  "g1good"  "g8good"  "g10good"</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
