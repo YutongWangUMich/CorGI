@@ -75,15 +75,13 @@ qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
 
 ```{r, eval = F}
-res_list_liver_bud <- corgi(logcounts(IN),logcounts(LB),n_phases = 3,time_per_phase = 10*60)
+res_list_liver_bud <- run_corgi(logcounts(IN),logcounts(LB),n_phases = 3,time_per_phase = 10*60)
 ```
 
 ```{r}
 data("res_list_liver_bud")
-res <- res_list_liver_bud[[1]]
+corgi_gene_set <- select_top_corgi_genes(res_list_liver_bud,300)
 
-
-corgi_gene_set <- head(names(sort(res[,"SVG3"]/res[,"num.times.sampled"],decreasing = T)),300)
 pc <- prcomp(t(combined[corgi_gene_set,]),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```

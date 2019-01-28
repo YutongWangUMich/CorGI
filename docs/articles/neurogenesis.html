@@ -92,80 +92,80 @@
     
     
 <p>In this vignette, we the semi-supervised version of <code>corgi</code> applied to the neurogenesis in SVZ datasets</p>
-<div id="loading-llorens-bobadilla-et-al--2015-dataset" class="section level1">
+<div id="loading-llorens-bobadilla-et-al-2015-dataset" class="section level1">
 <h1 class="hasAnchor">
-<a href="#loading-llorens-bobadilla-et-al--2015-dataset" class="anchor"></a>Loading Llorens-Bobadilla et al. 2015 dataset</h1>
+<a href="#loading-llorens-bobadilla-et-al-2015-dataset" class="anchor"></a>Loading Llorens-Bobadilla et al. 2015 dataset</h1>
 <p>Load data from Llorens-Bobadilla. This code is obtained from the <a href="https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure6_FigureS6/Llorens%20Projections%20_%20Figure%206B%2C%20S6A%2C%20S6B.R">GitHub code for Figure 6B in Dulken et al 2017</a></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Llorens_allcounts&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.table</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://github.com/bdulken/SVZ_NSC_Dulken_2/raw/master/Files/Llorens_counts_allgenes.txt"</span>))
-
-allcounts_allcells&lt;-Llorens_allcounts
-
-<span class="co">#Remove neuroblasts from Llorenss data</span>
-<span class="co">#allcounts_allcells_notaps&lt;-allcounts_allcells[!grepl("tap",colnames(allcounts_allcells))]</span>
-allcounts_allcells_noblasts&lt;-allcounts_allcells[<span class="op">!</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grepl</a></span>(<span class="st">"PSA"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(allcounts_allcells))]
-
-<span class="co">#Remove oligodendrocytes from Llorenss data</span>
-oligos&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/vector">as.vector</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.table</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/comp_oligos.txt"</span>))[,<span class="dv">1</span>])
-allcounts_allcells_noblasts_nooligo&lt;-allcounts_allcells_noblasts[,<span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/na.fail">na.omit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/match">match</a></span>(oligos,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(allcounts_allcells_noblasts)))]
-allcounts_allcells_noblasts_nooligo_noERCC&lt;-allcounts_allcells_noblasts_nooligo[<span class="op">!</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grepl</a></span>(<span class="st">"ERCC-"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(allcounts_allcells_noblasts_nooligo)),]
-
-llorens &lt;-<span class="st"> </span>allcounts_allcells_noblasts_nooligo_noERCC
-
-llorens_cell_type &lt;-<span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(
-  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(
-    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(llorens),
-           <span class="dt">FUN =</span> <span class="cf">function</span>(x){<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/substr">substr</a></span>(x,<span class="dv">1</span>,<span class="dv">1</span>)})
-    )
-  )</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">Llorens_allcounts&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.table</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://github.com/bdulken/SVZ_NSC_Dulken_2/raw/master/Files/Llorens_counts_allgenes.txt"</span>))</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">allcounts_allcells&lt;-Llorens_allcounts</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="co">#Remove neuroblasts from Llorenss data</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co">#allcounts_allcells_notaps&lt;-allcounts_allcells[!grepl("tap",colnames(allcounts_allcells))]</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">allcounts_allcells_noblasts&lt;-allcounts_allcells[<span class="op">!</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grepl</a></span>(<span class="st">"PSA"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(allcounts_allcells))]</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="co">#Remove oligodendrocytes from Llorenss data</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10">oligos&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/vector">as.vector</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.table</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/comp_oligos.txt"</span>))[,<span class="dv">1</span>])</a>
+<a class="sourceLine" id="cb1-11" data-line-number="11">allcounts_allcells_noblasts_nooligo&lt;-allcounts_allcells_noblasts[,<span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/na.fail">na.omit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/match">match</a></span>(oligos,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(allcounts_allcells_noblasts)))]</a>
+<a class="sourceLine" id="cb1-12" data-line-number="12">allcounts_allcells_noblasts_nooligo_noERCC&lt;-allcounts_allcells_noblasts_nooligo[<span class="op">!</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grepl</a></span>(<span class="st">"ERCC-"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(allcounts_allcells_noblasts_nooligo)),]</a>
+<a class="sourceLine" id="cb1-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb1-14" data-line-number="14">llorens &lt;-<span class="st"> </span>allcounts_allcells_noblasts_nooligo_noERCC</a>
+<a class="sourceLine" id="cb1-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb1-16" data-line-number="16">llorens_cell_type &lt;-<span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(</a>
+<a class="sourceLine" id="cb1-17" data-line-number="17">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(</a>
+<a class="sourceLine" id="cb1-18" data-line-number="18">    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(llorens),</a>
+<a class="sourceLine" id="cb1-19" data-line-number="19">           <span class="dt">FUN =</span> <span class="cf">function</span>(x){<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/substr">substr</a></span>(x,<span class="dv">1</span>,<span class="dv">1</span>)})</a>
+<a class="sourceLine" id="cb1-20" data-line-number="20">    )</a>
+<a class="sourceLine" id="cb1-21" data-line-number="21">  )</a></code></pre></div>
 </div>
 <div id="loading-dulken-et-al-2017-dataset" class="section level1">
 <h1 class="hasAnchor">
 <a href="#loading-dulken-et-al-2017-dataset" class="anchor"></a>Loading Dulken et al 2017 dataset</h1>
 <p>This code is adapted obtained from the <a href="https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure1/PCA%20-%20Outliers%20Removed%20_%20Figure%201C.R">GitHub code for Figure 1 in Dulken et al 2017</a></p>
 <p>The difference is we don’t filter genes by cell-cycle.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Loading all high quality cells and filtering for lowly expressed genes</span>
-spec_pops&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.table</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/AllCounts_specPops_read_gene_ERCC_filt_FINAL.txt"</span>))
-
-allcounts_allcells&lt;-spec_pops
-
-<span class="co">#Removing Oligodendrocytes and Outliers</span>
-oligos&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/vector">as.vector</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.table</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/STAR_oligos_updated_09232015.txt"</span>))[,<span class="dv">1</span>])
-allcounts_allcells_nooligo&lt;-allcounts_allcells[,<span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/na.fail">na.omit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/match">match</a></span>(oligos,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(allcounts_allcells)))]
-
-<span class="co">#Filtering for expressed by 5 cells at 10 counts</span>
-greaterthan0&lt;-allcounts_allcells_nooligo<span class="op">&gt;</span><span class="dv">10</span>
-greaterthan0sum&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colSums">rowSums</a></span>(greaterthan0)
-allcounts_allcells_nooligo_genefilt&lt;-allcounts_allcells_nooligo[greaterthan0sum<span class="op">&gt;=</span><span class="dv">5</span>,]
-dulken &lt;-<span class="st"> </span>allcounts_allcells_nooligo_genefilt
-
-dulken_cell_type &lt;-<span class="st"> </span>
-<span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(
-    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(
-      <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(dulken),
-             <span class="dt">FUN=</span><span class="cf">function</span>(x){<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/strsplit">strsplit</a></span>(x,<span class="dt">split =</span> <span class="st">"_"</span>,<span class="dt">fixed=</span>T)[[<span class="dv">1</span>]][<span class="dv">1</span>]})
-      )
-    )
-  </code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">shared_genes &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">intersect</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(dulken),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(llorens))
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(shared_genes)
-<span class="co">#&gt; [1] 8357</span>
-dulken &lt;-<span class="st"> </span>dulken[shared_genes,]
-llorens &lt;-<span class="st"> </span>llorens[shared_genes,]
-comb &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(dulken,llorens)
-cell_type &lt;-<span class="st"> </span>forcats<span class="op">::</span><span class="kw"><a href="https://forcats.tidyverse.org/reference/fct_c.html">fct_c</a></span>(dulken_cell_type,llorens_cell_type)
-batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Dulken"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(dulken)),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Llorens-Bobadilla"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(llorens)))</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"gs_neurogenesis"</span>)
-
-corgi_gene_set &lt;-<span class="st"> </span>gs_neurogenesis[[<span class="dv">3</span>]]
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(corgi_gene_set)
-<span class="co">#&gt; [1] 106</span>
-
-D &lt;-<span class="st"> </span>(<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/cor">cor</a></span>(comb[corgi_gene_set,],<span class="dt">method =</span> <span class="st">"spearman"</span>))<span class="op">/</span><span class="dv">2</span>
-mds &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/cmdscale">cmdscale</a></span>(D,<span class="dt">k=</span><span class="dv">2</span>)
-
-<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(mds[,<span class="dv">1</span>],mds[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type,<span class="dt">shape =</span> batch)</code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co">#Loading all high quality cells and filtering for lowly expressed genes</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">spec_pops&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.table</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/AllCounts_specPops_read_gene_ERCC_filt_FINAL.txt"</span>))</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">allcounts_allcells&lt;-spec_pops</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="co">#Removing Oligodendrocytes and Outliers</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">oligos&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/vector">as.vector</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.table</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/STAR_oligos_updated_09232015.txt"</span>))[,<span class="dv">1</span>])</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">allcounts_allcells_nooligo&lt;-allcounts_allcells[,<span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/na.fail">na.omit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/match">match</a></span>(oligos,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(allcounts_allcells)))]</a>
+<a class="sourceLine" id="cb2-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="co">#Filtering for expressed by 5 cells at 10 counts</span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">greaterthan0&lt;-allcounts_allcells_nooligo<span class="op">&gt;</span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">greaterthan0sum&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colSums">rowSums</a></span>(greaterthan0)</a>
+<a class="sourceLine" id="cb2-13" data-line-number="13">allcounts_allcells_nooligo_genefilt&lt;-allcounts_allcells_nooligo[greaterthan0sum<span class="op">&gt;=</span><span class="dv">5</span>,]</a>
+<a class="sourceLine" id="cb2-14" data-line-number="14">dulken &lt;-<span class="st"> </span>allcounts_allcells_nooligo_genefilt</a>
+<a class="sourceLine" id="cb2-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb2-16" data-line-number="16">dulken_cell_type &lt;-<span class="st"> </span></a>
+<a class="sourceLine" id="cb2-17" data-line-number="17"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(</a>
+<a class="sourceLine" id="cb2-18" data-line-number="18">    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(</a>
+<a class="sourceLine" id="cb2-19" data-line-number="19">      <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(dulken),</a>
+<a class="sourceLine" id="cb2-20" data-line-number="20">             <span class="dt">FUN=</span><span class="cf">function</span>(x){<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/strsplit">strsplit</a></span>(x,<span class="dt">split =</span> <span class="st">"_"</span>,<span class="dt">fixed=</span>T)[[<span class="dv">1</span>]][<span class="dv">1</span>]})</a>
+<a class="sourceLine" id="cb2-21" data-line-number="21">      )</a>
+<a class="sourceLine" id="cb2-22" data-line-number="22">    )</a>
+<a class="sourceLine" id="cb2-23" data-line-number="23">  </a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">shared_genes &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">intersect</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(dulken),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(llorens))</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(shared_genes)</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="co">#&gt; [1] 8357</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">dulken &lt;-<span class="st"> </span>dulken[shared_genes,]</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">llorens &lt;-<span class="st"> </span>llorens[shared_genes,]</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6">comb &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(dulken,llorens)</a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">cell_type &lt;-<span class="st"> </span>forcats<span class="op">::</span><span class="kw"><a href="https://forcats.tidyverse.org/reference/fct_c.html">fct_c</a></span>(dulken_cell_type,llorens_cell_type)</a>
+<a class="sourceLine" id="cb3-8" data-line-number="8">batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Dulken"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(dulken)),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Llorens-Bobadilla"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(llorens)))</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"gs_neurogenesis"</span>)</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">corgi_gene_set &lt;-<span class="st"> </span>gs_neurogenesis[[<span class="dv">3</span>]]</a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(corgi_gene_set)</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="co">#&gt; [1] 106</span></a>
+<a class="sourceLine" id="cb4-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">D &lt;-<span class="st"> </span>(<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/cor">cor</a></span>(comb[corgi_gene_set,],<span class="dt">method =</span> <span class="st">"spearman"</span>))<span class="op">/</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">mds &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/cmdscale">cmdscale</a></span>(D,<span class="dt">k=</span><span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb4-12" data-line-number="12"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(mds[,<span class="dv">1</span>],mds[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type,<span class="dt">shape =</span> batch)</a></code></pre></div>
 <p><img src="neurogenesis_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 </div>
   </div>
@@ -175,7 +175,7 @@ mds &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumen
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#loading-llorens-bobadilla-et-al--2015-dataset">Loading Llorens-Bobadilla et al. 2015 dataset</a></li>
+<li><a href="#loading-llorens-bobadilla-et-al-2015-dataset">Loading Llorens-Bobadilla et al. 2015 dataset</a></li>
       <li><a href="#loading-dulken-et-al-2017-dataset">Loading Dulken et al 2017 dataset</a></li>
       </ul>
 </div>

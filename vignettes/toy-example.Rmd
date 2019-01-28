@@ -43,11 +43,13 @@ cell_labels <- factor(rep(1:n_clusters,each=n_cells_per_cluster))
 
 
 First ten genes are _good_, containing information about the cluster identity.
-The remaining genes are _bad_, containing only batch effects.
+The remaining 90 genes are _bad_, containing only batch effects.
 ```{r}
 n_genes <- 100
 good_genes <- 1:10
 bad_genes <- 11:100
+gene_type <- c(rep("good",10),rep("bad",90))
+gene_names <- paste0(paste0("g",1:n_genes),gene_type)
 ```
 
 Helper function
@@ -78,7 +80,7 @@ makeData <- function(batch_id){
   for(i in 1:ncol(dat)){
     dat[,i] <- dat[,i] + centroids[,cell_labels[i]] + batch_effects[,batch_id]
   }
-  rownames(dat) <- paste0("g",1:nrow(dat))
+  rownames(dat) <- gene_names
   return(dat)
 }
 
@@ -107,27 +109,23 @@ qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
 
 The following is precomputed. 
 ```{r, eval = F}
-system.time(res_list_toy_example <- corgi(X,Y,n_phases = 1,time_per_phase = 30))
-
-res <- res_list_toy_example[[1]]
-
-sum(res[,"num.times.sampled"])/10
+system.time(corgi_output_toy_example <- run_corgi(X,Y,n_phases = 1,time_per_phase = 10))
 ```
+
+```{r,include=FALSE}
+data("corgi_output_toy_example")
+```
+
 
 The following load the precomputed corgi output.
 ```{r}
-data("res_list_toy_example")
+corgi_gene_set <- select_top_corgi_genes(corgi_output_toy_example,n = 6)
+corgi_gene_set
 ```
 
 
 ```{r}
-res <- res_list_toy_example[[1]]
-
-SVG3 <- res[,"SVG3"]/res[,"num.times.sampled"]
-NTS <- res[,"num.times.sampled"]
-
-gene_type <- c(rep("Good",10),rep("Bad",90))
-qplot(SVG3,NTS,color = gene_type)
-
+pc <- prcomp(t(Z[corgi_gene_set,]),rank. = 2)$x
+qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
 ```
 

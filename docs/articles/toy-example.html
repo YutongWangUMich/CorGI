@@ -91,70 +91,70 @@
 
     
     
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">0</span>)</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">0</span>)</a></code></pre></div>
 <p>We’ll make two batches of data.</p>
 <p>Each batch has the following paraemeters</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n_clusters &lt;-<span class="st"> </span><span class="dv">3</span> <span class="co"># number of clusters</span>
-n_cells_per_cluster &lt;-<span class="st"> </span><span class="dv">20</span> <span class="co"># number of cells per cluster</span>
-n_cells &lt;-<span class="st"> </span>n_clusters<span class="op">*</span>n_cells_per_cluster <span class="co"># number of cells per batch</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">n_clusters &lt;-<span class="st"> </span><span class="dv">3</span> <span class="co"># number of clusters</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">n_cells_per_cluster &lt;-<span class="st"> </span><span class="dv">20</span> <span class="co"># number of cells per cluster</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">n_cells &lt;-<span class="st"> </span>n_clusters<span class="op">*</span>n_cells_per_cluster <span class="co"># number of cells per batch</span></a></code></pre></div>
 <p>Batch labels</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">batch_ids &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>,<span class="dt">each =</span> n_cells))</code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">batch_ids &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>,<span class="dt">each =</span> n_cells))</a></code></pre></div>
 <p>For this toy example, each batch has the same proportion of cells</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cell_labels &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="dv">1</span><span class="op">:</span>n_clusters,<span class="dt">each=</span>n_cells_per_cluster))</code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">cell_labels &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="dv">1</span><span class="op">:</span>n_clusters,<span class="dt">each=</span>n_cells_per_cluster))</a></code></pre></div>
 <p>First ten genes are <em>good</em>, containing information about the cluster identity. The remaining genes are <em>bad</em>, containing only batch effects.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n_genes &lt;-<span class="st"> </span><span class="dv">100</span>
-good_genes &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">10</span>
-bad_genes &lt;-<span class="st"> </span><span class="dv">11</span><span class="op">:</span><span class="dv">100</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">n_genes &lt;-<span class="st"> </span><span class="dv">100</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">good_genes &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">bad_genes &lt;-<span class="st"> </span><span class="dv">11</span><span class="op">:</span><span class="dv">100</span></a></code></pre></div>
 <p>Helper function</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Returns a m-by-n matrix of normal random variables with zero mean and unit variance</span>
-rnorm_mat &lt;-<span class="st"> </span><span class="cf">function</span>(m,n){
-  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(m<span class="op">*</span>n),m,n))
-}</code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co"># Returns a m-by-n matrix of normal random variables with zero mean and unit variance</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">rnorm_mat &lt;-<span class="st"> </span><span class="cf">function</span>(m,n){</a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">rnorm</a></span>(m<span class="op">*</span>n),m,n))</a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">}</a></code></pre></div>
 <p>Simulate cluster centroids</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">centroids &lt;-<span class="st"> </span><span class="kw">rnorm_mat</span>(n_genes,n_clusters)
-centroids[bad_genes,] &lt;-<span class="st"> </span><span class="dv">0</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">centroids &lt;-<span class="st"> </span><span class="kw">rnorm_mat</span>(n_genes,n_clusters)</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">centroids[bad_genes,] &lt;-<span class="st"> </span><span class="dv">0</span></a></code></pre></div>
 <p>Simulate batch effects</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">batch_effects &lt;-<span class="st"> </span><span class="kw">rnorm_mat</span>(n_genes,<span class="dv">2</span>)
-batch_effects[good_genes,] &lt;-<span class="st"> </span><span class="dv">0</span></code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">makeData &lt;-<span class="st"> </span><span class="cf">function</span>(batch_id){
-  dat &lt;-<span class="st"> </span>(<span class="dv">1</span><span class="op">/</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(<span class="dv">2</span>))<span class="op">*</span><span class="kw">rnorm_mat</span>(n_genes,n_cells)
-  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(dat)){
-    dat[,i] &lt;-<span class="st"> </span>dat[,i] <span class="op">+</span><span class="st"> </span>centroids[,cell_labels[i]] <span class="op">+</span><span class="st"> </span>batch_effects[,batch_id]
-  }
-  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(dat) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"g"</span>,<span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">nrow</a></span>(dat))
-  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(dat)
-}
-
-X &lt;-<span class="st"> </span><span class="kw">makeData</span>(<span class="dt">batch_id =</span> <span class="dv">1</span>)
-Y &lt;-<span class="st"> </span><span class="kw">makeData</span>(<span class="dt">batch_id =</span> <span class="dv">2</span>)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(X) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"X"</span>,<span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(X))
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(Y) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"Y"</span>,<span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(Y))
-Z &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(X,Y)</code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">batch_effects &lt;-<span class="st"> </span><span class="kw">rnorm_mat</span>(n_genes,<span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">batch_effects[good_genes,] &lt;-<span class="st"> </span><span class="dv">0</span></a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">makeData &lt;-<span class="st"> </span><span class="cf">function</span>(batch_id){</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">  dat &lt;-<span class="st"> </span>(<span class="dv">1</span><span class="op">/</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(<span class="dv">2</span>))<span class="op">*</span><span class="kw">rnorm_mat</span>(n_genes,n_cells)</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(dat)){</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">    dat[,i] &lt;-<span class="st"> </span>dat[,i] <span class="op">+</span><span class="st"> </span>centroids[,cell_labels[i]] <span class="op">+</span><span class="st"> </span>batch_effects[,batch_id]</a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">  }</a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(dat) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"g"</span>,<span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">nrow</a></span>(dat))</a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(dat)</a>
+<a class="sourceLine" id="cb9-8" data-line-number="8">}</a>
+<a class="sourceLine" id="cb9-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb9-10" data-line-number="10">X &lt;-<span class="st"> </span><span class="kw">makeData</span>(<span class="dt">batch_id =</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb9-11" data-line-number="11">Y &lt;-<span class="st"> </span><span class="kw">makeData</span>(<span class="dt">batch_id =</span> <span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb9-12" data-line-number="12"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(X) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"X"</span>,<span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(X))</a>
+<a class="sourceLine" id="cb9-13" data-line-number="13"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(Y) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"Y"</span>,<span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(Y))</a>
+<a class="sourceLine" id="cb9-14" data-line-number="14">Z &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(X,Y)</a></code></pre></div>
 <p>Use all the genes to run PCA</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
-pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x
-<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(cell_labels,<span class="dv">2</span>),<span class="dt">shape =</span> batch_ids)</code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(cell_labels,<span class="dv">2</span>),<span class="dt">shape =</span> batch_ids)</a></code></pre></div>
 <p><img src="toy-example_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <p>Using only the good genes to run PCA</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z[good_genes,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x
-<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(cell_labels,<span class="dv">2</span>),<span class="dt">shape =</span> batch_ids)</code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z[good_genes,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(cell_labels,<span class="dv">2</span>),<span class="dt">shape =</span> batch_ids)</a></code></pre></div>
 <p><img src="toy-example_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>The following is precomputed.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(res_list_toy_example &lt;-<span class="st"> </span><span class="kw"><a href="../reference/corgi.html">corgi</a></span>(X,Y,<span class="dt">n_phases =</span> <span class="dv">1</span>,<span class="dt">time_per_phase =</span> <span class="dv">30</span>))
-
-res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]
-
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sum">sum</a></span>(res[,<span class="st">"num.times.sampled"</span>])<span class="op">/</span><span class="dv">10</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(res_list_toy_example &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_corgi.html">run_corgi</a></span>(X,Y,<span class="dt">n_phases =</span> <span class="dv">1</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span>))</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb12-5" data-line-number="5"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sum">sum</a></span>(res[,<span class="st">"num.times.sampled"</span>])<span class="op">/</span><span class="dv">10</span></a></code></pre></div>
 <p>The following load the precomputed corgi output.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"res_list_toy_example"</span>)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]
-
-SVG3 &lt;-<span class="st"> </span>res[,<span class="st">"SVG3"</span>]<span class="op">/</span>res[,<span class="st">"num.times.sampled"</span>]
-NTS &lt;-<span class="st"> </span>res[,<span class="st">"num.times.sampled"</span>]
-
-gene_type &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Good"</span>,<span class="dv">10</span>),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Bad"</span>,<span class="dv">90</span>))
-<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(SVG3,NTS,<span class="dt">color =</span> gene_type)</code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"res_list_toy_example"</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3">SVG3 &lt;-<span class="st"> </span>res[,<span class="st">"SVG3"</span>]<span class="op">/</span>res[,<span class="st">"num.times.sampled"</span>]</a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">NTS &lt;-<span class="st"> </span>res[,<span class="st">"num.times.sampled"</span>]</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6">gene_type &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Good"</span>,<span class="dv">10</span>),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Bad"</span>,<span class="dv">90</span>))</a>
+<a class="sourceLine" id="cb14-7" data-line-number="7"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(SVG3,NTS,<span class="dt">color =</span> gene_type)</a></code></pre></div>
 <p><img src="toy-example_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
   </div>
 
