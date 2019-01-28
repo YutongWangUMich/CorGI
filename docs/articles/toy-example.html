@@ -82,7 +82,7 @@
       <h1>Using CorGI on a synthetic example</h1>
                         <h4 class="author">Yutong</h4>
             
-            <h4 class="date">2019-01-27</h4>
+            <h4 class="date">2019-01-28</h4>
       
       
       <div class="hidden name"><code>toy-example.Rmd</code></div>
@@ -141,7 +141,11 @@ pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocument
 <span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(cell_labels,<span class="dv">2</span>),<span class="dt">shape =</span> batch_ids)</code></pre></div>
 <p><img src="toy-example_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>The following is precomputed.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res_list_toy_example &lt;-<span class="st"> </span><span class="kw"><a href="../reference/corgi.html">corgi</a></span>(X,Y,<span class="dt">n_phases =</span> <span class="dv">2</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(res_list_toy_example &lt;-<span class="st"> </span><span class="kw"><a href="../reference/corgi.html">corgi</a></span>(X,Y,<span class="dt">n_phases =</span> <span class="dv">1</span>,<span class="dt">time_per_phase =</span> <span class="dv">30</span>))
+
+res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]
+
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sum">sum</a></span>(res[,<span class="st">"num.times.sampled"</span>])<span class="op">/</span><span class="dv">10</span></code></pre></div>
 <p>The following load the precomputed corgi output.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"res_list_toy_example"</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]

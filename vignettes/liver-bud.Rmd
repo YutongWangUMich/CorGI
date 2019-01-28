@@ -19,7 +19,10 @@ knitr::opts_chunk$set(
 In this vignette, we analyze the liver bud dataset from [Camp et al 2017](https://www.nature.com/articles/nature22796)
 
 ```{r}
+library(corgi)
+```
 
+```{r}
 con <- gzcon(url("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz"))
 txt <- readLines(con)
 
@@ -71,11 +74,12 @@ batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)))
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
 
-```{r}
+```{r, eval = F}
 res_list_liver_bud <- corgi(logcounts(IN),logcounts(LB),n_phases = 3,time_per_phase = 10*60)
 ```
 
 ```{r}
+data("res_list_liver_bud")
 res <- res_list_liver_bud[[1]]
 
 
@@ -83,4 +87,3 @@ corgi_gene_set <- head(names(sort(res[,"SVG3"]/res[,"num.times.sampled"],decreas
 pc <- prcomp(t(combined[corgi_gene_set,]),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
-

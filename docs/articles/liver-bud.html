@@ -82,7 +82,7 @@
       <h1>Liver bud development</h1>
                         <h4 class="author">Yutong Wang</h4>
             
-            <h4 class="date">2019-01-27</h4>
+            <h4 class="date">2019-01-28</h4>
       
       
       <div class="hidden name"><code>liver-bud.Rmd</code></div>
@@ -92,8 +92,8 @@
     
     
 <p>In this vignette, we analyze the liver bud dataset from <a href="https://www.nature.com/articles/nature22796">Camp et al 2017</a></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
-con &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/gzcon">gzcon</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz"</span>))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">con &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/gzcon">gzcon</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz"</span>))
 txt &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/readLines">readLines</a></span>(con)
 
 liverbud &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.csv</a></span>(<span class="dt">file =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/textconnections">textConnection</a></span>(txt))
@@ -105,14 +105,123 @@ counts &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocu
 
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(metadata) &lt;-<span class="st"> </span>metadata<span class="op">$</span>cell_id
 
-LB_status &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(metadata<span class="op">$</span>assignment_LB,<span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/ifelse">ifelse</a></span>(<span class="dt">test =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grepl</a></span>(<span class="st">"LB"</span>,x),<span class="dt">yes =</span> <span class="st">"LB"</span>,<span class="dt">no =</span> <span class="st">"IN"</span>)))
-lineage &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">as.factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> metadata<span class="op">$</span>assignment_LB,<span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/strsplit">strsplit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/character">as.character</a></span>(x),<span class="dt">split =</span> <span class="st">"-"</span>,<span class="dt">fixed =</span> T)[[<span class="dv">1</span>]][<span class="dv">1</span>])))
+metadata<span class="op">$</span>LB_status &lt;-<span class="st"> </span>
+<span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> metadata<span class="op">$</span>assignment_LB,
+                <span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/ifelse">ifelse</a></span>(<span class="dt">test =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grepl</a></span>(<span class="st">"LB"</span>,x),<span class="dt">yes =</span> <span class="st">"LB"</span>,<span class="dt">no =</span> <span class="st">"IN"</span>)
+                ))
 
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/table">table</a></span>(LB_status,lineage)
-<span class="co">#&gt;          lineage</span>
-<span class="co">#&gt; LB_status  EC  HE  MC</span>
-<span class="co">#&gt;        IN  74 113 104</span>
-<span class="co">#&gt;        LB  53  54  67</span></code></pre></div>
+metadata<span class="op">$</span>lineage &lt;-<span class="st"> </span>
+<span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(
+    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> metadata<span class="op">$</span>assignment_LB,
+           <span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/strsplit">strsplit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/character">as.character</a></span>(x),<span class="dt">split =</span> <span class="st">"-"</span>,<span class="dt">fixed =</span> T)[[<span class="dv">1</span>]][<span class="dv">1</span>])
+    ))
+
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/table">table</a></span>(metadata<span class="op">$</span>LB_status,metadata<span class="op">$</span>lineage)
+<span class="co">#&gt;     </span>
+<span class="co">#&gt;       EC  HE  MC</span>
+<span class="co">#&gt;   IN  74 113 104</span>
+<span class="co">#&gt;   LB  53  54  67</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scran)
+<span class="co">#&gt; Warning: package 'scran' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: BiocParallel</span>
+<span class="co">#&gt; Warning: package 'BiocParallel' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: SingleCellExperiment</span>
+<span class="co">#&gt; Warning: package 'SingleCellExperiment' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: SummarizedExperiment</span>
+<span class="co">#&gt; Warning: package 'SummarizedExperiment' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: GenomicRanges</span>
+<span class="co">#&gt; Warning: package 'GenomicRanges' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: stats4</span>
+<span class="co">#&gt; Loading required package: BiocGenerics</span>
+<span class="co">#&gt; Warning: package 'BiocGenerics' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: parallel</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'BiocGenerics'</span>
+<span class="co">#&gt; The following objects are masked from 'package:parallel':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,</span>
+<span class="co">#&gt;     clusterExport, clusterMap, parApply, parCapply, parLapply,</span>
+<span class="co">#&gt;     parLapplyLB, parRapply, parSapply, parSapplyLB</span>
+<span class="co">#&gt; The following objects are masked from 'package:stats':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     IQR, mad, sd, var, xtabs</span>
+<span class="co">#&gt; The following objects are masked from 'package:base':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     anyDuplicated, append, as.data.frame, basename, cbind,</span>
+<span class="co">#&gt;     colMeans, colnames, colSums, dirname, do.call, duplicated,</span>
+<span class="co">#&gt;     eval, evalq, Filter, Find, get, grep, grepl, intersect,</span>
+<span class="co">#&gt;     is.unsorted, lapply, lengths, Map, mapply, match, mget, order,</span>
+<span class="co">#&gt;     paste, pmax, pmax.int, pmin, pmin.int, Position, rank, rbind,</span>
+<span class="co">#&gt;     Reduce, rowMeans, rownames, rowSums, sapply, setdiff, sort,</span>
+<span class="co">#&gt;     table, tapply, union, unique, unsplit, which, which.max,</span>
+<span class="co">#&gt;     which.min</span>
+<span class="co">#&gt; Loading required package: S4Vectors</span>
+<span class="co">#&gt; Warning: package 'S4Vectors' was built under R version 3.5.1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'S4Vectors'</span>
+<span class="co">#&gt; The following object is masked from 'package:base':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     expand.grid</span>
+<span class="co">#&gt; Loading required package: IRanges</span>
+<span class="co">#&gt; Warning: package 'IRanges' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: GenomeInfoDb</span>
+<span class="co">#&gt; Warning: package 'GenomeInfoDb' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: Biobase</span>
+<span class="co">#&gt; Warning: package 'Biobase' was built under R version 3.5.1</span>
+<span class="co">#&gt; Welcome to Bioconductor</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     Vignettes contain introductory material; view with</span>
+<span class="co">#&gt;     'browseVignettes()'. To cite Bioconductor, see</span>
+<span class="co">#&gt;     'citation("Biobase")', and for packages 'citation("pkgname")'.</span>
+<span class="co">#&gt; Loading required package: DelayedArray</span>
+<span class="co">#&gt; Warning: package 'DelayedArray' was built under R version 3.5.1</span>
+<span class="co">#&gt; Loading required package: matrixStats</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'matrixStats'</span>
+<span class="co">#&gt; The following objects are masked from 'package:Biobase':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     anyMissing, rowMedians</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'DelayedArray'</span>
+<span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges</span>
+<span class="co">#&gt; The following objects are masked from 'package:base':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     aperm, apply</span>
+camp &lt;-<span class="st"> </span><span class="kw">SingleCellExperiment</span>(<span class="dt">assays =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">logcounts =</span> counts),<span class="dt">colData =</span> metadata)
+
+IN &lt;-<span class="st"> </span>camp[,camp<span class="op">$</span>LB_status<span class="op">==</span><span class="st">"IN"</span>]
+LB &lt;-<span class="st"> </span>camp[,camp<span class="op">$</span>LB_status<span class="op">==</span><span class="st">"LB"</span>]
+
+out &lt;-<span class="st"> </span>scran<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(IN,LB,<span class="dt">assay.type =</span> <span class="st">"logcounts"</span>)
+<span class="co">#&gt; Warning in .batch_rescaler(batches, subset.row = nonspike.subset,</span>
+<span class="co">#&gt; exprs_values = assay.type, : no size factors in batch 1, using sum of</span>
+<span class="co">#&gt; counts instead</span>
+<span class="co">#&gt; Warning in .batch_rescaler(batches, subset.row = nonspike.subset,</span>
+<span class="co">#&gt; exprs_values = assay.type, : no size factors in batch 2, using sum of</span>
+<span class="co">#&gt; counts instead</span>
+IN &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]
+LB &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]
+
+combined &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(<span class="kw">logcounts</span>(IN),<span class="kw">logcounts</span>(LB))
+
+pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(forcats)
+lineage &lt;-<span class="st"> </span><span class="kw"><a href="https://forcats.tidyverse.org/reference/fct_c.html">fct_c</a></span>(IN<span class="op">$</span>lineage,LB<span class="op">$</span>lineage)
+batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Input"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(IN)),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Liver bud"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(LB)))
+<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> lineage,<span class="dt">shape =</span> batch)</code></pre></div>
+<p><img src="liver-bud_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res_list_liver_bud &lt;-<span class="st"> </span><span class="kw"><a href="../reference/corgi.html">corgi</a></span>(<span class="kw">logcounts</span>(IN),<span class="kw">logcounts</span>(LB),<span class="dt">n_phases =</span> <span class="dv">3</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span><span class="op">*</span><span class="dv">60</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"res_list_liver_bud"</span>)
+res &lt;-<span class="st"> </span>res_list_liver_bud[[<span class="dv">1</span>]]
+
+
+corgi_gene_set &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/head">head</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/names">names</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sort">sort</a></span>(res[,<span class="st">"SVG3"</span>]<span class="op">/</span>res[,<span class="st">"num.times.sampled"</span>],<span class="dt">decreasing =</span> T)),<span class="dv">300</span>)
+pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined[corgi_gene_set,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x
+<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> lineage,<span class="dt">shape =</span> batch)</code></pre></div>
+<p><img src="liver-bud_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

@@ -10,8 +10,6 @@
 #' @param n_cells_X_sample how many cells to sample from X
 #' @param n_cells_Y_sample how many cells to sample from Y
 #' @return a list of scores
-#' @import doParallel foreach parallel
-#' @export
 run_par <- function(
   X,
   Y,
@@ -62,15 +60,17 @@ run_par <- function(
     W <- t(colSums(rho)^(-1/2) * t(rowSums(rho)^(-1/2) * rho) )
     return(-diff(RSpectra::svds(W,k=(K+1),nu = 0, nv = 0)[["d"]]))
   }
-
   # setup parallel backend to use many processors
-  cores = detectCores()
+  cores = parallel::detectCores()
   n_cores_use = cores[1]-1
-  cl <- makeCluster(n_cores_use) # not to overload your computer
+  cl <- parallel::makeCluster(n_cores_use) # not to overload your computer
   print("number of cores used")
   print(n_cores_use)
-  registerDoParallel(cl)
-  res <- foreach(
+  doParallel::registerDoParallel(cl)
+
+  `%dopar%` <- foreach::`%dopar%`
+
+  res <- foreach::foreach(
     i = 1:(n_cores_use),
     .combine = '+'
   ) %dopar% {
