@@ -107,7 +107,11 @@ qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
 
 The following is precomputed. 
 ```{r, eval = F}
-res_list_toy_example <- corgi(X,Y,n_phases = 2,time_per_phase = 10)
+system.time(res_list_toy_example <- corgi(X,Y,n_phases = 1,time_per_phase = 30))
+
+res <- res_list_toy_example[[1]]
+
+sum(res[,"num.times.sampled"])/10
 ```
 
 The following load the precomputed corgi output.

@@ -32,9 +32,55 @@ colnames(counts) <- metadata$cell_id
 
 rownames(metadata) <- metadata$cell_id
 
-LB_status <- unlist(lapply(metadata$assignment_LB,function(x) ifelse(test = grepl("LB",x),yes = "LB",no = "IN")))
-lineage <- as.factor(unlist(lapply(X = metadata$assignment_LB,FUN = function(x) strsplit(as.character(x),split = "-",fixed = T)[[1]][1])))
+metadata$LB_status <- 
+  unlist(lapply(X = metadata$assignment_LB,
+                FUN = function(x) ifelse(test = grepl("LB",x),yes = "LB",no = "IN")
+                ))
 
-table(LB_status,lineage)
+metadata$lineage <- 
+  factor(unlist(
+    lapply(X = metadata$assignment_LB,
+           FUN = function(x) strsplit(as.character(x),split = "-",fixed = T)[[1]][1])
+    ))
+
+table(metadata$LB_status,metadata$lineage)
+```
+
+```{r}
+library(scran)
+camp <- SingleCellExperiment(assays = list(logcounts = counts),colData = metadata)
+
+IN <- camp[,camp$LB_status=="IN"]
+LB <- camp[,camp$LB_status=="LB"]
+
+out <- scran::multiBatchNorm(IN,LB,assay.type = "logcounts")
+IN <- out[[1]]
+LB <- out[[2]]
+
+combined <- cbind(logcounts(IN),logcounts(LB))
+
+pc <- prcomp(t(combined),rank. = 2)$x
+```
+
+
+```{r}
+library(ggplot2)
+library(forcats)
+lineage <- fct_c(IN$lineage,LB$lineage)
+batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)))
+qplot(pc[,1],pc[,2],color = lineage,shape = batch)
+```
+
+```{r}
+res_list_liver_bud <- corgi(logcounts(IN),logcounts(LB),n_phases = 3,time_per_phase = 10*60)
+```
+
+```{r}
+res <- res_list_liver_bud[[1]]
+
+
+corgi_gene_set <- head(names(sort(res[,"SVG3"]/res[,"num.times.sampled"],decreasing = T)),300)
+pc <- prcomp(t(combined[corgi_gene_set,]),rank. = 2)$x
+qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
 

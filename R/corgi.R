@@ -38,13 +38,16 @@ run_par <- function(
     genes_use <- rownames(X)
   }
 
+
   if(is.null(n_cells_X_sample)){
     n_cells_X_sample <- min(300, ncol(X))
   }
+  do_sample_X <- (n_cells_X_sample < ncol(X))
 
   if(is.null(n_cells_Y_sample)){
     n_cells_Y_sample <- min(300, ncol(Y))
   }
+  do_sample_Y <- (n_cells_Y_sample < ncol(Y))
 
   if(is.null(n_genes_sample)){
     n_genes_sample <- min(round(length(genes_use)*0.1),200)
@@ -52,27 +55,29 @@ run_par <- function(
 
   gene_sample_pool <- setdiff(genes_use,must_have_genes)
 
-  Spearman_rho_Fiedler <- function(X,Y,K){
+
+  Spearman_rho_singular_values <- function(X,Y,K){
     rho <- (1+cor(X,Y,method = 'spearman'))/2
-    W <- diag(rowSums(rho)^(-1/2)) %*% rho %*% diag(colSums(rho)^(-1/2))
-    return(abs(diff(RSpectra::svds(W,k=(K+1))$d)))
+    # W <- diag(rowSums(rho)^(-1/2)) %*% rho %*% diag(colSums(rho)^(-1/2))
+    W <- t(colSums(rho)^(-1/2) * t(rowSums(rho)^(-1/2) * rho) )
+    return(-diff(RSpectra::svds(W,k=(K+1),nu = 0, nv = 0)[["d"]]))
   }
-
-
-
 
   # setup parallel backend to use many processors
   cores = detectCores()
-  cl <- makeCluster(cores[1] - 1) # not to overload your computer
+  n_cores_use = cores[1]-1
+  cl <- makeCluster(n_cores_use) # not to overload your computer
+  print("number of cores used")
+  print(n_cores_use)
   registerDoParallel(cl)
   res <- foreach(
-    i = 1:(cores[1] - 1),
+    i = 1:(n_cores_use),
     .combine = '+'
   ) %dopar% {
-    res_temp <- matrix(0,length(gene_sample_pool),n_singular_gaps+1)
+    res_temp <- matrix(0,n_singular_gaps+1,length(gene_sample_pool))
 
-    rownames(res_temp) <- gene_sample_pool
-    colnames(res_temp)<-c(paste0("SVG",1:n_singular_gaps), "num.times.sampled")
+    colnames(res_temp) <- gene_sample_pool
+    rownames(res_temp) <- c(paste0("SVG",1:n_singular_gaps), "num.times.sampled")
 
     start_time <- Sys.time()
     end_time <- start_time
@@ -80,24 +85,27 @@ run_par <- function(
     while(as.numeric(difftime(time1 = end_time,
                               time2 = start_time,
                               units = "secs")) < run_time){
-      # print("hi")
-      # print(genes.use)
       gset <- sample(gene_sample_pool,n_genes_sample)
-      gset_must_have <- union(gset,must_have_genes)
-      cset_X <- sample(cells_X,n_cells_X_sample)
-      cset_Y <- sample(cells_Y,n_cells_Y_sample)
-      # make sure there is no sample with all zeros
-      if(min(apply(X[gset_must_have,cset_X],2,max),apply(Y[gset_must_have,cset_Y],2,max))>0){
-        res_temp[gset,1:n_singular_gaps]<-
-          res_temp[gset,1:n_singular_gaps] +
-          pracma::repmat(
-            Spearman_rho_Fiedler(X[gset_must_have,cset_X],
-                                 Y[gset_must_have,cset_Y],
-                                 n_singular_gaps),
-                 n_genes_sample,1)
+      gset_use <- union(gset,must_have_genes)
 
-        res_temp[gset,"num.times.sampled"]<-
-          res_temp[gset,"num.times.sampled"]+1
+      if(do_sample_X){
+        X_use <- X[gset_use,sample(cells_X,n_cells_X_sample)]
+      }else{
+        X_use <- X[gset_use,]
+      }
+
+      if(do_sample_Y){
+        Y_use <- Y[gset_use,sample(cells_Y,n_cells_Y_sample)]
+      }else{
+        Y_use <- Y[gset_use,]
+      }
+      # make sure there is no sample with all zeros
+      if(min(apply(X_use,2,max),apply(Y_use,2,max))>0){
+        res_temp[1:n_singular_gaps,gset]<-
+          res_temp[1:n_singular_gaps,gset] +
+          Spearman_rho_singular_values(X_use,Y_use,n_singular_gaps)
+
+        res_temp["num.times.sampled",gset] <- res_temp["num.times.sampled",gset] + 1
       }
       end_time <- Sys.time()
     }
@@ -107,12 +115,13 @@ run_par <- function(
   }
   #
   stopCluster(cl)
-  return(res)
+  return(t(res))
 }
 
 
 
-upper.quantile.genes <- function(res,rng,q){
+
+upper_quantile_genes <- function(res,rng,q){
   n.sv <- ncol(res) - 1
   um <- list()
   # union.upper.medians <- list()
@@ -159,7 +168,7 @@ corgi <- function(
     stop("Columns of X, Y must have names")
   }
 
-  q <- 1-0.5
+  q <- 1/2 # successive halving
 
   res_list <- list()
   for(i in 1:n_phases){
@@ -177,7 +186,7 @@ corgi <- function(
       n_cells_Y_sample = n_cells_Y_sample
     )
     print(nrow(res))
-    upper.quantile.genes(res,2:n_singular_gaps,q) -> outliers
+    upper_quantile_genes(res,2:n_singular_gaps,q) -> outliers
     Reduce(union,outliers) -> genes.use
     res_list[[i]] <- res
 
