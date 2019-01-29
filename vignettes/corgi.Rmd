@@ -1,5 +1,5 @@
 ---
-title: "Get started"
+title: "Get started - pre-implantation embryo development in human and mouse"
 author: "Yutong Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -23,16 +23,18 @@ knitr::opts_chunk$set(
 library(corgi)
 ```
 
+# Load the data
+
+We download the data from the [Hemberg Lab website](https://hemberg-lab.github.io/scRNA.seq.datasets/). The human dataset is from [Yan et al 2013](http://dx.doi.org/10.1038/nsmb.2660) while the mouse dataset is from [Deng et al 2014](http://dx.doi.org/10.1126/science.1245316).
+
 ```{r}
 yan <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"))
 deng <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"))
-
-cell_type <- forcats::fct_c(as.factor(yan$cell_type1),as.factor(deng$cell_type1))
-batch <- c(rep("Human",ncol(yan)),rep("Mouse",ncol(deng)))
-
 ```
 
+# Preprocessing the data
 
+Get genes common to both datasets
 ```{r}
 rownames(yan) <- toupper(rownames(yan))
 rownames(deng) <- toupper(rownames(deng))
@@ -45,27 +47,41 @@ Get rid of the spike-in genes
 shared_genes <- shared_genes[-grep("ERCC",shared_genes)]
 ```
 
-
+Subset the data
 ```{r}
 yan <- yan[shared_genes,]
 deng <- deng[shared_genes,]
 ```
 
+Normalize the data
 ```{r}
 library(scran)
-out <- scran::multiBatchNorm(yan,deng,assay.type = "logcounts")
+out <- multiBatchNorm(yan,deng,assay.type = "logcounts")
 
 yan <- out[[1]]
 deng <- out[[2]]
+```
 
+Combine the datasets
+```{r}
 X <- logcounts(yan)
 Y <- logcounts(deng)
 
 Z <- cbind(X,Y)
+```
 
+Perform PCA
+```{r}
 pc <- prcomp(t(Z),rank. = 2)$x
 ```
 
+Prepare the meta data
+```{r}
+cell_type <- forcats::fct_c(as.factor(yan$cell_type1),as.factor(deng$cell_type1))
+batch <- c(rep("Human",ncol(yan)),rep("Mouse",ncol(deng)))
+```
+
+# PCA plot
 
 ```{r}
 library(ggplot2)
@@ -73,9 +89,20 @@ library(ggplot2)
 qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
 ```
 
+# Run CorGI feature selection
+
+```{r, eval = F}
+corgi_output_embyro_devel <- run_corgi(X,Y,time_per_phase = 10*60)
+devtools::use_data(corgi_output_embyro_devel)
+```
+
+
 # Using the gene set produced by CorGI
+
+
 ```{r}
-data("corgi_gene_set")
+data("corgi_output_embyro_devel")
+corgi_gene_set <- select_top_corgi_genes(corgi_output_embyro_devel,n = 300,SVG_use = 3)
 pc <- prcomp(t(Z[corgi_gene_set,]),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
 ```

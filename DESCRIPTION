@@ -6,7 +6,7 @@ Author: Yutong Wang
 Maintainer: Yutong Wang <yutongw@umich.umich>
 Description: Correlation matrix singular value Gap Inflation (CorGI) is an unsupervised feature selection method for manifold alignment of scRNA-seq data.
     CorGI is a gene filter (unsupervised feature selection) to rank genes in terms of their usefulness for comparing two datasets.
-License: What license is it under?
+License: MIT
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
