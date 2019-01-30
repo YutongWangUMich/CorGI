@@ -12,6 +12,8 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
   comment = "#>"
 )
 ```
@@ -21,6 +23,8 @@ In this vignette, we analyze the liver bud dataset from [Camp et al 2017](https:
 ```{r}
 library(corgi)
 ```
+
+# Download the datasets
 
 ```{r}
 con <- gzcon(url("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz"))
@@ -49,6 +53,8 @@ metadata$lineage <-
 table(metadata$LB_status,metadata$lineage)
 ```
 
+# Normalization
+
 ```{r}
 library(scran)
 camp <- SingleCellExperiment(assays = list(logcounts = counts),colData = metadata)
@@ -65,6 +71,7 @@ combined <- cbind(logcounts(IN),logcounts(LB))
 pc <- prcomp(t(combined),rank. = 2)$x
 ```
 
+# PCA using all the genes
 
 ```{r}
 library(ggplot2)
@@ -74,14 +81,22 @@ batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)))
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
 
+# Running CorGI unsupervised feature selection
 ```{r, eval = F}
 res_list_liver_bud <- run_corgi(logcounts(IN),logcounts(LB),n_phases = 3,time_per_phase = 10*60)
 ```
 
+# Selecting the top CorGI genes
+
 ```{r}
 data("res_list_liver_bud")
 corgi_gene_set <- select_top_corgi_genes(res_list_liver_bud,300)
+```
 
+
+# PCA on CorGI genes
+
+```{r}
 pc <- prcomp(t(combined[corgi_gene_set,]),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
