@@ -11,4 +11,4 @@ library(devtools)
 install_github("YutongWangUMich/corgi")
 ```
 
-To get started, check out the vignette on [https://yutongwangumich.github.io/corgi/articles/corgi.html](manifold alignment of pre-implantation embryogenesis between mouse and human).
+To get started, check out the vignette on [manifold alignment of pre-implantation embryogenesis between mouse and human](https://yutongwangumich.github.io/corgi/articles/corgi.html).
