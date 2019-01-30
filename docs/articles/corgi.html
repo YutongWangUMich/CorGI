@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Get started • corgi</title>
+<title>Pre-implantation embryo development in human and mouse • corgi</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Get started">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Pre-implantation embryo development in human and mouse">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -79,10 +79,10 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Get started</h1>
+      <h1>Pre-implantation embryo development in human and mouse</h1>
                         <h4 class="author">Yutong Wang</h4>
             
-            <h4 class="date">2019-01-28</h4>
+            <h4 class="date">2019-01-30</h4>
       
       
       <div class="hidden name"><code>corgi.Rmd</code></div>
@@ -91,42 +91,66 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</a></code></pre></div>
+<p>We illustrate the CorGI feature selection method by analyzing datasets on human and mouse pre-implantation embryo development.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a></code></pre></div>
+<div id="load-the-data" class="section level1">
+<h1 class="hasAnchor">
+<a href="#load-the-data" class="anchor"></a>Load the data</h1>
+<p>We download the data from the <a href="https://hemberg-lab.github.io/scRNA.seq.datasets/">Hemberg Lab website</a>. The human dataset is from <a href="http://dx.doi.org/10.1038/nsmb.2660">Yan et al 2013</a> while the mouse dataset is from <a href="http://dx.doi.org/10.1126/science.1245316">Deng et al 2014</a>.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">yan &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/readRDS">readRDS</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"</span>))</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">deng &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/readRDS">readRDS</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"</span>))</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4">cell_type &lt;-<span class="st"> </span>forcats<span class="op">::</span><span class="kw"><a href="https://forcats.tidyverse.org/reference/fct_c.html">fct_c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">as.factor</a></span>(yan<span class="op">$</span>cell_type1),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">as.factor</a></span>(deng<span class="op">$</span>cell_type1))</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Human"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(yan)),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Mouse"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(deng)))</a></code></pre></div>
+<a class="sourceLine" id="cb2-2" data-line-number="2">deng &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/readRDS">readRDS</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"</span>))</a></code></pre></div>
+</div>
+<div id="preprocessing-the-data" class="section level1">
+<h1 class="hasAnchor">
+<a href="#preprocessing-the-data" class="anchor"></a>Preprocessing the data</h1>
+<p>Get genes common to both datasets</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(yan) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/chartr">toupper</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(yan))</a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(deng) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/chartr">toupper</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(deng))</a>
 <a class="sourceLine" id="cb3-3" data-line-number="3">shared_genes &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">intersect</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(yan),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(deng))</a></code></pre></div>
 <p>Get rid of the spike-in genes</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">shared_genes &lt;-<span class="st"> </span>shared_genes[<span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grep</a></span>(<span class="st">"ERCC"</span>,shared_genes)]</a></code></pre></div>
+<p>Subset the data</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">yan &lt;-<span class="st"> </span>yan[shared_genes,]</a>
 <a class="sourceLine" id="cb5-2" data-line-number="2">deng &lt;-<span class="st"> </span>deng[shared_genes,]</a></code></pre></div>
+<p>Normalize the data</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scran)</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">out &lt;-<span class="st"> </span>scran<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(yan,deng,<span class="dt">assay.type =</span> <span class="st">"logcounts"</span>)</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">out &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(yan,deng,<span class="dt">assay.type =</span> <span class="st">"logcounts"</span>)</a>
 <a class="sourceLine" id="cb6-3" data-line-number="3"></a>
 <a class="sourceLine" id="cb6-4" data-line-number="4">yan &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]</a>
-<a class="sourceLine" id="cb6-5" data-line-number="5">deng &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]</a>
-<a class="sourceLine" id="cb6-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb6-7" data-line-number="7">X &lt;-<span class="st"> </span><span class="kw">logcounts</span>(yan)</a>
-<a class="sourceLine" id="cb6-8" data-line-number="8">Y &lt;-<span class="st"> </span><span class="kw">logcounts</span>(deng)</a>
-<a class="sourceLine" id="cb6-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb6-10" data-line-number="10">Z &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(X,Y)</a>
-<a class="sourceLine" id="cb6-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb6-12" data-line-number="12">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a>
-<a class="sourceLine" id="cb7-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type,<span class="dt">shape =</span> batch)</a></code></pre></div>
-<p><img src="corgi_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<a class="sourceLine" id="cb6-5" data-line-number="5">deng &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]</a></code></pre></div>
+<p>Combine the datasets</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">X &lt;-<span class="st"> </span><span class="kw">logcounts</span>(yan)</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">Y &lt;-<span class="st"> </span><span class="kw">logcounts</span>(deng)</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">Z &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(X,Y)</a></code></pre></div>
+<p>Perform PCA</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a></code></pre></div>
+<p>Prepare the meta data</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">cell_type &lt;-<span class="st"> </span>forcats<span class="op">::</span><span class="kw"><a href="https://forcats.tidyverse.org/reference/fct_c.html">fct_c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">as.factor</a></span>(yan<span class="op">$</span>cell_type1),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">as.factor</a></span>(deng<span class="op">$</span>cell_type1))</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Human"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(yan)),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Mouse"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(deng)))</a></code></pre></div>
+</div>
+<div id="pca-plot" class="section level1">
+<h1 class="hasAnchor">
+<a href="#pca-plot" class="anchor"></a>PCA plot</h1>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type,<span class="dt">shape =</span> batch)</a></code></pre></div>
+<p><img src="corgi_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+</div>
+<div id="run-corgi-feature-selection" class="section level1">
+<h1 class="hasAnchor">
+<a href="#run-corgi-feature-selection" class="anchor"></a>Run CorGI feature selection</h1>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">corgi_output_embyro_devel &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_corgi.html">run_corgi</a></span>(X,Y,<span class="dt">time_per_phase =</span> <span class="dv">10</span><span class="op">*</span><span class="dv">60</span>)</a></code></pre></div>
+</div>
 <div id="using-the-gene-set-produced-by-corgi" class="section level1">
 <h1 class="hasAnchor">
 <a href="#using-the-gene-set-produced-by-corgi" class="anchor"></a>Using the gene set produced by CorGI</h1>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"corgi_gene_set"</span>)</a>
-<a class="sourceLine" id="cb8-2" data-line-number="2">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z[corgi_gene_set,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
-<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type,<span class="dt">shape =</span> batch)</a></code></pre></div>
-<p><img src="corgi_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">corgi_gene_set &lt;-<span class="st"> </span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">union</a></span>(<span class="kw"><a href="../reference/select_top_corgi_genes.html">select_top_corgi_genes</a></span>(corgi_output_embyro_devel,<span class="dt">n =</span> <span class="dv">100</span>,<span class="dt">SVG_use =</span> <span class="dv">2</span>),</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">        <span class="kw"><a href="../reference/select_top_corgi_genes.html">select_top_corgi_genes</a></span>(corgi_output_embyro_devel,<span class="dt">n =</span> <span class="dv">100</span>,<span class="dt">SVG_use =</span> <span class="dv">3</span>))</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb12-5" data-line-number="5">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z[corgi_gene_set,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
+<a class="sourceLine" id="cb12-6" data-line-number="6"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type,<span class="dt">shape =</span> batch)</a></code></pre></div>
+<p><img src="corgi_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 </div>
   </div>
 
@@ -135,7 +159,11 @@
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#using-the-gene-set-produced-by-corgi">Using the gene set produced by CorGI</a></li>
+<li><a href="#load-the-data">Load the data</a></li>
+      <li><a href="#preprocessing-the-data">Preprocessing the data</a></li>
+      <li><a href="#pca-plot">PCA plot</a></li>
+      <li><a href="#run-corgi-feature-selection">Run CorGI feature selection</a></li>
+      <li><a href="#using-the-gene-set-produced-by-corgi">Using the gene set produced by CorGI</a></li>
       </ul>
 </div>
       </div>

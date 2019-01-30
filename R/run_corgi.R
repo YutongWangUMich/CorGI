@@ -64,12 +64,13 @@ run_corgi <- function(
     )
     print(nrow(res))
     upper_quantile_genes(res,2:n_singular_gaps,q) -> outliers
-    Reduce(union,outliers) -> genes.use
+    Reduce(union,outliers) -> genes_use
+    union(genes_use,must_have_genes) -> genes_use
     res_list[[i]] <- res
 
 
-    X <- X[genes.use,]
-    Y <- Y[genes.use,]
+    X <- X[genes_use,]
+    Y <- Y[genes_use,]
 
     end_time <- Sys.time()
     print(end_time - start_time)

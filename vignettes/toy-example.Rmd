@@ -1,5 +1,5 @@
 ---
-title: "Using CorGI on a synthetic example"
+title: "Synthetic data example"
 author: "Yutong"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -109,7 +109,7 @@ qplot(pc[,1],pc[,2],color =rep(cell_labels,2),shape = batch_ids)
 
 The following is precomputed. 
 ```{r, eval = F}
-system.time(corgi_output_toy_example <- run_corgi(X,Y,n_phases = 1,time_per_phase = 10))
+corgi_output_toy_example <- run_corgi(X,Y,n_phases = 1,time_per_phase = 10)
 ```
 
 ```{r,include=FALSE}

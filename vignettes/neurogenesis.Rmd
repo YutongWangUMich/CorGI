@@ -12,12 +12,22 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
   comment = "#>"
 )
 ```
 
-In this vignette, we the semi-supervised version of `corgi` applied to the neurogenesis in SVZ datasets
+In this vignette, we the semi-supervised version of `corgi` applied to the neurogenesis in SVZ datasets:
 
+- [Dulken et al. 2017](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/)
+- [Llorens-Bobadilla et al. 2015](https://www.ncbi.nlm.nih.gov/pubmed/26235341)
+
+```{r}
+library(corgi)
+library(knitr)
+library(ggplot2)
+```
 
 # Loading Llorens-Bobadilla et al. 2015 dataset
 
@@ -45,13 +55,17 @@ llorens_cell_type <-  factor(
            FUN = function(x){substr(x,1,1)})
     )
   )
+
+# Make the cluster labels more intuitive
+# neural stem and transient transit amplifying cells (NSC and TAP)
+llorens_cell_type <- plyr::mapvalues(x = llorens_cell_type,
+                                     from = c("N","t"),
+                                     to = c("NSC","TAP")) 
 ```
 
 # Loading Dulken et al 2017 dataset
 
-This code is adapted obtained from the [GitHub code for Figure 1 in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure1/PCA%20-%20Outliers%20Removed%20_%20Figure%201C.R)
-
-The difference is we don't filter genes by cell-cycle.
+This code is obtained from the [GitHub code for Figure 1 in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure1/PCA%20-%20Outliers%20Removed%20_%20Figure%201C.R). The difference between our code and theirs is that we don't filter out cell-cycle genes.
 
 ```{r}
 #Loading all high quality cells and filtering for lowly expressed genes
@@ -81,29 +95,104 @@ dulken_cell_type <-
 
 
 
+We consider only genes in both datasets.
 ```{r}
 shared_genes <- intersect(rownames(dulken),rownames(llorens))
 length(shared_genes)
+```
+
+
+Combine the datasets
+
+```{r}
 dulken <- dulken[shared_genes,]
 llorens <- llorens[shared_genes,]
 comb <- cbind(dulken,llorens)
+```
+
+Metadata for the merged dataset
+```{r}
 cell_type <- forcats::fct_c(dulken_cell_type,llorens_cell_type)
 batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens-Bobadilla",ncol(llorens)))
+
+kable(table(cell_type,batch))
+```
+
+
+Download the genes ranked by their supervised feature selection method
+```{r}
+library("openxlsx")
+consensus_genes <- read.xlsx("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/bin/NIHMS839312-supplement-7.xlsx")
+dim(consensus_genes)
+kable(consensus_genes[1:10,1:5]) # print a nice looking table of the top-left corner of the data
+
+```
+
+```{r}
+consensus_genes <- consensus_genes[,-c(1)] # remove the first column, which is metadata
+
+# Input: percentage (a number between 0 and 100)
+# Output: gene_set consisting of genes showing up in at least percentage number of models
+top_consensus_genes <- function(percentage) {
+  gene_set <- c()
+  
+  for (g in Reduce(union, consensus_genes)) {
+    if (sum(sapply(
+      X = consensus_genes,
+      FUN = function(model) {
+        g %in% model
+      })) > percentage) {
+      gene_set <- c(gene_set, g)
+    }
+  }
+  return(gene_set)
+}
+
+consensus34 <- top_consensus_genes(percentage = 50)
+
+```
+
+There are 34 genes that show up in more than 50% of the models, in agreement with Dulken et al. 2017
+
+```{r}
+length(consensus34)
+```
+
+# Running semi-supervised corgi with the consensus gene set as markers
+
+
+```{r,eval = F}
+corgi_output_neurogenesis <- run_corgi(dulken,llorens,time_per_phase = 10*60,must_have_genes = consensus34)
+```
+
+```{r,eval=F,include=F}
+devtools::use_data(corgi_output_neurogenesis)
+```
+```{r,include=F}
+data("corgi_output_neurogenesis")
 ```
 
 
 ```{r}
-library(corgi)
-library(ggplot2)
-data("gs_neurogenesis")
-
-corgi_gene_set <- gs_neurogenesis[[3]]
+corgi_gene_set <- select_top_corgi_genes(corgi_output_neurogenesis,n = 100)
 length(corgi_gene_set)
 
-D <- (1-cor(comb[corgi_gene_set,],method = "spearman"))/2
+
+D <- (1-cor(comb[union(corgi_gene_set,consensus34),],method = "spearman"))/2
 mds <- cmdscale(D,k=2)
 
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
-
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch) + 
+  scale_shape_manual(values=c(1,16))
 ```
 
+
+Combine some of the cell-types for visualization
+```{r}
+cell_type2 <- plyr::mapvalues(x = cell_type,
+                              from = c("aNSC", "Ast", "NPC", "qNSC", "NSC", "TAP"),
+                              to = c("NSC","Ast","NPC","NSC","NSC","NPC"))
+
+qplot(mds[,1],mds[,2],color = cell_type2,shape = batch) + 
+  scale_shape_manual(values=c(1,16))
+
+```

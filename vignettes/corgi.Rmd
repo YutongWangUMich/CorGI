@@ -1,5 +1,5 @@
 ---
-title: "Get started - pre-implantation embryo development in human and mouse"
+title: "Pre-implantation embryo development in human and mouse"
 author: "Yutong Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -18,9 +18,11 @@ knitr::opts_chunk$set(
 )
 ```
 
+We illustrate the CorGI feature selection method by analyzing datasets on human and mouse pre-implantation embryo development.
 
 ```{r}
 library(corgi)
+library(ggplot2)
 ```
 
 # Load the data
@@ -84,8 +86,6 @@ batch <- c(rep("Human",ncol(yan)),rep("Mouse",ncol(deng)))
 # PCA plot
 
 ```{r}
-library(ggplot2)
-
 qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
 ```
 
@@ -93,16 +93,24 @@ qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
 
 ```{r, eval = F}
 corgi_output_embyro_devel <- run_corgi(X,Y,time_per_phase = 10*60)
-devtools::use_data(corgi_output_embyro_devel)
 ```
 
+```{r,eval=F,include=F}
+devtools::use_data(corgi_output_embyro_devel,overwrite = T) # Cache the output so that we don't have to actually rerun corgi. Change to "eval=T" if rerun is necessary.
+```
+
+```{r,include=F}
+data("corgi_output_embyro_devel") # Load the cached output
+```
 
 # Using the gene set produced by CorGI
 
 
 ```{r}
-data("corgi_output_embyro_devel")
-corgi_gene_set <- select_top_corgi_genes(corgi_output_embyro_devel,n = 300,SVG_use = 3)
+corgi_gene_set <- 
+  union(select_top_corgi_genes(corgi_output_embyro_devel,n = 100,SVG_use = 2),
+        select_top_corgi_genes(corgi_output_embyro_devel,n = 100,SVG_use = 3))
+
 pc <- prcomp(t(Z[corgi_gene_set,]),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
 ```

@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Using CorGI on a synthetic example • corgi</title>
+<title>Synthetic data example • corgi</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Using CorGI on a synthetic example">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Synthetic data example">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -62,7 +62,7 @@
       <a href="../articles/neurogenesis.html">Neurogenesis in the SVZ</a>
     </li>
     <li>
-      <a href="../articles/toy-example.html">Using CorGI on a synthetic example</a>
+      <a href="../articles/toy-example.html">Synthetic data example</a>
     </li>
   </ul>
 </li>
@@ -79,10 +79,10 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Using CorGI on a synthetic example</h1>
+      <h1>Synthetic data example</h1>
                         <h4 class="author">Yutong</h4>
             
-            <h4 class="date">2019-01-28</h4>
+            <h4 class="date">2019-01-30</h4>
       
       
       <div class="hidden name"><code>toy-example.Rmd</code></div>
@@ -102,10 +102,12 @@
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">batch_ids &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>,<span class="dt">each =</span> n_cells))</a></code></pre></div>
 <p>For this toy example, each batch has the same proportion of cells</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">cell_labels &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="dv">1</span><span class="op">:</span>n_clusters,<span class="dt">each=</span>n_cells_per_cluster))</a></code></pre></div>
-<p>First ten genes are <em>good</em>, containing information about the cluster identity. The remaining genes are <em>bad</em>, containing only batch effects.</p>
+<p>First ten genes are <em>good</em>, containing information about the cluster identity. The remaining 90 genes are <em>bad</em>, containing only batch effects.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">n_genes &lt;-<span class="st"> </span><span class="dv">100</span></a>
 <a class="sourceLine" id="cb5-2" data-line-number="2">good_genes &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">10</span></a>
-<a class="sourceLine" id="cb5-3" data-line-number="3">bad_genes &lt;-<span class="st"> </span><span class="dv">11</span><span class="op">:</span><span class="dv">100</span></a></code></pre></div>
+<a class="sourceLine" id="cb5-3" data-line-number="3">bad_genes &lt;-<span class="st"> </span><span class="dv">11</span><span class="op">:</span><span class="dv">100</span></a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">gene_type &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"good"</span>,<span class="dv">10</span>),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"bad"</span>,<span class="dv">90</span>))</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">gene_names &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"g"</span>,<span class="dv">1</span><span class="op">:</span>n_genes),gene_type)</a></code></pre></div>
 <p>Helper function</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co"># Returns a m-by-n matrix of normal random variables with zero mean and unit variance</span></a>
 <a class="sourceLine" id="cb6-2" data-line-number="2">rnorm_mat &lt;-<span class="st"> </span><span class="cf">function</span>(m,n){</a>
@@ -122,7 +124,7 @@
 <a class="sourceLine" id="cb9-3" data-line-number="3">  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(dat)){</a>
 <a class="sourceLine" id="cb9-4" data-line-number="4">    dat[,i] &lt;-<span class="st"> </span>dat[,i] <span class="op">+</span><span class="st"> </span>centroids[,cell_labels[i]] <span class="op">+</span><span class="st"> </span>batch_effects[,batch_id]</a>
 <a class="sourceLine" id="cb9-5" data-line-number="5">  }</a>
-<a class="sourceLine" id="cb9-6" data-line-number="6">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(dat) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"g"</span>,<span class="dv">1</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">nrow</a></span>(dat))</a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(dat) &lt;-<span class="st"> </span>gene_names</a>
 <a class="sourceLine" id="cb9-7" data-line-number="7">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(dat)</a>
 <a class="sourceLine" id="cb9-8" data-line-number="8">}</a>
 <a class="sourceLine" id="cb9-9" data-line-number="9"></a>
@@ -141,21 +143,14 @@
 <a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(cell_labels,<span class="dv">2</span>),<span class="dt">shape =</span> batch_ids)</a></code></pre></div>
 <p><img src="toy-example_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>The following is precomputed.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(res_list_toy_example &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_corgi.html">run_corgi</a></span>(X,Y,<span class="dt">n_phases =</span> <span class="dv">1</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span>))</a>
-<a class="sourceLine" id="cb12-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb12-3" data-line-number="3">res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]</a>
-<a class="sourceLine" id="cb12-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb12-5" data-line-number="5"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sum">sum</a></span>(res[,<span class="st">"num.times.sampled"</span>])<span class="op">/</span><span class="dv">10</span></a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">corgi_output_toy_example &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_corgi.html">run_corgi</a></span>(X,Y,<span class="dt">n_phases =</span> <span class="dv">1</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span>)</a></code></pre></div>
 <p>The following load the precomputed corgi output.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"res_list_toy_example"</span>)</a></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">res &lt;-<span class="st"> </span>res_list_toy_example[[<span class="dv">1</span>]]</a>
-<a class="sourceLine" id="cb14-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb14-3" data-line-number="3">SVG3 &lt;-<span class="st"> </span>res[,<span class="st">"SVG3"</span>]<span class="op">/</span>res[,<span class="st">"num.times.sampled"</span>]</a>
-<a class="sourceLine" id="cb14-4" data-line-number="4">NTS &lt;-<span class="st"> </span>res[,<span class="st">"num.times.sampled"</span>]</a>
-<a class="sourceLine" id="cb14-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb14-6" data-line-number="6">gene_type &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Good"</span>,<span class="dv">10</span>),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Bad"</span>,<span class="dv">90</span>))</a>
-<a class="sourceLine" id="cb14-7" data-line-number="7"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(SVG3,NTS,<span class="dt">color =</span> gene_type)</a></code></pre></div>
-<p><img src="toy-example_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">corgi_gene_set &lt;-<span class="st"> </span><span class="kw"><a href="../reference/select_top_corgi_genes.html">select_top_corgi_genes</a></span>(corgi_output_toy_example,<span class="dt">n =</span> <span class="dv">6</span>)</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">corgi_gene_set</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3"><span class="co">#&gt; [1] "g6good"  "g5good"  "g3good"  "g1good"  "g8good"  "g10good"</span></a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(Z[corgi_gene_set,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(cell_labels,<span class="dv">2</span>),<span class="dt">shape =</span> batch_ids)</a></code></pre></div>
+<p><img src="toy-example_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
