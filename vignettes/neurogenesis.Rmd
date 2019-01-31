@@ -29,6 +29,7 @@ library(knitr)
 library(ggplot2)
 library(scran) # we only need to use the multiBatchNorm function
 library(scmap) # we only need to use the selectFeatures function
+library(cowplot) # we use this to generate the multipanel plots
 ```
 
 # Loading Llorens-Bobadilla et al. 2015 dataset
@@ -133,15 +134,15 @@ comb <- cbind(dulken,llorens)
 ```
 
 
-Metadata for the merged dataset
+Merged metadata for the merged dataset
 ```{r}
 cell_type <- forcats::fct_c(dulken_cell_type,llorens_cell_type)
-batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens-Bobadilla",ncol(llorens)))
+batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens",ncol(llorens)))
 ```
 
 Overview of the cell types in each dataset
 ```{r}
-kable(table(cell_type,batch))
+kable(table(cell_type, batch))
 ```
 
 Simplify and combine some of the cell-types for visualization
@@ -149,6 +150,8 @@ Simplify and combine some of the cell-types for visualization
 cell_type2 <- plyr::mapvalues(x = cell_type,
                               from = c("aNSC", "Ast", "NPC", "qNSC", "NSC", "TAP"),
                               to = c("NSC","Ast","NPC","NSC","NSC","NPC"))
+kable(table(cell_type2, batch))
+
 ```
 
 
@@ -289,17 +292,65 @@ lapply(gene_sets, length)
 
 
 ```{r}
-plts <- list()
+emb_name <- "MDS"
+
+embeddings <- 
+  lapply(
+    X = gene_sets,
+    FUN = function(gene_set) {
+      D <- (1 - cor(comb[gene_set, ], method = "spearman")) / 2
+      return(cmdscale(D, k = 2))
+    }
+  )
+
+
 lapply(X = seq_along(gene_sets),
        FUN = function(i){
-         gene_set <- gene_sets[[i]]
-         D <- (1 - cor(comb[gene_set, ], method = "spearman")) / 2
-         mds <- cmdscale(D, k = 2)
-         qplot(mds[, 1], mds[, 2], color = cell_type2, shape = batch) +
-           scale_shape_manual(values = c(1, 16)) + ggtitle(names(gene_sets)[i])
-       })
+         gs_name <- names(gene_sets)[i]
+         emb <- embeddings[[i]]
+         plot_dimensionality_reduction(emb,batch,cell_type2,gs_name,"MDS") +
+           scale_shape_manual(values = c(1, 16)) +
+           scale_color_manual(values = c("#E69F00","#000000", "#56B4E9"))
+       }) -> plts
 
 
+
+
+```
+
+
+
+```{r}
+
+knn.predict <- function(test.suite,cell.meta.data.pred = "cell_type1", test.batches, train.batches, gene.sets.use =NULL, methods.use = NULL, params=5*(1:6)){
+  knn.outputs <- list()
+  dr.ids <- get.main.loop(test.suite,gene.sets.use,methods.use)
+  knn.params <- data.frame(dr.id = rep(dr.ids,each = length(params)),
+                           param = rep(params,length(dr.ids)))
+  j <- 1
+  for(i in dr.ids){
+    for(param in params){
+      plt.dat <- prepare.data.for.plotting(test.suite,i)
+      df <- plt.dat$df
+      # df <- prepare.data.for.plotting(test.suite,i)$df
+      truth <- df[,cell.meta.data.pred]
+      test <- df$batch %in% test.batches
+      train <- df$batch %in% train.batches
+      class::knn(train = df[train,1:2],
+                 test = df[test,1:2],
+                 cl= truth[train],
+                 k = param) -> predictions
+      knn.outputs[[j]] <- data.frame(truth = truth[test], pred = predictions)
+      j <- j + 1
+    }
+  }
+  test.suite$knn.predict.outputs <- knn.outputs
+  test.suite$knn.predict.params <- knn.params
+  test.suite$knn.predict.benchmarks <- lapply(X = knn.outputs,FUN = cont.tab.to.TPR.FPR)
+  test.suite$knn.predict.meta.data <- 
+    list(test.batches=test.batches,train.batches=train.batches,cell.meta.data.pred=cell.meta.data.pred)
+  return(test.suite)
+}
 
 
 ```

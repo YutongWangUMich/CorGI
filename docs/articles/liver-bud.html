@@ -216,7 +216,10 @@
 <a class="sourceLine" id="cb6-2" data-line-number="2"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(</a>
 <a class="sourceLine" id="cb6-3" data-line-number="3">    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> metadata<span class="op">$</span>assignment_LB,</a>
 <a class="sourceLine" id="cb6-4" data-line-number="4">           <span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/strsplit">strsplit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/character">as.character</a></span>(x),<span class="dt">split =</span> <span class="st">"-"</span>,<span class="dt">fixed =</span> T)[[<span class="dv">1</span>]][<span class="dv">1</span>])</a>
-<a class="sourceLine" id="cb6-5" data-line-number="5">    ))</a></code></pre></div>
+<a class="sourceLine" id="cb6-5" data-line-number="5">    ))</a>
+<a class="sourceLine" id="cb6-6" data-line-number="6"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/levels">levels</a></span>(metadata<span class="op">$</span>lineage)</a>
+<a class="sourceLine" id="cb6-7" data-line-number="7"><span class="co">#&gt; [1] "EC" "HE" "MC"</span></a></code></pre></div>
+<p>EC = endothelial cells, HE = hepatic endoderm, MC = mesenchymal cells</p>
 </div>
 <div id="overview-of-the-datasets" class="section level2">
 <h2 class="hasAnchor">
@@ -282,7 +285,7 @@
 <div id="corgi-unsupervised-feature-selection" class="section level1">
 <h1 class="hasAnchor">
 <a href="#corgi-unsupervised-feature-selection" class="anchor"></a>CorGI unsupervised feature selection</h1>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">res_list_liver_bud &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_corgi.html">run_corgi</a></span>(<span class="kw">logcounts</span>(IN),<span class="kw">logcounts</span>(LB),<span class="dt">n_phases =</span> <span class="dv">3</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span><span class="op">*</span><span class="dv">60</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">res_list_liver_bud &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_corgi.html">run_corgi</a></span>(<span class="kw">logcounts</span>(IN),<span class="kw">logcounts</span>(LB))</a></code></pre></div>
 <div id="selecting-the-top-corgi-genes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#selecting-the-top-corgi-genes" class="anchor"></a>Selecting the top CorGI genes</h2>
@@ -296,6 +299,35 @@
 <a class="sourceLine" id="cb15-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> lineage,<span class="dt">shape =</span> batch)</a></code></pre></div>
 <p><img src="liver-bud_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 </div>
+</div>
+<div id="comparison" class="section level1">
+<h1 class="hasAnchor">
+<a href="#comparison" class="anchor"></a>Comparison</h1>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scmap)</a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="kw">rowData</span>(IN)[[<span class="st">"feature_symbol"</span>]] &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(IN)</a>
+<a class="sourceLine" id="cb16-3" data-line-number="3">IN &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scmap/topics/selectFeatures">selectFeatures</a></span>(IN,<span class="dt">n_features =</span> <span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb16-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb16-5" data-line-number="5"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(IN)[<span class="kw">rowData</span>(IN)[[<span class="st">"scmap_features"</span>]]]</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6"><span class="co">#&gt;   [1] "DHRS3"     "GNG12"     "DDAH1"     "CYR61"     "GSTM3"    </span></a>
+<a class="sourceLine" id="cb16-7" data-line-number="7"><span class="co">#&gt;   [6] "S100A6"    "S100A14"   "CRABP2"    "IFI16"     "APOA2"    </span></a>
+<a class="sourceLine" id="cb16-8" data-line-number="8"><span class="co">#&gt;  [11] "RGS4"      "RGS2"      "CSRP1"     "ID2"       "EFEMP1"   </span></a>
+<a class="sourceLine" id="cb16-9" data-line-number="9"><span class="co">#&gt;  [16] "VAMP8"     "VAMP5"     "FHL2"      "RND3"      "TFPI"     </span></a>
+<a class="sourceLine" id="cb16-10" data-line-number="10"><span class="co">#&gt;  [21] "NABP1"     "SERPINE2"  "SP100"     "RBMS3"     "CCDC80"   </span></a>
+<a class="sourceLine" id="cb16-11" data-line-number="11"><span class="co">#&gt;  [26] "ANAPC13"   "TM4SF1"    "MBNL1"     "PTX3"      "UCHL1"    </span></a>
+<a class="sourceLine" id="cb16-12" data-line-number="12"><span class="co">#&gt;  [31] "PDGFRA"    "IGFBP7"    "ANXA3"     "MAD2L1"    "GPX8"     </span></a>
+<a class="sourceLine" id="cb16-13" data-line-number="13"><span class="co">#&gt;  [36] "PLK2"      "CCNB1"     "VCAN"      "TGFBI"     "PTTG1"    </span></a>
+<a class="sourceLine" id="cb16-14" data-line-number="14"><span class="co">#&gt;  [41] "NOP16"     "DSP"       "TXNDC5"    "CENPW"     "CTGF"     </span></a>
+<a class="sourceLine" id="cb16-15" data-line-number="15"><span class="co">#&gt;  [46] "CHCHD2"    "COL1A2"    "SERPINE1"  "CAV2"      "CAV1"     </span></a>
+<a class="sourceLine" id="cb16-16" data-line-number="16"><span class="co">#&gt;  [51] "ANXA1"     "CTSV"      "RSU1"      "VIM"       "NRP1"     </span></a>
+<a class="sourceLine" id="cb16-17" data-line-number="17"><span class="co">#&gt;  [56] "DKK1"      "BICC1"     "SRGN"      "FAM213A"   "CD44"     </span></a>
+<a class="sourceLine" id="cb16-18" data-line-number="18"><span class="co">#&gt;  [61] "CTSC"      "NNMT"      "APOA1"     "TAGLN"     "CD9"      </span></a>
+<a class="sourceLine" id="cb16-19" data-line-number="19"><span class="co">#&gt;  [66] "EMP1"      "KRT8"      "KRT18"     "MSRB3"     "GLIPR1"   </span></a>
+<a class="sourceLine" id="cb16-20" data-line-number="20"><span class="co">#&gt;  [71] "LUM"       "DCN"       "CDK2AP1"   "LMO7"      "RNASE1"   </span></a>
+<a class="sourceLine" id="cb16-21" data-line-number="21"><span class="co">#&gt;  [76] "CFL2"      "CDKN3"     "CKB"       "CRIP2"     "THBS1"    </span></a>
+<a class="sourceLine" id="cb16-22" data-line-number="22"><span class="co">#&gt;  [81] "CCNB2"     "KIAA0101"  "MMP2"      "MT2A"      "MT1E"     </span></a>
+<a class="sourceLine" id="cb16-23" data-line-number="23"><span class="co">#&gt;  [86] "KRT19"     "PTRF"      "BIRC5"     "FXYD5"     "SPINT2"   </span></a>
+<a class="sourceLine" id="cb16-24" data-line-number="24"><span class="co">#&gt;  [91] "AXL"       "PLAUR"     "APOC1"     "EMP3"      "COMT"     </span></a>
+<a class="sourceLine" id="cb16-25" data-line-number="25"><span class="co">#&gt;  [96] "KDELR3"    "TSPO"      "PLP2"      "C1GALT1C1" "HPRT1"</span></a></code></pre></div>
 </div>
   </div>
 
@@ -320,6 +352,7 @@
       <li><a href="#pca-on-corgi-genes">PCA on CorGI genes</a></li>
       </ul>
 </li>
+      <li><a href="#comparison">Comparison</a></li>
       </ul>
 </div>
       </div>

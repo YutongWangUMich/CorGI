@@ -4,7 +4,7 @@
 \alias{run_corgi}
 \title{Corgi feature selection}
 \usage{
-run_corgi(X, Y, n_phases = 6, time_per_phase = 20 * 60,
+run_corgi(X, Y, n_phases = 6, time_per_phase = 10 * 60,
   must_have_genes = c(), n_singular_gaps = 3, n_genes_sample = NULL,
   n_cells_X_sample = NULL, n_cells_Y_sample = NULL)
 }
