@@ -22,71 +22,102 @@ In this vignette, we analyze the liver bud dataset from [Camp et al 2017](https:
 
 ```{r}
 library(corgi)
+library(knitr)
+library(ggplot2)
+library(forcats)
 ```
 
-# Download the datasets
+# Preprocessing the datasets
 
+Download from GSE and view the top-left corner of the data table
 ```{r}
-con <- gzcon(url("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz"))
+con <- gzcon(
+  url("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz")
+  )
 txt <- readLines(con)
-
 liverbud <- read.csv(file = textConnection(txt))
+kable(liverbud[1:10,1:6])
+```
 
+The first three columns are metadata while the rest are the log2 expression
+```{r}
 metadata <- liverbud[,1:3]
 counts <- t(as.matrix(liverbud[,4:ncol(liverbud)]))
+```
 
+```{r}
 colnames(counts) <- metadata$cell_id
-
 rownames(metadata) <- metadata$cell_id
+```
 
+## Metadata
+
+Whether a cell came from the liver bud or the input cell lines
+```{r}
 metadata$LB_status <- 
   unlist(lapply(X = metadata$assignment_LB,
-                FUN = function(x) ifelse(test = grepl("LB",x),yes = "LB",no = "IN")
+                FUN = function(x) ifelse(test = grepl("LB",x),yes = "Liver_bud",no = "Input")
                 ))
+```
 
+The original cell line identity
+```{r}
 metadata$lineage <- 
   factor(unlist(
     lapply(X = metadata$assignment_LB,
            FUN = function(x) strsplit(as.character(x),split = "-",fixed = T)[[1]][1])
     ))
+levels(metadata$lineage)
+```
+EC = endothelial cells, HE = hepatic endoderm, MC = mesenchymal cells
 
-table(metadata$LB_status,metadata$lineage)
+
+## Overview of the datasets
+```{r}
+kable(table(metadata$lineage,metadata$LB_status))
 ```
 
-# Normalization
 
+## Convert to `SingleCellExperiment` objects
 ```{r}
 library(scran)
 camp <- SingleCellExperiment(assays = list(logcounts = counts),colData = metadata)
 
-IN <- camp[,camp$LB_status=="IN"]
-LB <- camp[,camp$LB_status=="LB"]
+IN <- camp[,camp$LB_status=="Input"]
+LB <- camp[,camp$LB_status=="Liver_bud"]
+```
 
+## Normalization
+```{r}
 out <- scran::multiBatchNorm(IN,LB,assay.type = "logcounts")
 IN <- out[[1]]
 LB <- out[[2]]
+```
 
+Combine the datasets
+```{r}
 combined <- cbind(logcounts(IN),logcounts(LB))
+lineage <- fct_c(IN$lineage,LB$lineage)
+batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)))
+```
 
+## Compute PCA using all genes
+```{r}
 pc <- prcomp(t(combined),rank. = 2)$x
 ```
 
-# PCA using all the genes
+## PC plot using all the genes
 
 ```{r}
-library(ggplot2)
-library(forcats)
-lineage <- fct_c(IN$lineage,LB$lineage)
-batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)))
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
 
-# Running CorGI unsupervised feature selection
+# CorGI unsupervised feature selection
 ```{r, eval = F}
-res_list_liver_bud <- run_corgi(logcounts(IN),logcounts(LB),n_phases = 3,time_per_phase = 10*60)
+res_list_liver_bud <- run_corgi(logcounts(IN),logcounts(LB))
 ```
 
-# Selecting the top CorGI genes
+## Selecting the top CorGI genes
 
 ```{r}
 data("res_list_liver_bud")
@@ -94,9 +125,20 @@ corgi_gene_set <- select_top_corgi_genes(res_list_liver_bud,300)
 ```
 
 
-# PCA on CorGI genes
+## PCA on CorGI genes
 
 ```{r}
 pc <- prcomp(t(combined[corgi_gene_set,]),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
+
+# Comparison
+
+```{r}
+library(scmap)
+rowData(IN)[["feature_symbol"]] <- rownames(IN)
+IN <- selectFeatures(IN,n_features = 100)
+
+rownames(IN)[rowData(IN)[["scmap_features"]]]
+```
+

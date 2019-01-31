@@ -92,7 +92,7 @@ qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
 # Run CorGI feature selection
 
 ```{r, eval = F}
-corgi_output_embyro_devel <- run_corgi(X,Y,time_per_phase = 10*60)
+corgi_output_embyro_devel <- run_corgi(X,Y)
 ```
 
 ```{r,eval=F,include=F}

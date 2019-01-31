@@ -92,83 +92,210 @@
     
     
 <p>In this vignette, we analyze the liver bud dataset from <a href="https://www.nature.com/articles/nature22796">Camp et al 2017</a></p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</a></code></pre></div>
-<div id="download-the-datasets" class="section level1">
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(knitr)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(forcats)</a></code></pre></div>
+<div id="preprocessing-the-datasets" class="section level1">
 <h1 class="hasAnchor">
-<a href="#download-the-datasets" class="anchor"></a>Download the datasets</h1>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">con &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/gzcon">gzcon</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz"</span>))</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">txt &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/readLines">readLines</a></span>(con)</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4">liverbud &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.csv</a></span>(<span class="dt">file =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/textconnections">textConnection</a></span>(txt))</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb2-6" data-line-number="6">metadata &lt;-<span class="st"> </span>liverbud[,<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>]</a>
-<a class="sourceLine" id="cb2-7" data-line-number="7">counts &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">as.matrix</a></span>(liverbud[,<span class="dv">4</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(liverbud)]))</a>
-<a class="sourceLine" id="cb2-8" data-line-number="8"></a>
-<a class="sourceLine" id="cb2-9" data-line-number="9"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(counts) &lt;-<span class="st"> </span>metadata<span class="op">$</span>cell_id</a>
-<a class="sourceLine" id="cb2-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(metadata) &lt;-<span class="st"> </span>metadata<span class="op">$</span>cell_id</a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb2-13" data-line-number="13">metadata<span class="op">$</span>LB_status &lt;-<span class="st"> </span></a>
-<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> metadata<span class="op">$</span>assignment_LB,</a>
-<a class="sourceLine" id="cb2-15" data-line-number="15">                <span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/ifelse">ifelse</a></span>(<span class="dt">test =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grepl</a></span>(<span class="st">"LB"</span>,x),<span class="dt">yes =</span> <span class="st">"LB"</span>,<span class="dt">no =</span> <span class="st">"IN"</span>)</a>
-<a class="sourceLine" id="cb2-16" data-line-number="16">                ))</a>
-<a class="sourceLine" id="cb2-17" data-line-number="17"></a>
-<a class="sourceLine" id="cb2-18" data-line-number="18">metadata<span class="op">$</span>lineage &lt;-<span class="st"> </span></a>
-<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(</a>
-<a class="sourceLine" id="cb2-20" data-line-number="20">    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> metadata<span class="op">$</span>assignment_LB,</a>
-<a class="sourceLine" id="cb2-21" data-line-number="21">           <span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/strsplit">strsplit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/character">as.character</a></span>(x),<span class="dt">split =</span> <span class="st">"-"</span>,<span class="dt">fixed =</span> T)[[<span class="dv">1</span>]][<span class="dv">1</span>])</a>
-<a class="sourceLine" id="cb2-22" data-line-number="22">    ))</a>
-<a class="sourceLine" id="cb2-23" data-line-number="23"></a>
-<a class="sourceLine" id="cb2-24" data-line-number="24"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/table">table</a></span>(metadata<span class="op">$</span>LB_status,metadata<span class="op">$</span>lineage)</a>
-<a class="sourceLine" id="cb2-25" data-line-number="25"><span class="co">#&gt;     </span></a>
-<a class="sourceLine" id="cb2-26" data-line-number="26"><span class="co">#&gt;       EC  HE  MC</span></a>
-<a class="sourceLine" id="cb2-27" data-line-number="27"><span class="co">#&gt;   IN  74 113 104</span></a>
-<a class="sourceLine" id="cb2-28" data-line-number="28"><span class="co">#&gt;   LB  53  54  67</span></a></code></pre></div>
+<a href="#preprocessing-the-datasets" class="anchor"></a>Preprocessing the datasets</h1>
+<p>Download from GSE and view the top-left corner of the data table</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">con &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/gzcon">gzcon</a></span>(</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/connections">url</a></span>(<span class="st">"ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz"</span>)</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">  )</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">txt &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/readLines">readLines</a></span>(con)</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">liverbud &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/read.table">read.csv</a></span>(<span class="dt">file =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/textconnections">textConnection</a></span>(txt))</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="kw"><a href="https://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(liverbud[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>,<span class="dv">1</span><span class="op">:</span><span class="dv">6</span>])</a></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">cell_id</th>
+<th align="left">experiment</th>
+<th align="left">assignment_LB</th>
+<th align="right">ESRG</th>
+<th align="right">OR4F5</th>
+<th align="right">OR4F29</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">A1_he2</td>
+<td align="left">he2</td>
+<td align="left">HE</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">A1_huvec</td>
+<td align="left">huvec</td>
+<td align="left">EC</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">A1_lb1</td>
+<td align="left">lb1</td>
+<td align="left">MC-LB</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">A1_msc2</td>
+<td align="left">msc2</td>
+<td align="left">MC</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">A10_he1</td>
+<td align="left">he1</td>
+<td align="left">HE</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">A10_he2</td>
+<td align="left">he2</td>
+<td align="left">HE</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">A10_huvec</td>
+<td align="left">huvec</td>
+<td align="left">EC</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">A10_lb2</td>
+<td align="left">lb2</td>
+<td align="left">EC-LB</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">A10_lb5</td>
+<td align="left">lb5</td>
+<td align="left">MC-LB</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">A10_msc2</td>
+<td align="left">msc2</td>
+<td align="left">MC</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p>The first three columns are metadata while the rest are the log2 expression</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">metadata &lt;-<span class="st"> </span>liverbud[,<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>]</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">counts &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">as.matrix</a></span>(liverbud[,<span class="dv">4</span><span class="op">:</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(liverbud)]))</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(counts) &lt;-<span class="st"> </span>metadata<span class="op">$</span>cell_id</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(metadata) &lt;-<span class="st"> </span>metadata<span class="op">$</span>cell_id</a></code></pre></div>
+<div id="metadata" class="section level2">
+<h2 class="hasAnchor">
+<a href="#metadata" class="anchor"></a>Metadata</h2>
+<p>Whether a cell came from the liver bud or the input cell lines</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">metadata<span class="op">$</span>LB_status &lt;-<span class="st"> </span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> metadata<span class="op">$</span>assignment_LB,</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">                <span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/ifelse">ifelse</a></span>(<span class="dt">test =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/grep">grepl</a></span>(<span class="st">"LB"</span>,x),<span class="dt">yes =</span> <span class="st">"Liver_bud"</span>,<span class="dt">no =</span> <span class="st">"Input"</span>)</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">                ))</a></code></pre></div>
+<p>The original cell line identity</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">metadata<span class="op">$</span>lineage &lt;-<span class="st"> </span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/unlist">unlist</a></span>(</a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> metadata<span class="op">$</span>assignment_LB,</a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">           <span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/strsplit">strsplit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/character">as.character</a></span>(x),<span class="dt">split =</span> <span class="st">"-"</span>,<span class="dt">fixed =</span> T)[[<span class="dv">1</span>]][<span class="dv">1</span>])</a>
+<a class="sourceLine" id="cb6-5" data-line-number="5">    ))</a></code></pre></div>
 </div>
-<div id="normalization" class="section level1">
-<h1 class="hasAnchor">
-<a href="#normalization" class="anchor"></a>Normalization</h1>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scran)</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2">camp &lt;-<span class="st"> </span><span class="kw">SingleCellExperiment</span>(<span class="dt">assays =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">logcounts =</span> counts),<span class="dt">colData =</span> metadata)</a>
-<a class="sourceLine" id="cb3-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb3-4" data-line-number="4">IN &lt;-<span class="st"> </span>camp[,camp<span class="op">$</span>LB_status<span class="op">==</span><span class="st">"IN"</span>]</a>
-<a class="sourceLine" id="cb3-5" data-line-number="5">LB &lt;-<span class="st"> </span>camp[,camp<span class="op">$</span>LB_status<span class="op">==</span><span class="st">"LB"</span>]</a>
-<a class="sourceLine" id="cb3-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb3-7" data-line-number="7">out &lt;-<span class="st"> </span>scran<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(IN,LB,<span class="dt">assay.type =</span> <span class="st">"logcounts"</span>)</a>
-<a class="sourceLine" id="cb3-8" data-line-number="8">IN &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]</a>
-<a class="sourceLine" id="cb3-9" data-line-number="9">LB &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]</a>
-<a class="sourceLine" id="cb3-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb3-11" data-line-number="11">combined &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(<span class="kw">logcounts</span>(IN),<span class="kw">logcounts</span>(LB))</a>
-<a class="sourceLine" id="cb3-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb3-13" data-line-number="13">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a></code></pre></div>
+<div id="overview-of-the-datasets" class="section level2">
+<h2 class="hasAnchor">
+<a href="#overview-of-the-datasets" class="anchor"></a>Overview of the datasets</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/table">table</a></span>(metadata<span class="op">$</span>lineage,metadata<span class="op">$</span>LB_status))</a></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th></th>
+<th align="right">Input</th>
+<th align="right">Liver_bud</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>EC</td>
+<td align="right">74</td>
+<td align="right">53</td>
+</tr>
+<tr class="even">
+<td>HE</td>
+<td align="right">113</td>
+<td align="right">54</td>
+</tr>
+<tr class="odd">
+<td>MC</td>
+<td align="right">104</td>
+<td align="right">67</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="pca-using-all-the-genes" class="section level1">
-<h1 class="hasAnchor">
-<a href="#pca-using-all-the-genes" class="anchor"></a>PCA using all the genes</h1>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(forcats)</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3">lineage &lt;-<span class="st"> </span><span class="kw"><a href="https://forcats.tidyverse.org/reference/fct_c.html">fct_c</a></span>(IN<span class="op">$</span>lineage,LB<span class="op">$</span>lineage)</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4">batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Input"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(IN)),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Liver bud"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(LB)))</a>
-<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> lineage,<span class="dt">shape =</span> batch)</a></code></pre></div>
-<p><img src="liver-bud_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
+<div id="convert-to-singlecellexperiment-objects" class="section level2">
+<h2 class="hasAnchor">
+<a href="#convert-to-singlecellexperiment-objects" class="anchor"></a>Convert to <code>SingleCellExperiment</code> objects</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scran)</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">camp &lt;-<span class="st"> </span><span class="kw">SingleCellExperiment</span>(<span class="dt">assays =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">logcounts =</span> counts),<span class="dt">colData =</span> metadata)</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">IN &lt;-<span class="st"> </span>camp[,camp<span class="op">$</span>LB_status<span class="op">==</span><span class="st">"Input"</span>]</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">LB &lt;-<span class="st"> </span>camp[,camp<span class="op">$</span>LB_status<span class="op">==</span><span class="st">"Liver_bud"</span>]</a></code></pre></div>
 </div>
-<div id="running-corgi-unsupervised-feature-selection" class="section level1">
-<h1 class="hasAnchor">
-<a href="#running-corgi-unsupervised-feature-selection" class="anchor"></a>Running CorGI unsupervised feature selection</h1>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">res_list_liver_bud &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_corgi.html">run_corgi</a></span>(<span class="kw">logcounts</span>(IN),<span class="kw">logcounts</span>(LB),<span class="dt">n_phases =</span> <span class="dv">3</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span><span class="op">*</span><span class="dv">60</span>)</a></code></pre></div>
+<div id="normalization" class="section level2">
+<h2 class="hasAnchor">
+<a href="#normalization" class="anchor"></a>Normalization</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">out &lt;-<span class="st"> </span>scran<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(IN,LB,<span class="dt">assay.type =</span> <span class="st">"logcounts"</span>)</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">IN &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">LB &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]</a></code></pre></div>
+<p>Combine the datasets</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">combined &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(<span class="kw">logcounts</span>(IN),<span class="kw">logcounts</span>(LB))</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">lineage &lt;-<span class="st"> </span><span class="kw"><a href="https://forcats.tidyverse.org/reference/fct_c.html">fct_c</a></span>(IN<span class="op">$</span>lineage,LB<span class="op">$</span>lineage)</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Input"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(IN)),<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Liver bud"</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(LB)))</a></code></pre></div>
 </div>
-<div id="selecting-the-top-corgi-genes" class="section level1">
-<h1 class="hasAnchor">
-<a href="#selecting-the-top-corgi-genes" class="anchor"></a>Selecting the top CorGI genes</h1>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"res_list_liver_bud"</span>)</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">corgi_gene_set &lt;-<span class="st"> </span><span class="kw"><a href="../reference/select_top_corgi_genes.html">select_top_corgi_genes</a></span>(res_list_liver_bud,<span class="dv">300</span>)</a></code></pre></div>
+<div id="compute-pca-using-all-genes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#compute-pca-using-all-genes" class="anchor"></a>Compute PCA using all genes</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a></code></pre></div>
 </div>
-<div id="pca-on-corgi-genes" class="section level1">
+<div id="pc-plot-using-all-the-genes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#pc-plot-using-all-the-genes" class="anchor"></a>PC plot using all the genes</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> lineage,<span class="dt">shape =</span> batch)</a></code></pre></div>
+<p><img src="liver-bud_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+</div>
+</div>
+<div id="corgi-unsupervised-feature-selection" class="section level1">
 <h1 class="hasAnchor">
-<a href="#pca-on-corgi-genes" class="anchor"></a>PCA on CorGI genes</h1>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined[corgi_gene_set,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
-<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> lineage,<span class="dt">shape =</span> batch)</a></code></pre></div>
-<p><img src="liver-bud_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<a href="#corgi-unsupervised-feature-selection" class="anchor"></a>CorGI unsupervised feature selection</h1>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">res_list_liver_bud &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_corgi.html">run_corgi</a></span>(<span class="kw">logcounts</span>(IN),<span class="kw">logcounts</span>(LB),<span class="dt">n_phases =</span> <span class="dv">3</span>,<span class="dt">time_per_phase =</span> <span class="dv">10</span><span class="op">*</span><span class="dv">60</span>)</a></code></pre></div>
+<div id="selecting-the-top-corgi-genes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#selecting-the-top-corgi-genes" class="anchor"></a>Selecting the top CorGI genes</h2>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(<span class="st">"res_list_liver_bud"</span>)</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">corgi_gene_set &lt;-<span class="st"> </span><span class="kw"><a href="../reference/select_top_corgi_genes.html">select_top_corgi_genes</a></span>(res_list_liver_bud,<span class="dv">300</span>)</a></code></pre></div>
+</div>
+<div id="pca-on-corgi-genes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#pca-on-corgi-genes" class="anchor"></a>PCA on CorGI genes</h2>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined[corgi_gene_set,]),<span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[,<span class="dv">1</span>],pc[,<span class="dv">2</span>],<span class="dt">color =</span> lineage,<span class="dt">shape =</span> batch)</a></code></pre></div>
+<p><img src="liver-bud_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+</div>
 </div>
   </div>
 
@@ -177,12 +304,22 @@
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#download-the-datasets">Download the datasets</a></li>
+<li>
+<a href="#preprocessing-the-datasets">Preprocessing the datasets</a><ul class="nav nav-pills nav-stacked">
+<li><a href="#metadata">Metadata</a></li>
+      <li><a href="#overview-of-the-datasets">Overview of the datasets</a></li>
+      <li><a href="#convert-to-singlecellexperiment-objects">Convert to <code>SingleCellExperiment</code> objects</a></li>
       <li><a href="#normalization">Normalization</a></li>
-      <li><a href="#pca-using-all-the-genes">PCA using all the genes</a></li>
-      <li><a href="#running-corgi-unsupervised-feature-selection">Running CorGI unsupervised feature selection</a></li>
-      <li><a href="#selecting-the-top-corgi-genes">Selecting the top CorGI genes</a></li>
+      <li><a href="#compute-pca-using-all-genes">Compute PCA using all genes</a></li>
+      <li><a href="#pc-plot-using-all-the-genes">PC plot using all the genes</a></li>
+      </ul>
+</li>
+      <li>
+<a href="#corgi-unsupervised-feature-selection">CorGI unsupervised feature selection</a><ul class="nav nav-pills nav-stacked">
+<li><a href="#selecting-the-top-corgi-genes">Selecting the top CorGI genes</a></li>
       <li><a href="#pca-on-corgi-genes">PCA on CorGI genes</a></li>
+      </ul>
+</li>
       </ul>
 </div>
       </div>

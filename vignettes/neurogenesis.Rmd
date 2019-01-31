@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-In this vignette, we the semi-supervised version of `corgi` applied to the neurogenesis in SVZ datasets:
+In this vignette, we use the _semi-supervised_ version of `corgi` applied to the neurogenesis in subventricular zone datasets:
 
 - [Dulken et al. 2017](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/)
 - [Llorens-Bobadilla et al. 2015](https://www.ncbi.nlm.nih.gov/pubmed/26235341)
@@ -27,6 +27,8 @@ In this vignette, we the semi-supervised version of `corgi` applied to the neuro
 library(corgi)
 library(knitr)
 library(ggplot2)
+library(scran) # we only need to use the multiBatchNorm function
+library(scmap) # we only need to use the selectFeatures function
 ```
 
 # Loading Llorens-Bobadilla et al. 2015 dataset
@@ -48,16 +50,28 @@ allcounts_allcells_noblasts_nooligo<-allcounts_allcells_noblasts[,-na.omit(match
 allcounts_allcells_noblasts_nooligo_noERCC<-allcounts_allcells_noblasts_nooligo[!grepl("ERCC-",rownames(allcounts_allcells_noblasts_nooligo)),]
 
 llorens <- allcounts_allcells_noblasts_nooligo_noERCC
+```
 
+Overview of the Llorens-Bobadilla dataset
+```{r}
+kable(llorens[1:10,1:6])
+```
+
+Parse the cell type metadata
+```{r}
 llorens_cell_type <-  factor(
   unlist(
     lapply(X = colnames(llorens),
            FUN = function(x){substr(x,1,1)})
     )
   )
+```
 
-# Make the cluster labels more intuitive
-# neural stem and transient transit amplifying cells (NSC and TAP)
+
+Make the cluster labels more intuitive
+neural stem and transient transit amplifying cells (NSC and TAP)
+
+```{r}
 llorens_cell_type <- plyr::mapvalues(x = llorens_cell_type,
                                      from = c("N","t"),
                                      to = c("NSC","TAP")) 
@@ -82,7 +96,16 @@ greaterthan0<-allcounts_allcells_nooligo>10
 greaterthan0sum<-rowSums(greaterthan0)
 allcounts_allcells_nooligo_genefilt<-allcounts_allcells_nooligo[greaterthan0sum>=5,]
 dulken <- allcounts_allcells_nooligo_genefilt
+```
 
+Overview of the Dulken dataset
+```{r}
+kable(dulken[1:10,1:6])
+```
+
+Parse the cell type metadata
+
+```{r}
 dulken_cell_type <- 
   factor(
     unlist(
@@ -99,23 +122,49 @@ We consider only genes in both datasets.
 ```{r}
 shared_genes <- intersect(rownames(dulken),rownames(llorens))
 length(shared_genes)
+dulken <- dulken[shared_genes,]
+llorens <- llorens[shared_genes,]
 ```
 
 
 Combine the datasets
-
 ```{r}
-dulken <- dulken[shared_genes,]
-llorens <- llorens[shared_genes,]
 comb <- cbind(dulken,llorens)
 ```
+
 
 Metadata for the merged dataset
 ```{r}
 cell_type <- forcats::fct_c(dulken_cell_type,llorens_cell_type)
 batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens-Bobadilla",ncol(llorens)))
+```
 
+Overview of the cell types in each dataset
+```{r}
 kable(table(cell_type,batch))
+```
+
+Simplify and combine some of the cell-types for visualization
+```{r}
+cell_type2 <- plyr::mapvalues(x = cell_type,
+                              from = c("aNSC", "Ast", "NPC", "qNSC", "NSC", "TAP"),
+                              to = c("NSC","Ast","NPC","NSC","NSC","NPC"))
+```
+
+
+## Dimensionality reduction using all genes
+
+Multidimensional-scaling on Spearman rho distance matrix using all the genes results in a scatterplot with clearly separated batches
+
+```{r}
+D <- (1-cor(comb,method = "spearman"))/2 # Spearman rho distance matrix
+mds <- cmdscale(D,k=2) # Multidimensional-scaling
+
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch) + 
+  scale_shape_manual(values=c(1,16))
+
+qplot(mds[,1],mds[,2],color = cell_type2,shape = batch) + 
+  scale_shape_manual(values=c(1,16))
 ```
 
 
@@ -162,12 +211,14 @@ length(consensus34)
 
 
 ```{r,eval = F}
-corgi_output_neurogenesis <- run_corgi(dulken,llorens,time_per_phase = 10*60,must_have_genes = consensus34)
+corgi_output_neurogenesis <- run_corgi(dulken, llorens, must_have_genes = consensus34)
 ```
 
 ```{r,eval=F,include=F}
 devtools::use_data(corgi_output_neurogenesis)
 ```
+
+
 ```{r,include=F}
 data("corgi_output_neurogenesis")
 ```
@@ -177,7 +228,6 @@ data("corgi_output_neurogenesis")
 corgi_gene_set <- select_top_corgi_genes(corgi_output_neurogenesis,n = 100)
 length(corgi_gene_set)
 
-
 D <- (1-cor(comb[union(corgi_gene_set,consensus34),],method = "spearman"))/2
 mds <- cmdscale(D,k=2)
 
@@ -186,13 +236,71 @@ qplot(mds[,1],mds[,2],color = cell_type,shape = batch) +
 ```
 
 
-Combine some of the cell-types for visualization
-```{r}
-cell_type2 <- plyr::mapvalues(x = cell_type,
-                              from = c("aNSC", "Ast", "NPC", "qNSC", "NSC", "TAP"),
-                              to = c("NSC","Ast","NPC","NSC","NSC","NPC"))
+# Recreating the paper figure
 
-qplot(mds[,1],mds[,2],color = cell_type2,shape = batch) + 
-  scale_shape_manual(values=c(1,16))
+In this section, we recreate the figures in our paper, i.e., comparing with highly dropped-out genes.
+
+## Normalize the datasets
+```{r}
+dulken <- SingleCellExperiment(assay = list(counts = as.matrix(dulken)))
+llorens <- SingleCellExperiment(assay = list(counts = as.matrix(llorens)))
+rowData(dulken)$feature_symbols <- rownames(dulken)
+rowData(llorens)$feature_symbols <- rownames(llorens)
+out <- multiBatchNorm(dulken,llorens) # the output has logcounts 
+
+dulken <- out[[1]]
+llorens <- out[[2]]
+```
+
+```{r}
+dulken <- selectFeatures(dulken)
+llorens <- selectFeatures(llorens)
+
+top_HDG <- function(sce){
+  return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
+}
+
+dulken_top_HDG <- top_HDG(dulken)
+llorens_top_HDG <- top_HDG(llorens)
+
+n <- length(union(corgi_gene_set,consensus34))
+
+gene_sets <- get_compared_gene_sets(
+  batch1_top_genes = dulken_top_HDG,
+  batch1_name = "HDG(Dulken)",
+  batch2_top_genes = llorens_top_HDG, 
+  batch2_name = "HDG(Llorens)",
+  desired_size = n,
+  marker_genes = consensus34)
+
+# Because the consensus model is a monotonic non-increasing gene-set function in the percentage
+gene_sets[["Consensus"]] <- 
+  get_gene_set_of_size_n(
+    gs_func = function(x)intersect(top_consensus_genes(101-x),shared_genes),
+    n = n,
+    LB = 1,
+    UB = 100
+  )
+
+gene_sets[["CorGI"]] <- union(corgi_gene_set,consensus34)
+
+lapply(gene_sets, length)
+```
+
+
+```{r}
+plts <- list()
+lapply(X = seq_along(gene_sets),
+       FUN = function(i){
+         gene_set <- gene_sets[[i]]
+         D <- (1 - cor(comb[gene_set, ], method = "spearman")) / 2
+         mds <- cmdscale(D, k = 2)
+         qplot(mds[, 1], mds[, 2], color = cell_type2, shape = batch) +
+           scale_shape_manual(values = c(1, 16)) + ggtitle(names(gene_sets)[i])
+       })
+
+
+
 
 ```
+
