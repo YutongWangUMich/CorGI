@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Introduction
+
 In this vignette, we use the _semi-supervised_ version of `corgi` applied to the neurogenesis in subventricular zone datasets:
 
 - [Dulken et al. 2017](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/)
@@ -32,9 +34,9 @@ library(scmap) # we only need to use the selectFeatures function
 library(cowplot) # we use this to generate the multipanel plots
 ```
 
-# Loading Llorens-Bobadilla et al. 2015 dataset
+# Data cleaning
 
-Load data from Llorens-Bobadilla. This code is obtained from the [GitHub code for Figure 6B in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure6_FigureS6/Llorens%20Projections%20_%20Figure%206B%2C%20S6A%2C%20S6B.R)
+Load data from Llorens-Bobadilla et al. This code is obtained from the [GitHub code for Figure 6B in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure6_FigureS6/Llorens%20Projections%20_%20Figure%206B%2C%20S6A%2C%20S6B.R)
 
 ```{r}
 Llorens_allcounts<-read.table(url("https://github.com/bdulken/SVZ_NSC_Dulken_2/raw/master/Files/Llorens_counts_allgenes.txt"))
@@ -78,7 +80,8 @@ llorens_cell_type <- plyr::mapvalues(x = llorens_cell_type,
                                      to = c("NSC","TAP")) 
 ```
 
-# Loading Dulken et al 2017 dataset
+
+Load Dulken et al 2017 dataset
 
 This code is obtained from the [GitHub code for Figure 1 in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure1/PCA%20-%20Outliers%20Removed%20_%20Figure%201C.R). The difference between our code and theirs is that we don't filter out cell-cycle genes.
 
@@ -127,6 +130,7 @@ dulken <- dulken[shared_genes,]
 llorens <- llorens[shared_genes,]
 ```
 
+# Exploratory analysis
 
 Combine the datasets
 ```{r}
@@ -151,7 +155,18 @@ cell_type2 <- plyr::mapvalues(x = cell_type,
                               from = c("aNSC", "Ast", "NPC", "qNSC", "NSC", "TAP"),
                               to = c("NSC","Ast","NPC","NSC","NSC","NPC"))
 kable(table(cell_type2, batch))
+```
 
+```{r}
+my_shape_palette <- c(1, 16)
+my_color_palette <- c("#E69F00", "#000000", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+qplot <- function(...){
+  ggplot2::qplot(...) +
+    scale_shape_manual(values = my_shape_palette) +
+    scale_color_manual(values = my_color_palette)
+}
 ```
 
 
@@ -163,11 +178,9 @@ Multidimensional-scaling on Spearman rho distance matrix using all the genes res
 D <- (1-cor(comb,method = "spearman"))/2 # Spearman rho distance matrix
 mds <- cmdscale(D,k=2) # Multidimensional-scaling
 
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch) + 
-  scale_shape_manual(values=c(1,16))
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
 
-qplot(mds[,1],mds[,2],color = cell_type2,shape = batch) + 
-  scale_shape_manual(values=c(1,16))
+qplot(mds[,1],mds[,2],color = cell_type2,shape = batch) 
 ```
 
 
@@ -177,8 +190,14 @@ library("openxlsx")
 consensus_genes <- read.xlsx("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/bin/NIHMS839312-supplement-7.xlsx")
 dim(consensus_genes)
 kable(consensus_genes[1:10,1:5]) # print a nice looking table of the top-left corner of the data
-
 ```
+
+Note:
+
+- The table `consensus_genes` has 101 columns, the first column is metadata
+- The remainder columns are gene rankings computed by Dulken et al.
+- Each column is the top 100 genes produced by one computed model.
+- A gene that shows up in multiple columns means that there is a _consensus_ across multiple models that the gene should be ranked in the top 100, hence the name.
 
 ```{r}
 consensus_genes <- consensus_genes[,-c(1)] # remove the first column, which is metadata
@@ -201,17 +220,15 @@ top_consensus_genes <- function(percentage) {
 }
 
 consensus34 <- top_consensus_genes(percentage = 50)
-
 ```
 
-There are 34 genes that show up in more than 50% of the models, in agreement with Dulken et al. 2017
+There are 34 genes that show up in more than 50% of the models. This is the _consensus-ordering_ gene set used in Dulken et al. 2017.
 
 ```{r}
 length(consensus34)
 ```
 
-# Running semi-supervised corgi with the consensus gene set as markers
-
+# Semi-supervised CorGI with the consensus genes as markers
 
 ```{r,eval = F}
 corgi_output_neurogenesis <- run_corgi(dulken, llorens, must_have_genes = consensus34)
@@ -221,12 +238,11 @@ corgi_output_neurogenesis <- run_corgi(dulken, llorens, must_have_genes = consen
 devtools::use_data(corgi_output_neurogenesis)
 ```
 
-
 ```{r,include=F}
 data("corgi_output_neurogenesis")
 ```
 
-
+## Dimensionality reduction using MDS
 ```{r}
 corgi_gene_set <- select_top_corgi_genes(corgi_output_neurogenesis,n = 100)
 length(corgi_gene_set)
@@ -234,8 +250,7 @@ length(corgi_gene_set)
 D <- (1-cor(comb[union(corgi_gene_set,consensus34),],method = "spearman"))/2
 mds <- cmdscale(D,k=2)
 
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch) + 
-  scale_shape_manual(values=c(1,16))
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
 ```
 
 
@@ -255,13 +270,11 @@ llorens <- out[[2]]
 ```
 
 ```{r}
-
 HDG_ranking <- function(sce){
   rowData(sce)$feature_symbol <- rownames(sce)
   sce <- selectFeatures(sce)
   return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
 }
-
 
 n <- length(union(corgi_gene_set,consensus34))
 
@@ -273,7 +286,7 @@ gene_sets <- get_compared_gene_sets(
   desired_size = n,
   marker_genes = consensus34)
 
-# Because the consensus model is a monotonic non-increasing gene-set function in the percentage
+# Because the consensus model is a monotonic non-increasing gene-set function in the percentage, we need to reverse the input to get monotonic non-decreasing
 gene_sets[["Consensus"]] <- 
   get_gene_set_of_size_n(
     gs_func = function(x)intersect(top_consensus_genes(101-x),shared_genes),
@@ -284,109 +297,9 @@ gene_sets[["Consensus"]] <-
 
 gene_sets[["CorGI"]] <- union(corgi_gene_set,consensus34)
 
-
 gene_sets <- gene_sets[c(6,5,4,3,2,1)]
 lapply(gene_sets, length)
 ```
-
-
-```{r}
-my_shape_palette <- scale_shape_manual(values = c(1, 16))
-my_color_palette <- scale_color_manual(values = c("#E69F00","#000000", "#56B4E9"))
-```
-
-
-
-
-```{r}
-plot_panel <- function(embeddings, emb_name){
-
-lapply(X = seq_along(gene_sets),
-       FUN = function(i){
-         gs_name <- names(gene_sets)[i]
-         emb <- embeddings[[i]]
-         plot_dimensionality_reduction(emb,batch,cell_type2,gs_name,emb_name) +
-           my_shape_palette +
-           my_color_palette
-       }) -> plts
-plts[["labels"]] <- c("A","B","C","D","E","F")
-dr_plts <- do.call(what = plot_grid,args = plts)
-
-dr_plts
-
-
-emb <- embeddings[[1]]
-shape_lgnd <- get_legend(qplot(emb[,1],emb[,2],shape = batch)+my_shape_palette)
-color_lgnd <- get_legend(qplot(emb[,1],emb[,2],color = cell_type2)+my_color_palette)
-
-qplot(emb[,1],emb[,2],asp = 1,shape = NA) + 
-  xlab(paste0(emb_name,1)) + 
-  ylab(paste0(emb_name,2)) +
-  theme(axis.ticks = element_blank(),
-        axis.text = element_blank(),text = element_text(size=10)) -> axes_lgnd
-axes_lgnd
-
-all_lgnds <- plot_grid(axes_lgnd,plot_grid(shape_lgnd,color_lgnd),nrow=2)
-all_lgnds
-
-
-
-results <- data.frame(
-  TPR = numeric(0),
-  FPR = numeric(0),
-  Gene_set = factor(character(0), levels = names(gene_sets))
-)
-i <- 1
-
-n_cells <- length(batch)
-train <- batch == "Dulken"
-test <- batch == "Llorens"
-
-for (gs_name in names(gene_sets)) {
-  emb <- embeddings[[gs_name]]
-  
-  for (k in 5 * (1:6)) {
-    class::knn(
-      train = emb[train, ],
-      test = emb[test, ],
-      cl = cell_type2[train],
-      k = k
-    ) -> cell_type2_pred
-    
-    caret::confusionMatrix(data = cell_type2_pred,
-                           reference = cell_type2[test],
-                           positive = "NPC") -> output
-    TPR <- output$byClass["Class: NPC", "Sensitivity"]
-    FPR <- 1 - output$byClass["Class: NPC", "Specificity"]
-    
-    results[i, "TPR"] <- TPR
-    results[i, "FPR"] <- FPR
-    results[i, "Gene_set"] <- gs_name
-    i <- i + 1
-    # }
-  }
-}
-
-ggplot(results, aes(x = FPR, y = TPR)) +
-  geom_jitter(aes(shape = Gene_set, color = Gene_set),
-              size = 3,
-              width = 0.0005) +
-  scale_shape_manual(values = 65:70) + # makes the labels from A to F
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 2)) + 
-  theme_bw()-> AUC_plt
-
-
-plot_grid(dr_plts,
-          plot_grid(all_lgnds,
-                    AUC_plt,
-                    rel_widths=c(1,2),
-                    labels=c("","G")),
-          nrow=2,
-          rel_heights = c(2,1)) -> final_plot
-return(final_plot)
-}
-```
-
 
 
 ```{r}
@@ -401,8 +314,101 @@ embeddings_mds <-
 ```
 
 
+```{r}
+emb_name <- "MDS"
+embeddings <- embeddings_mds
+get_scatterplots(embeddings,
+                 batch,
+                 cell_type2) -> dr_plots
+# 
+
+# dr_plots[[length(dr_plots)+1]] <- legends
+
+dr_plots[["nrow"]] <- 2
+
+dr_plots[["labels"]] <- c("A","B","C","D","E","F")
+
+do.call(plot_grid,dr_plots) -> top_panel
+top_panel
+```
+
+```{r}
+plot_grid(
+  plot_grid(
+    get_axes_legend(emb_name),
+    get_shape_legend(batch, my_shape_palette)
+  ),
+  get_color_legend(cell_type2, my_color_palette),
+  nrow = 2) -> legends
+```
+
+
+```{r,fig.height=2,fig.width=6}
+train <- batch == "Llorens"
+test <- batch == "Dulken"
+
+# AUC plots
+lapply(
+  X = c("NPC"),
+  FUN =
+    function(ct) {
+      df <- get_AUC(embeddings, cell_type2, ct, train, test)
+      df$Gene_set <- factor(df$Gene_set,levels = names(embeddings))
+      ggplot(df, 
+             aes(x = FPR, y = TPR)) + 
+        geom_point(aes(color = Gene_set, shape = Gene_set),size = 3) +
+        # geom_jitter(aes(color = Gene_set, shape = Gene_set),size = 3,width=0.0005) +
+        scale_shape_manual(values = 65:70) + 
+        theme_bw() +
+        scale_x_continuous(breaks = scales::pretty_breaks(n=2))+
+        # scale_x_continuous(limits = c(0,0.1)) +
+        # scale_y_continuous(limits = c(0,1)) +
+        ggtitle(ct)
+    }
+) -> AUC_plts
+AUC_plts[[1]]
+```
+
+
+```{r,fig.height=2,fig.width=6}
+train <- batch == "Dulken"
+test <- batch == "Llorens"
+
+# AUC plots
+lapply(
+  X = c("NPC"),
+  FUN =
+    function(ct) {
+      df <- get_AUC(embeddings, cell_type2, ct, train, test)
+      df$Gene_set <- factor(df$Gene_set,levels = names(embeddings))
+      ggplot(df, 
+             aes(x = FPR, y = TPR)) + 
+        geom_point(aes(color = Gene_set, shape = Gene_set),size = 3) +
+        # geom_jitter(aes(color = Gene_set, shape = Gene_set),size = 3,width=0.0005) +
+        scale_shape_manual(values = 65:70) + 
+        theme_bw() +
+        scale_x_continuous(breaks = scales::pretty_breaks(n=2))+
+        # scale_x_continuous(limits = c(0,0.1)) +
+        # scale_y_continuous(limits = c(0,1)) +
+        ggtitle(ct)
+    }
+) -> AUC_plts
+
+plot_grid(
+  legends,
+  AUC_plts[[1]],
+  nrow = 1,
+  rel_widths = c(1,2),
+  labels = c("","G")) -> bottom_panel
+
+bottom_panel
+```
+
+
+
+
 ```{r,fig.width=6,fig.height=6}
-panel_plot_mds <- plot_panel(embeddings_mds,"MDS")
+panel_plot_mds <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
 panel_plot_mds
 ```
 
@@ -422,13 +428,104 @@ embeddings_mnn_pca <-
   )
 ```
 
+
+
+```{r}
+emb_name <- "MNNPC"
+embeddings <- embeddings_mnn_pca
+get_scatterplots(embeddings,
+                 batch,
+                 cell_type2) -> dr_plots
+
+dr_plots[["nrow"]] <- 2
+
+dr_plots[["labels"]] <- c("A","B","C","D","E","F")
+
+do.call(plot_grid,dr_plots) -> top_panel
+top_panel
+```
+
+```{r}
+plot_grid(
+  plot_grid(
+    get_axes_legend(emb_name),
+    get_shape_legend(batch, my_shape_palette)
+  ),
+  get_color_legend(cell_type2, my_color_palette),
+  nrow = 2) -> legends
+```
+
+
+
+```{r,fig.height=2,fig.width=6}
+train <- batch == "Llorens"
+test <- batch == "Dulken"
+
+# AUC plots
+lapply(
+  X = c("NPC"),
+  FUN =
+    function(ct) {
+      df <- get_AUC(embeddings, cell_type2, ct, train, test)
+      df$Gene_set <- factor(df$Gene_set,levels = names(embeddings))
+      ggplot(df, 
+             aes(x = FPR, y = TPR)) + 
+        geom_point(aes(color = Gene_set, shape = Gene_set),size = 3) +
+        # geom_jitter(aes(color = Gene_set, shape = Gene_set),size = 3,width=0.0005) +
+        scale_shape_manual(values = 65:70) + 
+        theme_bw() +
+        scale_x_continuous(breaks = scales::pretty_breaks(n=2))+
+        # scale_x_continuous(limits = c(0,0.1)) +
+        # scale_y_continuous(limits = c(0,1)) +
+        ggtitle(ct)
+    }
+) -> AUC_plts
+AUC_plts[[1]]
+```
+
+
+```{r,fig.height=2,fig.width=6}
+train <- batch == "Dulken"
+test <- batch == "Llorens"
+
+# AUC plots
+lapply(
+  X = c("NPC"),
+  FUN =
+    function(ct) {
+      df <- get_AUC(embeddings, cell_type2, ct, train, test)
+      df$Gene_set <- factor(df$Gene_set,levels = names(embeddings))
+      ggplot(df, 
+             aes(x = FPR, y = TPR)) + 
+        geom_point(aes(color = Gene_set, shape = Gene_set),size = 3) +
+        # geom_jitter(aes(color = Gene_set, shape = Gene_set),size = 3,width=0.0005) +
+        scale_shape_manual(values = 65:70) + 
+        theme_bw() +
+        scale_x_continuous(breaks = scales::pretty_breaks(n=2))+
+        # scale_x_continuous(limits = c(0,0.1)) +
+        # scale_y_continuous(limits = c(0,1)) +
+        ggtitle(ct)
+    }
+) -> AUC_plts
+
+plot_grid(
+  legends,
+  AUC_plts[[1]],
+  nrow = 1,
+  rel_widths = c(1,2),
+  labels = c("","G")) -> bottom_panel
+
+bottom_panel
+```
+
+
 ```{r,fig.width=6,fig.height=6}
-panel_plot_mnn <- plot_panel(embeddings_mnn_pca,"MNNPC")
+panel_plot_mnn <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
 panel_plot_mnn
 ```
 
 
-```{r, include = F, eval = F}
+```{r, include = F}
 ggsave(filename = "neurogenesis_MDS.eps",device = "eps",plot = panel_plot_mds,path = "~/CorGI_figures",width = 6,height = 6)
 
 ggsave(filename = "neurogenesis_MNN.eps",device = "eps",plot = panel_plot_mnn,path = "~/CorGI_figures",width = 6,height = 6)

@@ -47,3 +47,25 @@ get_axes_legend <- function(emb_name){
     )
 }
 
+#' @export
+get_scatterplots <- function(embeddings, batch, cell_type){
+  lapply(X = names(gene_sets),
+         FUN = function(gs_name) {
+           emb <- embeddings[[gs_name]]
+           plot_dimensionality_reduction(emb, batch, cell_type) +
+             ggtitle(paste0(gs_name, ", ", round(corgi::batch_mixing(emb, batch), 2)))
+         })
+}
+
+#' @export
+get_AUC <- function(embeddings, cell_type, cell_type_pred, train, test){
+  knn_results <-
+    Reduce(rbind,lapply(X = names(embeddings),
+                        FUN = function(gs_name){
+                          emb <- embeddings[[gs_name]]
+                          results <- corgi::cluster_coherence(emb, cell_type, cell_type_pred, train, test)
+                          results$Gene_set <- gs_name
+                          return(results)
+                        }))
+  return(knn_results)
+}
