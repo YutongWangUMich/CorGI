@@ -84,7 +84,16 @@ combined <- cbind(logcounts(yan),logcounts(deng))
 cell_type <- forcats::fct_c(as.factor(yan$cell_type1),as.factor(deng$cell_type1))
 cell_type <- factor(cell_type, levels = c("zygote","2cell","4cell","8cell","16cell","blast"))
 batch <- c(rep("Human",ncol(yan)),rep("Mouse",ncol(deng)))
-my_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
+
+Wrapper around the qplot `ggplot2::qplot` function with our color scheme
+
+```{r}
+qplot <- function(...){
+  ggplot2::qplot(...) +
+  scale_color_manual(values = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")) +
+  scale_shape_manual(values = c(16,1))
+}
 ```
 
 
@@ -97,9 +106,7 @@ my_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 D <- (1-cor(combined,method = "spearman"))/2
 mds <- cmdscale(D,k=2)
 
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch) +
-  scale_color_manual(values = my_palette) +
-  scale_shape_manual(values = c(16,1))
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
 ```
 
 
@@ -109,9 +116,7 @@ qplot(mds[,1],mds[,2],color = cell_type,shape = batch) +
 D <- (1-cor(combined[corgi_gene_set,],method = "spearman"))/2
 mds <- cmdscale(D,k=2)
 
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch) +
-  scale_color_manual(values = my_palette) +
-  scale_shape_manual(values = c(16,1))
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
 ```
 
 ## Principal component analysis (PCA)
@@ -135,9 +140,7 @@ pc <- prcomp(t(combined),rank. = 2)$x
 ### On all genes
 
 ```{r}
-qplot(pc[,1],pc[,2],color = cell_type,shape = batch) +
-  scale_color_manual(values = my_palette) +
-  scale_shape_manual(values = c(16,1))
+qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
 ```
 
 

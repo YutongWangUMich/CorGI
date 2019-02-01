@@ -196,7 +196,7 @@ embeddings_pca <-
 
 ```{r}
 my_shape_palette <- scale_shape_manual(values = c(1, 16))
-my_color_palette <- scale_color_manual(values = c("#E69F00","#000000", "#56B4E9"))
+my_color_palette <- scale_color_manual(values = c("#000000","#E69F00", "#56B4E9"))
 ```
 
 
