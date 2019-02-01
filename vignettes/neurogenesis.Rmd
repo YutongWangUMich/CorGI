@@ -247,8 +247,7 @@ In this section, we recreate the figures in our paper, i.e., comparing with high
 ```{r}
 dulken <- SingleCellExperiment(assay = list(counts = as.matrix(dulken)))
 llorens <- SingleCellExperiment(assay = list(counts = as.matrix(llorens)))
-rowData(dulken)$feature_symbols <- rownames(dulken)
-rowData(llorens)$feature_symbols <- rownames(llorens)
+
 out <- multiBatchNorm(dulken,llorens) # the output has logcounts 
 
 dulken <- out[[1]]
@@ -256,22 +255,20 @@ llorens <- out[[2]]
 ```
 
 ```{r}
-dulken <- selectFeatures(dulken)
-llorens <- selectFeatures(llorens)
 
-top_HDG <- function(sce){
+HDG_ranking <- function(sce){
+  rowData(sce)$feature_symbol <- rownames(sce)
+  sce <- selectFeatures(sce)
   return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
 }
 
-dulken_top_HDG <- top_HDG(dulken)
-llorens_top_HDG <- top_HDG(llorens)
 
 n <- length(union(corgi_gene_set,consensus34))
 
 gene_sets <- get_compared_gene_sets(
-  batch1_top_genes = dulken_top_HDG,
+  batch1_top_genes = HDG_ranking(dulken),
   batch1_name = "HDG(Dulken)",
-  batch2_top_genes = llorens_top_HDG, 
+  batch2_top_genes = HDG_ranking(llorens), 
   batch2_name = "HDG(Llorens)",
   desired_size = n,
   marker_genes = consensus34)
@@ -287,14 +284,113 @@ gene_sets[["Consensus"]] <-
 
 gene_sets[["CorGI"]] <- union(corgi_gene_set,consensus34)
 
+
+gene_sets <- gene_sets[c(6,5,4,3,2,1)]
 lapply(gene_sets, length)
 ```
 
 
 ```{r}
-emb_name <- "MDS"
+my_shape_palette <- scale_shape_manual(values = c(1, 16))
+my_color_palette <- scale_color_manual(values = c("#E69F00","#000000", "#56B4E9"))
+```
 
-embeddings <- 
+
+
+
+```{r}
+plot_panel <- function(embeddings, emb_name){
+
+lapply(X = seq_along(gene_sets),
+       FUN = function(i){
+         gs_name <- names(gene_sets)[i]
+         emb <- embeddings[[i]]
+         plot_dimensionality_reduction(emb,batch,cell_type2,gs_name,emb_name) +
+           my_shape_palette +
+           my_color_palette
+       }) -> plts
+plts[["labels"]] <- c("A","B","C","D","E","F")
+dr_plts <- do.call(what = plot_grid,args = plts)
+
+dr_plts
+
+
+emb <- embeddings[[1]]
+shape_lgnd <- get_legend(qplot(emb[,1],emb[,2],shape = batch)+my_shape_palette)
+color_lgnd <- get_legend(qplot(emb[,1],emb[,2],color = cell_type2)+my_color_palette)
+
+qplot(emb[,1],emb[,2],asp = 1,shape = NA) + 
+  xlab(paste0(emb_name,1)) + 
+  ylab(paste0(emb_name,2)) +
+  theme(axis.ticks = element_blank(),
+        axis.text = element_blank(),text = element_text(size=10)) -> axes_lgnd
+axes_lgnd
+
+all_lgnds <- plot_grid(axes_lgnd,plot_grid(shape_lgnd,color_lgnd),nrow=2)
+all_lgnds
+
+
+
+results <- data.frame(
+  TPR = numeric(0),
+  FPR = numeric(0),
+  Gene_set = factor(character(0), levels = names(gene_sets))
+)
+i <- 1
+
+n_cells <- length(batch)
+train <- batch == "Dulken"
+test <- batch == "Llorens"
+
+for (gs_name in names(gene_sets)) {
+  emb <- embeddings[[gs_name]]
+  
+  for (k in 5 * (1:6)) {
+    class::knn(
+      train = emb[train, ],
+      test = emb[test, ],
+      cl = cell_type2[train],
+      k = k
+    ) -> cell_type2_pred
+    
+    caret::confusionMatrix(data = cell_type2_pred,
+                           reference = cell_type2[test],
+                           positive = "NPC") -> output
+    TPR <- output$byClass["Class: NPC", "Sensitivity"]
+    FPR <- 1 - output$byClass["Class: NPC", "Specificity"]
+    
+    results[i, "TPR"] <- TPR
+    results[i, "FPR"] <- FPR
+    results[i, "Gene_set"] <- gs_name
+    i <- i + 1
+    # }
+  }
+}
+
+ggplot(results, aes(x = FPR, y = TPR)) +
+  geom_jitter(aes(shape = Gene_set, color = Gene_set),
+              size = 3,
+              width = 0.0005) +
+  scale_shape_manual(values = 65:70) + # makes the labels from A to F
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 2)) + 
+  theme_bw()-> AUC_plt
+
+
+plot_grid(dr_plts,
+          plot_grid(all_lgnds,
+                    AUC_plt,
+                    rel_widths=c(1,2),
+                    labels=c("","G")),
+          nrow=2,
+          rel_heights = c(2,1)) -> final_plot
+return(final_plot)
+}
+```
+
+
+
+```{r}
+embeddings_mds <- 
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
@@ -302,56 +398,39 @@ embeddings <-
       return(cmdscale(D, k = 2))
     }
   )
+```
 
 
-lapply(X = seq_along(gene_sets),
-       FUN = function(i){
-         gs_name <- names(gene_sets)[i]
-         emb <- embeddings[[i]]
-         plot_dimensionality_reduction(emb,batch,cell_type2,gs_name,"MDS") +
-           scale_shape_manual(values = c(1, 16)) +
-           scale_color_manual(values = c("#E69F00","#000000", "#56B4E9"))
-       }) -> plts
-
-
-
-
+```{r,fig.width=6,fig.height=6}
+panel_plot_mds <- plot_panel(embeddings_mds,"MDS")
+panel_plot_mds
 ```
 
 
 
 ```{r}
 
-knn.predict <- function(test.suite,cell.meta.data.pred = "cell_type1", test.batches, train.batches, gene.sets.use =NULL, methods.use = NULL, params=5*(1:6)){
-  knn.outputs <- list()
-  dr.ids <- get.main.loop(test.suite,gene.sets.use,methods.use)
-  knn.params <- data.frame(dr.id = rep(dr.ids,each = length(params)),
-                           param = rep(params,length(dr.ids)))
-  j <- 1
-  for(i in dr.ids){
-    for(param in params){
-      plt.dat <- prepare.data.for.plotting(test.suite,i)
-      df <- plt.dat$df
-      # df <- prepare.data.for.plotting(test.suite,i)$df
-      truth <- df[,cell.meta.data.pred]
-      test <- df$batch %in% test.batches
-      train <- df$batch %in% train.batches
-      class::knn(train = df[train,1:2],
-                 test = df[test,1:2],
-                 cl= truth[train],
-                 k = param) -> predictions
-      knn.outputs[[j]] <- data.frame(truth = truth[test], pred = predictions)
-      j <- j + 1
+embeddings_mnn_pca <- 
+  lapply(
+    X = gene_sets,
+    FUN = function(gene_set) {
+      mnn.out <- mnnCorrect(logcounts(dulken[gene_set,]),logcounts(llorens[gene_set,]))
+      t.mnn <<- as.matrix(t(do.call(cbind, mnn.out$corrected)))
+      pca.mnn <- prcomp(t.mnn, rank=2)
+      return(pca.mnn$x)
     }
-  }
-  test.suite$knn.predict.outputs <- knn.outputs
-  test.suite$knn.predict.params <- knn.params
-  test.suite$knn.predict.benchmarks <- lapply(X = knn.outputs,FUN = cont.tab.to.TPR.FPR)
-  test.suite$knn.predict.meta.data <- 
-    list(test.batches=test.batches,train.batches=train.batches,cell.meta.data.pred=cell.meta.data.pred)
-  return(test.suite)
-}
+  )
+```
+
+```{r,fig.width=6,fig.height=6}
+panel_plot_mnn <- plot_panel(embeddings_mnn_pca,"MNNPC")
+panel_plot_mnn
+```
 
 
+```{r, include = F, eval = F}
+ggsave(filename = "neurogenesis_MDS.eps",device = "eps",plot = panel_plot_mds,path = "~/CorGI_figures",width = 6,height = 6)
+
+ggsave(filename = "neurogenesis_MNN.eps",device = "eps",plot = panel_plot_mnn,path = "~/CorGI_figures",width = 6,height = 6)
 ```
 

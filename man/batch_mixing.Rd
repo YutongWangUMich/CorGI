@@ -4,12 +4,12 @@
 \alias{batch_mixing}
 \title{Compute the batch mixing metric}
 \usage{
-batch_mixing(emb, Batch)
+batch_mixing(emb, batch)
 }
 \arguments{
 \item{emb}{the embedding of the cells where each row is a cell}
 
-\item{Batch}{the batch labels of the cells}
+\item{batch}{the batch labels of the cells}
 }
 \description{
 Compute the batch mixing metric

@@ -1,12 +1,48 @@
 #' @export
-plot_dimensionality_reduction <- function(emb,batch,cell_type,gs_name,emb_name){
+plot_dimensionality_reduction <- function(emb,batch,cell_type){
   qplot(emb[, 1], emb[, 2], color = cell_type, shape = batch) +
-    ggtitle(paste0(gs_name, ", ", round(corgi::batch_mixing(emb, batch), 2))) +
     theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      legend.position = "none"
+    )
+}
+
+#' @export
+get_shape_legend <- function(batch,my_shape_palette){
+  n_cells <- length(batch)
+  cowplot::get_legend(
+    ggplot2::qplot(1:n_cells, 1:n_cells, shape = batch) +
+      my_shape_palette +
+      guides(shape=guide_legend(title="Batch")) +
+      theme(legend.title.align=0.5)
+  )
+}
+
+#' @export
+get_color_legend <- function(cell_type,my_color_palette,ncol = 1){
+  n_cells <- length(batch)
+  cowplot::get_legend(
+    ggplot2::qplot(1:n_cells, 1:n_cells, color = cell_type) +
+      my_color_palette +
+      guides(col = guide_legend(title="Cell type", ncol = ncol)) +
+      theme(legend.title.align=0.5)
+    )
+}
+
+#' @export
+get_axes_legend <- function(emb_name){
+  qplot(iris[, 1], iris[, 2], asp = 1, shape = NA) +
     xlab(paste0(emb_name, 1)) +
     ylab(paste0(emb_name, 2)) +
     theme(
-      plot.title = element_text(hjust = 0.5),
-      panel.grid = element_blank()
+      axis.ticks = element_blank(),
+      axis.text = element_blank(),
+      text = element_text(size = 10)
     )
 }
+

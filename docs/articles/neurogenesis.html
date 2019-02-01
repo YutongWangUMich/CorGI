@@ -59,6 +59,9 @@
       <a href="../articles/liver-bud.html">Liver bud development</a>
     </li>
     <li>
+      <a href="../articles/mammary_gland_devel.html">Mammary gland development</a>
+    </li>
+    <li>
       <a href="../articles/neurogenesis.html">Neurogenesis in the SVZ</a>
     </li>
     <li>
@@ -82,7 +85,7 @@
       <h1>Neurogenesis in the SVZ</h1>
                         <h4 class="author">Yutong Wang</h4>
             
-            <h4 class="date">2019-01-30</h4>
+            <h4 class="date">2019-01-31</h4>
       
       
       <div class="hidden name"><code>neurogenesis.Rmd</code></div>
@@ -100,7 +103,8 @@
 <a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(knitr)</a>
 <a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a>
 <a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scran) <span class="co"># we only need to use the multiBatchNorm function</span></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scmap) <span class="co"># we only need to use the selectFeatures function</span></a></code></pre></div>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scmap) <span class="co"># we only need to use the selectFeatures function</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(cowplot) <span class="co"># we use this to generate the multipanel plots</span></a></code></pre></div>
 <div id="loading-llorens-bobadilla-et-al-2015-dataset" class="section level1">
 <h1 class="hasAnchor">
 <a href="#loading-llorens-bobadilla-et-al-2015-dataset" class="anchor"></a>Loading Llorens-Bobadilla et al. 2015 dataset</h1>
@@ -599,128 +603,173 @@
 <a href="#normalize-the-datasets" class="anchor"></a>Normalize the datasets</h2>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">dulken &lt;-<span class="st"> </span><span class="kw">SingleCellExperiment</span>(<span class="dt">assay =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">counts =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">as.matrix</a></span>(dulken)))</a>
 <a class="sourceLine" id="cb21-2" data-line-number="2">llorens &lt;-<span class="st"> </span><span class="kw">SingleCellExperiment</span>(<span class="dt">assay =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">counts =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">as.matrix</a></span>(llorens)))</a>
-<a class="sourceLine" id="cb21-3" data-line-number="3"><span class="kw">rowData</span>(dulken)<span class="op">$</span>feature_symbols &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(dulken)</a>
-<a class="sourceLine" id="cb21-4" data-line-number="4"><span class="kw">rowData</span>(llorens)<span class="op">$</span>feature_symbols &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(llorens)</a>
-<a class="sourceLine" id="cb21-5" data-line-number="5">out &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(dulken,llorens) <span class="co"># the output has logcounts </span></a>
-<a class="sourceLine" id="cb21-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb21-7" data-line-number="7">dulken &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]</a>
-<a class="sourceLine" id="cb21-8" data-line-number="8">llorens &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]</a></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1">dulken &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scmap/topics/selectFeatures">selectFeatures</a></span>(dulken)</a>
-<a class="sourceLine" id="cb22-2" data-line-number="2">llorens &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scmap/topics/selectFeatures">selectFeatures</a></span>(llorens)</a>
-<a class="sourceLine" id="cb22-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb22-4" data-line-number="4">top_HDG &lt;-<span class="st"> </span><span class="cf">function</span>(sce){</a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb21-4" data-line-number="4">out &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(dulken,llorens) <span class="co"># the output has logcounts </span></a>
+<a class="sourceLine" id="cb21-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb21-6" data-line-number="6">dulken &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb21-7" data-line-number="7">llorens &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]</a></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"></a>
+<a class="sourceLine" id="cb22-2" data-line-number="2">HDG_ranking &lt;-<span class="st"> </span><span class="cf">function</span>(sce){</a>
+<a class="sourceLine" id="cb22-3" data-line-number="3">  <span class="kw">rowData</span>(sce)<span class="op">$</span>feature_symbol &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(sce)</a>
+<a class="sourceLine" id="cb22-4" data-line-number="4">  sce &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scmap/topics/selectFeatures">selectFeatures</a></span>(sce)</a>
 <a class="sourceLine" id="cb22-5" data-line-number="5">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(sce)[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/order">order</a></span>(<span class="kw">rowData</span>(sce)[[<span class="st">"scmap_scores"</span>]],<span class="dt">decreasing =</span> T,<span class="dt">na.last =</span> T)])</a>
 <a class="sourceLine" id="cb22-6" data-line-number="6">}</a>
 <a class="sourceLine" id="cb22-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb22-8" data-line-number="8">dulken_top_HDG &lt;-<span class="st"> </span><span class="kw">top_HDG</span>(dulken)</a>
-<a class="sourceLine" id="cb22-9" data-line-number="9">llorens_top_HDG &lt;-<span class="st"> </span><span class="kw">top_HDG</span>(llorens)</a>
+<a class="sourceLine" id="cb22-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb22-9" data-line-number="9">n &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">union</a></span>(corgi_gene_set,consensus34))</a>
 <a class="sourceLine" id="cb22-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb22-11" data-line-number="11">n &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">union</a></span>(corgi_gene_set,consensus34))</a>
-<a class="sourceLine" id="cb22-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb22-13" data-line-number="13">gene_sets &lt;-<span class="st"> </span><span class="kw">get_compared_gene_sets</span>(</a>
-<a class="sourceLine" id="cb22-14" data-line-number="14">  <span class="dt">batch1_top_genes =</span> dulken_top_HDG,</a>
-<a class="sourceLine" id="cb22-15" data-line-number="15">  <span class="dt">batch1_name =</span> <span class="st">"HDG(Dulken)"</span>,</a>
-<a class="sourceLine" id="cb22-16" data-line-number="16">  <span class="dt">batch2_top_genes =</span> llorens_top_HDG, </a>
-<a class="sourceLine" id="cb22-17" data-line-number="17">  <span class="dt">batch2_name =</span> <span class="st">"HDG(Llorens)"</span>,</a>
-<a class="sourceLine" id="cb22-18" data-line-number="18">  <span class="dt">desired_size =</span> n,</a>
-<a class="sourceLine" id="cb22-19" data-line-number="19">  <span class="dt">marker_genes =</span> consensus34)</a>
-<a class="sourceLine" id="cb22-20" data-line-number="20"></a>
-<a class="sourceLine" id="cb22-21" data-line-number="21"><span class="co"># Because the consensus model is a monotonic non-increasing gene-set function in the percentage</span></a>
-<a class="sourceLine" id="cb22-22" data-line-number="22">gene_sets[[<span class="st">"Consensus"</span>]] &lt;-<span class="st"> </span></a>
-<a class="sourceLine" id="cb22-23" data-line-number="23"><span class="st">  </span><span class="kw"><a href="../reference/get_gene_set_of_size_n.html">get_gene_set_of_size_n</a></span>(</a>
-<a class="sourceLine" id="cb22-24" data-line-number="24">    <span class="dt">gs_func =</span> <span class="cf">function</span>(x)<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">intersect</a></span>(<span class="kw">top_consensus_genes</span>(<span class="dv">101</span><span class="op">-</span>x),shared_genes),</a>
-<a class="sourceLine" id="cb22-25" data-line-number="25">    <span class="dt">n =</span> n,</a>
-<a class="sourceLine" id="cb22-26" data-line-number="26">    <span class="dt">LB =</span> <span class="dv">1</span>,</a>
-<a class="sourceLine" id="cb22-27" data-line-number="27">    <span class="dt">UB =</span> <span class="dv">100</span></a>
-<a class="sourceLine" id="cb22-28" data-line-number="28">  )</a>
+<a class="sourceLine" id="cb22-11" data-line-number="11">gene_sets &lt;-<span class="st"> </span><span class="kw">get_compared_gene_sets</span>(</a>
+<a class="sourceLine" id="cb22-12" data-line-number="12">  <span class="dt">batch1_top_genes =</span> <span class="kw">HDG_ranking</span>(dulken),</a>
+<a class="sourceLine" id="cb22-13" data-line-number="13">  <span class="dt">batch1_name =</span> <span class="st">"HDG(Dulken)"</span>,</a>
+<a class="sourceLine" id="cb22-14" data-line-number="14">  <span class="dt">batch2_top_genes =</span> <span class="kw">HDG_ranking</span>(llorens), </a>
+<a class="sourceLine" id="cb22-15" data-line-number="15">  <span class="dt">batch2_name =</span> <span class="st">"HDG(Llorens)"</span>,</a>
+<a class="sourceLine" id="cb22-16" data-line-number="16">  <span class="dt">desired_size =</span> n,</a>
+<a class="sourceLine" id="cb22-17" data-line-number="17">  <span class="dt">marker_genes =</span> consensus34)</a>
+<a class="sourceLine" id="cb22-18" data-line-number="18"></a>
+<a class="sourceLine" id="cb22-19" data-line-number="19"><span class="co"># Because the consensus model is a monotonic non-increasing gene-set function in the percentage</span></a>
+<a class="sourceLine" id="cb22-20" data-line-number="20">gene_sets[[<span class="st">"Consensus"</span>]] &lt;-<span class="st"> </span></a>
+<a class="sourceLine" id="cb22-21" data-line-number="21"><span class="st">  </span><span class="kw"><a href="../reference/get_gene_set_of_size_n.html">get_gene_set_of_size_n</a></span>(</a>
+<a class="sourceLine" id="cb22-22" data-line-number="22">    <span class="dt">gs_func =</span> <span class="cf">function</span>(x)<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">intersect</a></span>(<span class="kw">top_consensus_genes</span>(<span class="dv">101</span><span class="op">-</span>x),shared_genes),</a>
+<a class="sourceLine" id="cb22-23" data-line-number="23">    <span class="dt">n =</span> n,</a>
+<a class="sourceLine" id="cb22-24" data-line-number="24">    <span class="dt">LB =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb22-25" data-line-number="25">    <span class="dt">UB =</span> <span class="dv">100</span></a>
+<a class="sourceLine" id="cb22-26" data-line-number="26">  )</a>
+<a class="sourceLine" id="cb22-27" data-line-number="27"></a>
+<a class="sourceLine" id="cb22-28" data-line-number="28">gene_sets[[<span class="st">"CorGI"</span>]] &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">union</a></span>(corgi_gene_set,consensus34)</a>
 <a class="sourceLine" id="cb22-29" data-line-number="29"></a>
-<a class="sourceLine" id="cb22-30" data-line-number="30">gene_sets[[<span class="st">"CorGI"</span>]] &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sets">union</a></span>(corgi_gene_set,consensus34)</a>
-<a class="sourceLine" id="cb22-31" data-line-number="31"></a>
+<a class="sourceLine" id="cb22-30" data-line-number="30"></a>
+<a class="sourceLine" id="cb22-31" data-line-number="31">gene_sets &lt;-<span class="st"> </span>gene_sets[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">6</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">1</span>)]</a>
 <a class="sourceLine" id="cb22-32" data-line-number="32"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(gene_sets, length)</a>
-<a class="sourceLine" id="cb22-33" data-line-number="33"><span class="co">#&gt; $`HDG(Dulken)`</span></a>
+<a class="sourceLine" id="cb22-33" data-line-number="33"><span class="co">#&gt; $CorGI</span></a>
 <a class="sourceLine" id="cb22-34" data-line-number="34"><span class="co">#&gt; [1] 134</span></a>
 <a class="sourceLine" id="cb22-35" data-line-number="35"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb22-36" data-line-number="36"><span class="co">#&gt; $`HDG(Llorens)`</span></a>
-<a class="sourceLine" id="cb22-37" data-line-number="37"><span class="co">#&gt; [1] 134</span></a>
+<a class="sourceLine" id="cb22-36" data-line-number="36"><span class="co">#&gt; $Consensus</span></a>
+<a class="sourceLine" id="cb22-37" data-line-number="37"><span class="co">#&gt; [1] 133</span></a>
 <a class="sourceLine" id="cb22-38" data-line-number="38"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb22-39" data-line-number="39"><span class="co">#&gt; $Union</span></a>
-<a class="sourceLine" id="cb22-40" data-line-number="40"><span class="co">#&gt; [1] 135</span></a>
+<a class="sourceLine" id="cb22-39" data-line-number="39"><span class="co">#&gt; $Intersection</span></a>
+<a class="sourceLine" id="cb22-40" data-line-number="40"><span class="co">#&gt; [1] 134</span></a>
 <a class="sourceLine" id="cb22-41" data-line-number="41"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb22-42" data-line-number="42"><span class="co">#&gt; $Intersection</span></a>
-<a class="sourceLine" id="cb22-43" data-line-number="43"><span class="co">#&gt; [1] 134</span></a>
+<a class="sourceLine" id="cb22-42" data-line-number="42"><span class="co">#&gt; $Union</span></a>
+<a class="sourceLine" id="cb22-43" data-line-number="43"><span class="co">#&gt; [1] 135</span></a>
 <a class="sourceLine" id="cb22-44" data-line-number="44"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb22-45" data-line-number="45"><span class="co">#&gt; $Consensus</span></a>
-<a class="sourceLine" id="cb22-46" data-line-number="46"><span class="co">#&gt; [1] 133</span></a>
+<a class="sourceLine" id="cb22-45" data-line-number="45"><span class="co">#&gt; $`HDG(Llorens)`</span></a>
+<a class="sourceLine" id="cb22-46" data-line-number="46"><span class="co">#&gt; [1] 134</span></a>
 <a class="sourceLine" id="cb22-47" data-line-number="47"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb22-48" data-line-number="48"><span class="co">#&gt; $CorGI</span></a>
+<a class="sourceLine" id="cb22-48" data-line-number="48"><span class="co">#&gt; $`HDG(Dulken)`</span></a>
 <a class="sourceLine" id="cb22-49" data-line-number="49"><span class="co">#&gt; [1] 134</span></a></code></pre></div>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">emb_name &lt;-<span class="st"> "MDS"</span></a>
-<a class="sourceLine" id="cb23-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb23-3" data-line-number="3">embeddings &lt;-<span class="st"> </span></a>
-<a class="sourceLine" id="cb23-4" data-line-number="4"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(</a>
-<a class="sourceLine" id="cb23-5" data-line-number="5">    <span class="dt">X =</span> gene_sets,</a>
-<a class="sourceLine" id="cb23-6" data-line-number="6">    <span class="dt">FUN =</span> <span class="cf">function</span>(gene_set) {</a>
-<a class="sourceLine" id="cb23-7" data-line-number="7">      D &lt;-<span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/cor">cor</a></span>(comb[gene_set, ], <span class="dt">method =</span> <span class="st">"spearman"</span>)) <span class="op">/</span><span class="st"> </span><span class="dv">2</span></a>
-<a class="sourceLine" id="cb23-8" data-line-number="8">      <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/cmdscale">cmdscale</a></span>(D, <span class="dt">k =</span> <span class="dv">2</span>))</a>
-<a class="sourceLine" id="cb23-9" data-line-number="9">    }</a>
-<a class="sourceLine" id="cb23-10" data-line-number="10">  )</a>
-<a class="sourceLine" id="cb23-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb23-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb23-13" data-line-number="13"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq_along</a></span>(gene_sets),</a>
-<a class="sourceLine" id="cb23-14" data-line-number="14">       <span class="dt">FUN =</span> <span class="cf">function</span>(i){</a>
-<a class="sourceLine" id="cb23-15" data-line-number="15">         gs_name &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/openxlsx/topics/names">names</a></span>(gene_sets)[i]</a>
-<a class="sourceLine" id="cb23-16" data-line-number="16">         emb &lt;-<span class="st"> </span>embeddings[[i]]</a>
-<a class="sourceLine" id="cb23-17" data-line-number="17">         <span class="kw">plot_dimensionality_reduction</span>(emb,batch,cell_type2,gs_name,<span class="st">"MDS"</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb23-18" data-line-number="18"><span class="st">           </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span>(<span class="dt">values =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, <span class="dv">16</span>)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb23-19" data-line-number="19"><span class="st">           </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span>(<span class="dt">values =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"#E69F00"</span>,<span class="st">"#000000"</span>, <span class="st">"#56B4E9"</span>))</a>
-<a class="sourceLine" id="cb23-20" data-line-number="20">       })</a>
-<a class="sourceLine" id="cb23-21" data-line-number="21"><span class="co">#&gt; [[1]]</span></a></code></pre></div>
-<p><img src="neurogenesis_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
-<pre><code>#&gt; 
-#&gt; [[2]]</code></pre>
-<p><img src="neurogenesis_files/figure-html/unnamed-chunk-24-2.png" width="700"></p>
-<pre><code>#&gt; 
-#&gt; [[3]]</code></pre>
-<p><img src="neurogenesis_files/figure-html/unnamed-chunk-24-3.png" width="700"></p>
-<pre><code>#&gt; 
-#&gt; [[4]]</code></pre>
-<p><img src="neurogenesis_files/figure-html/unnamed-chunk-24-4.png" width="700"></p>
-<pre><code>#&gt; 
-#&gt; [[5]]</code></pre>
-<p><img src="neurogenesis_files/figure-html/unnamed-chunk-24-5.png" width="700"></p>
-<pre><code>#&gt; 
-#&gt; [[6]]</code></pre>
-<p><img src="neurogenesis_files/figure-html/unnamed-chunk-24-6.png" width="700"></p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb29-2" data-line-number="2">knn.predict &lt;-<span class="st"> </span><span class="cf">function</span>(test.suite,<span class="dt">cell.meta.data.pred =</span> <span class="st">"cell_type1"</span>, test.batches, train.batches, <span class="dt">gene.sets.use =</span><span class="ot">NULL</span>, <span class="dt">methods.use =</span> <span class="ot">NULL</span>, <span class="dt">params=</span><span class="dv">5</span><span class="op">*</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">6</span>)){</a>
-<a class="sourceLine" id="cb29-3" data-line-number="3">  knn.outputs &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>()</a>
-<a class="sourceLine" id="cb29-4" data-line-number="4">  dr.ids &lt;-<span class="st"> </span><span class="kw">get.main.loop</span>(test.suite,gene.sets.use,methods.use)</a>
-<a class="sourceLine" id="cb29-5" data-line-number="5">  knn.params &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/data.frame">data.frame</a></span>(<span class="dt">dr.id =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(dr.ids,<span class="dt">each =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(params)),</a>
-<a class="sourceLine" id="cb29-6" data-line-number="6">                           <span class="dt">param =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(params,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(dr.ids)))</a>
-<a class="sourceLine" id="cb29-7" data-line-number="7">  j &lt;-<span class="st"> </span><span class="dv">1</span></a>
-<a class="sourceLine" id="cb29-8" data-line-number="8">  <span class="cf">for</span>(i <span class="cf">in</span> dr.ids){</a>
-<a class="sourceLine" id="cb29-9" data-line-number="9">    <span class="cf">for</span>(param <span class="cf">in</span> params){</a>
-<a class="sourceLine" id="cb29-10" data-line-number="10">      plt.dat &lt;-<span class="st"> </span><span class="kw">prepare.data.for.plotting</span>(test.suite,i)</a>
-<a class="sourceLine" id="cb29-11" data-line-number="11">      df &lt;-<span class="st"> </span>plt.dat<span class="op">$</span>df</a>
-<a class="sourceLine" id="cb29-12" data-line-number="12">      <span class="co"># df &lt;- prepare.data.for.plotting(test.suite,i)$df</span></a>
-<a class="sourceLine" id="cb29-13" data-line-number="13">      truth &lt;-<span class="st"> </span>df[,cell.meta.data.pred]</a>
-<a class="sourceLine" id="cb29-14" data-line-number="14">      test &lt;-<span class="st"> </span>df<span class="op">$</span>batch <span class="op">%in%</span><span class="st"> </span>test.batches</a>
-<a class="sourceLine" id="cb29-15" data-line-number="15">      train &lt;-<span class="st"> </span>df<span class="op">$</span>batch <span class="op">%in%</span><span class="st"> </span>train.batches</a>
-<a class="sourceLine" id="cb29-16" data-line-number="16">      class<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/class/topics/knn">knn</a></span>(<span class="dt">train =</span> df[train,<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],</a>
-<a class="sourceLine" id="cb29-17" data-line-number="17">                 <span class="dt">test =</span> df[test,<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],</a>
-<a class="sourceLine" id="cb29-18" data-line-number="18">                 <span class="dt">cl=</span> truth[train],</a>
-<a class="sourceLine" id="cb29-19" data-line-number="19">                 <span class="dt">k =</span> param) -&gt;<span class="st"> </span>predictions</a>
-<a class="sourceLine" id="cb29-20" data-line-number="20">      knn.outputs[[j]] &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/data.frame">data.frame</a></span>(<span class="dt">truth =</span> truth[test], <span class="dt">pred =</span> predictions)</a>
-<a class="sourceLine" id="cb29-21" data-line-number="21">      j &lt;-<span class="st"> </span>j <span class="op">+</span><span class="st"> </span><span class="dv">1</span></a>
-<a class="sourceLine" id="cb29-22" data-line-number="22">    }</a>
-<a class="sourceLine" id="cb29-23" data-line-number="23">  }</a>
-<a class="sourceLine" id="cb29-24" data-line-number="24">  test.suite<span class="op">$</span>knn.predict.outputs &lt;-<span class="st"> </span>knn.outputs</a>
-<a class="sourceLine" id="cb29-25" data-line-number="25">  test.suite<span class="op">$</span>knn.predict.params &lt;-<span class="st"> </span>knn.params</a>
-<a class="sourceLine" id="cb29-26" data-line-number="26">  test.suite<span class="op">$</span>knn.predict.benchmarks &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> knn.outputs,<span class="dt">FUN =</span> cont.tab.to.TPR.FPR)</a>
-<a class="sourceLine" id="cb29-27" data-line-number="27">  test.suite<span class="op">$</span>knn.predict.meta.data &lt;-<span class="st"> </span></a>
-<a class="sourceLine" id="cb29-28" data-line-number="28"><span class="st">    </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>(<span class="dt">test.batches=</span>test.batches,<span class="dt">train.batches=</span>train.batches,<span class="dt">cell.meta.data.pred=</span>cell.meta.data.pred)</a>
-<a class="sourceLine" id="cb29-29" data-line-number="29">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(test.suite)</a>
-<a class="sourceLine" id="cb29-30" data-line-number="30">}</a></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">my_shape_palette &lt;-<span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span>(<span class="dt">values =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>, <span class="dv">16</span>))</a>
+<a class="sourceLine" id="cb23-2" data-line-number="2">my_color_palette &lt;-<span class="st"> </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span>(<span class="dt">values =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"#E69F00"</span>,<span class="st">"#000000"</span>, <span class="st">"#56B4E9"</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1">plot_panel &lt;-<span class="st"> </span><span class="cf">function</span>(embeddings, emb_name){</a>
+<a class="sourceLine" id="cb24-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb24-3" data-line-number="3"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(<span class="dt">X =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq_along</a></span>(gene_sets),</a>
+<a class="sourceLine" id="cb24-4" data-line-number="4">       <span class="dt">FUN =</span> <span class="cf">function</span>(i){</a>
+<a class="sourceLine" id="cb24-5" data-line-number="5">         gs_name &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/openxlsx/topics/names">names</a></span>(gene_sets)[i]</a>
+<a class="sourceLine" id="cb24-6" data-line-number="6">         emb &lt;-<span class="st"> </span>embeddings[[i]]</a>
+<a class="sourceLine" id="cb24-7" data-line-number="7">         <span class="kw">plot_dimensionality_reduction</span>(emb,batch,cell_type2,gs_name,emb_name) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-8" data-line-number="8"><span class="st">           </span>my_shape_palette <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-9" data-line-number="9"><span class="st">           </span>my_color_palette</a>
+<a class="sourceLine" id="cb24-10" data-line-number="10">       }) -&gt;<span class="st"> </span>plts</a>
+<a class="sourceLine" id="cb24-11" data-line-number="11">plts[[<span class="st">"labels"</span>]] &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"A"</span>,<span class="st">"B"</span>,<span class="st">"C"</span>,<span class="st">"D"</span>,<span class="st">"E"</span>,<span class="st">"F"</span>)</a>
+<a class="sourceLine" id="cb24-12" data-line-number="12">dr_plts &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/do.call">do.call</a></span>(<span class="dt">what =</span> plot_grid,<span class="dt">args =</span> plts)</a>
+<a class="sourceLine" id="cb24-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb24-14" data-line-number="14">dr_plts</a>
+<a class="sourceLine" id="cb24-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb24-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb24-17" data-line-number="17">emb &lt;-<span class="st"> </span>embeddings[[<span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb24-18" data-line-number="18">shape_lgnd &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/get_legend">get_legend</a></span>(<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(emb[,<span class="dv">1</span>],emb[,<span class="dv">2</span>],<span class="dt">shape =</span> batch)<span class="op">+</span>my_shape_palette)</a>
+<a class="sourceLine" id="cb24-19" data-line-number="19">color_lgnd &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/get_legend">get_legend</a></span>(<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(emb[,<span class="dv">1</span>],emb[,<span class="dv">2</span>],<span class="dt">color =</span> cell_type2)<span class="op">+</span>my_color_palette)</a>
+<a class="sourceLine" id="cb24-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb24-21" data-line-number="21"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(emb[,<span class="dv">1</span>],emb[,<span class="dv">2</span>],<span class="dt">asp =</span> <span class="dv">1</span>,<span class="dt">shape =</span> <span class="ot">NA</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb24-22" data-line-number="22"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(emb_name,<span class="dv">1</span>)) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb24-23" data-line-number="23"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(emb_name,<span class="dv">2</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-24" data-line-number="24"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span>(<span class="dt">axis.ticks =</span> <span class="kw"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_blank</a></span>(),</a>
+<a class="sourceLine" id="cb24-25" data-line-number="25">        <span class="dt">axis.text =</span> <span class="kw"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_blank</a></span>(),<span class="dt">text =</span> <span class="kw"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_text</a></span>(<span class="dt">size=</span><span class="dv">10</span>)) -&gt;<span class="st"> </span>axes_lgnd</a>
+<a class="sourceLine" id="cb24-26" data-line-number="26">axes_lgnd</a>
+<a class="sourceLine" id="cb24-27" data-line-number="27"></a>
+<a class="sourceLine" id="cb24-28" data-line-number="28">all_lgnds &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(axes_lgnd,<span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(shape_lgnd,color_lgnd),<span class="dt">nrow=</span><span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb24-29" data-line-number="29">all_lgnds</a>
+<a class="sourceLine" id="cb24-30" data-line-number="30"></a>
+<a class="sourceLine" id="cb24-31" data-line-number="31"></a>
+<a class="sourceLine" id="cb24-32" data-line-number="32"></a>
+<a class="sourceLine" id="cb24-33" data-line-number="33">results &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/data.frame">data.frame</a></span>(</a>
+<a class="sourceLine" id="cb24-34" data-line-number="34">  <span class="dt">TPR =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/numeric">numeric</a></span>(<span class="dv">0</span>),</a>
+<a class="sourceLine" id="cb24-35" data-line-number="35">  <span class="dt">FPR =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/numeric">numeric</a></span>(<span class="dv">0</span>),</a>
+<a class="sourceLine" id="cb24-36" data-line-number="36">  <span class="dt">Gene_set =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/character">character</a></span>(<span class="dv">0</span>), <span class="dt">levels =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/openxlsx/topics/names">names</a></span>(gene_sets))</a>
+<a class="sourceLine" id="cb24-37" data-line-number="37">)</a>
+<a class="sourceLine" id="cb24-38" data-line-number="38">i &lt;-<span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb24-39" data-line-number="39"></a>
+<a class="sourceLine" id="cb24-40" data-line-number="40">n_cells &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(batch)</a>
+<a class="sourceLine" id="cb24-41" data-line-number="41">train &lt;-<span class="st"> </span>batch <span class="op">==</span><span class="st"> "Dulken"</span></a>
+<a class="sourceLine" id="cb24-42" data-line-number="42">test &lt;-<span class="st"> </span>batch <span class="op">==</span><span class="st"> "Llorens"</span></a>
+<a class="sourceLine" id="cb24-43" data-line-number="43"></a>
+<a class="sourceLine" id="cb24-44" data-line-number="44"><span class="cf">for</span> (gs_name <span class="cf">in</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/openxlsx/topics/names">names</a></span>(gene_sets)) {</a>
+<a class="sourceLine" id="cb24-45" data-line-number="45">  emb &lt;-<span class="st"> </span>embeddings[[gs_name]]</a>
+<a class="sourceLine" id="cb24-46" data-line-number="46">  </a>
+<a class="sourceLine" id="cb24-47" data-line-number="47">  <span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">5</span> <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span><span class="op">:</span><span class="dv">6</span>)) {</a>
+<a class="sourceLine" id="cb24-48" data-line-number="48">    class<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/class/topics/knn">knn</a></span>(</a>
+<a class="sourceLine" id="cb24-49" data-line-number="49">      <span class="dt">train =</span> emb[train, ],</a>
+<a class="sourceLine" id="cb24-50" data-line-number="50">      <span class="dt">test =</span> emb[test, ],</a>
+<a class="sourceLine" id="cb24-51" data-line-number="51">      <span class="dt">cl =</span> cell_type2[train],</a>
+<a class="sourceLine" id="cb24-52" data-line-number="52">      <span class="dt">k =</span> k</a>
+<a class="sourceLine" id="cb24-53" data-line-number="53">    ) -&gt;<span class="st"> </span>cell_type2_pred</a>
+<a class="sourceLine" id="cb24-54" data-line-number="54">    </a>
+<a class="sourceLine" id="cb24-55" data-line-number="55">    caret<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/caret/topics/confusionMatrix">confusionMatrix</a></span>(<span class="dt">data =</span> cell_type2_pred,</a>
+<a class="sourceLine" id="cb24-56" data-line-number="56">                           <span class="dt">reference =</span> cell_type2[test],</a>
+<a class="sourceLine" id="cb24-57" data-line-number="57">                           <span class="dt">positive =</span> <span class="st">"NPC"</span>) -&gt;<span class="st"> </span>output</a>
+<a class="sourceLine" id="cb24-58" data-line-number="58">    TPR &lt;-<span class="st"> </span>output<span class="op">$</span>byClass[<span class="st">"Class: NPC"</span>, <span class="st">"Sensitivity"</span>]</a>
+<a class="sourceLine" id="cb24-59" data-line-number="59">    FPR &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>output<span class="op">$</span>byClass[<span class="st">"Class: NPC"</span>, <span class="st">"Specificity"</span>]</a>
+<a class="sourceLine" id="cb24-60" data-line-number="60">    </a>
+<a class="sourceLine" id="cb24-61" data-line-number="61">    results[i, <span class="st">"TPR"</span>] &lt;-<span class="st"> </span>TPR</a>
+<a class="sourceLine" id="cb24-62" data-line-number="62">    results[i, <span class="st">"FPR"</span>] &lt;-<span class="st"> </span>FPR</a>
+<a class="sourceLine" id="cb24-63" data-line-number="63">    results[i, <span class="st">"Gene_set"</span>] &lt;-<span class="st"> </span>gs_name</a>
+<a class="sourceLine" id="cb24-64" data-line-number="64">    i &lt;-<span class="st"> </span>i <span class="op">+</span><span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb24-65" data-line-number="65">    <span class="co"># }</span></a>
+<a class="sourceLine" id="cb24-66" data-line-number="66">  }</a>
+<a class="sourceLine" id="cb24-67" data-line-number="67">}</a>
+<a class="sourceLine" id="cb24-68" data-line-number="68"></a>
+<a class="sourceLine" id="cb24-69" data-line-number="69"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(results, <span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="dt">x =</span> FPR, <span class="dt">y =</span> TPR)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-70" data-line-number="70"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/geom_jitter.html">geom_jitter</a></span>(<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="dt">shape =</span> Gene_set, <span class="dt">color =</span> Gene_set),</a>
+<a class="sourceLine" id="cb24-71" data-line-number="71">              <span class="dt">size =</span> <span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb24-72" data-line-number="72">              <span class="dt">width =</span> <span class="fl">0.0005</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-73" data-line-number="73"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span>(<span class="dt">values =</span> <span class="dv">65</span><span class="op">:</span><span class="dv">70</span>) <span class="op">+</span><span class="st"> </span><span class="co"># makes the labels from A to F</span></a>
+<a class="sourceLine" id="cb24-74" data-line-number="74"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_continuous</a></span>(<span class="dt">breaks =</span> scales<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/scales/topics/pretty_breaks">pretty_breaks</a></span>(<span class="dt">n =</span> <span class="dv">2</span>)) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb24-75" data-line-number="75"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span>()-&gt;<span class="st"> </span>AUC_plt</a>
+<a class="sourceLine" id="cb24-76" data-line-number="76"></a>
+<a class="sourceLine" id="cb24-77" data-line-number="77"></a>
+<a class="sourceLine" id="cb24-78" data-line-number="78"><span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(dr_plts,</a>
+<a class="sourceLine" id="cb24-79" data-line-number="79">          <span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(all_lgnds,</a>
+<a class="sourceLine" id="cb24-80" data-line-number="80">                    AUC_plt,</a>
+<a class="sourceLine" id="cb24-81" data-line-number="81">                    <span class="dt">rel_widths=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">1</span>,<span class="dv">2</span>),</a>
+<a class="sourceLine" id="cb24-82" data-line-number="82">                    <span class="dt">labels=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">""</span>,<span class="st">"G"</span>)),</a>
+<a class="sourceLine" id="cb24-83" data-line-number="83">          <span class="dt">nrow=</span><span class="dv">2</span>,</a>
+<a class="sourceLine" id="cb24-84" data-line-number="84">          <span class="dt">rel_heights =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">2</span>,<span class="dv">1</span>)) -&gt;<span class="st"> </span>final_plot</a>
+<a class="sourceLine" id="cb24-85" data-line-number="85"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(final_plot)</a>
+<a class="sourceLine" id="cb24-86" data-line-number="86">}</a></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1">embeddings_mds &lt;-<span class="st"> </span></a>
+<a class="sourceLine" id="cb25-2" data-line-number="2"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(</a>
+<a class="sourceLine" id="cb25-3" data-line-number="3">    <span class="dt">X =</span> gene_sets,</a>
+<a class="sourceLine" id="cb25-4" data-line-number="4">    <span class="dt">FUN =</span> <span class="cf">function</span>(gene_set) {</a>
+<a class="sourceLine" id="cb25-5" data-line-number="5">      D &lt;-<span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/cor">cor</a></span>(comb[gene_set, ], <span class="dt">method =</span> <span class="st">"spearman"</span>)) <span class="op">/</span><span class="st"> </span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb25-6" data-line-number="6">      <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/cmdscale">cmdscale</a></span>(D, <span class="dt">k =</span> <span class="dv">2</span>))</a>
+<a class="sourceLine" id="cb25-7" data-line-number="7">    }</a>
+<a class="sourceLine" id="cb25-8" data-line-number="8">  )</a></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1">panel_plot_mds &lt;-<span class="st"> </span><span class="kw">plot_panel</span>(embeddings_mds,<span class="st">"MDS"</span>)</a>
+<a class="sourceLine" id="cb26-2" data-line-number="2">panel_plot_mds</a></code></pre></div>
+<p><img src="neurogenesis_files/figure-html/unnamed-chunk-27-1.png" width="576"></p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1"></a>
+<a class="sourceLine" id="cb27-2" data-line-number="2">embeddings_mnn_pca &lt;-<span class="st"> </span></a>
+<a class="sourceLine" id="cb27-3" data-line-number="3"><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/lapply">lapply</a></span>(</a>
+<a class="sourceLine" id="cb27-4" data-line-number="4">    <span class="dt">X =</span> gene_sets,</a>
+<a class="sourceLine" id="cb27-5" data-line-number="5">    <span class="dt">FUN =</span> <span class="cf">function</span>(gene_set) {</a>
+<a class="sourceLine" id="cb27-6" data-line-number="6">      mnn.out &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/mnnCorrect">mnnCorrect</a></span>(<span class="kw">logcounts</span>(dulken[gene_set,]),<span class="kw">logcounts</span>(llorens[gene_set,]))</a>
+<a class="sourceLine" id="cb27-7" data-line-number="7">      t.mnn &lt;&lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">as.matrix</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/do.call">do.call</a></span>(cbind, mnn.out<span class="op">$</span>corrected)))</a>
+<a class="sourceLine" id="cb27-8" data-line-number="8">      pca.mnn &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(t.mnn, <span class="dt">rank=</span><span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb27-9" data-line-number="9">      <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(pca.mnn<span class="op">$</span>x)</a>
+<a class="sourceLine" id="cb27-10" data-line-number="10">    }</a>
+<a class="sourceLine" id="cb27-11" data-line-number="11">  )</a></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1">panel_plot_mnn &lt;-<span class="st"> </span><span class="kw">plot_panel</span>(embeddings_mnn_pca,<span class="st">"MNNPC"</span>)</a>
+<a class="sourceLine" id="cb28-2" data-line-number="2">panel_plot_mnn</a></code></pre></div>
+<p><img src="neurogenesis_files/figure-html/unnamed-chunk-29-1.png" width="576"></p>
 </div>
 </div>
   </div>
