@@ -24,13 +24,13 @@ get_shape_legend <- function(batch,my_shape_palette){
 }
 
 #' @export
-get_color_legend <- function(cell_type,my_color_palette,ncol = 1){
-  n_cells <- length(batch)
+get_color_legend <- function(cell_type,my_color_palette,ncol = NULL,legend.position = "right",legend.title = "Cell type"){
+  n_cells <- length(cell_type)
   cowplot::get_legend(
     ggplot2::qplot(1:n_cells, 1:n_cells, color = cell_type) +
       my_color_palette +
-      guides(col = guide_legend(title="Cell type", ncol = ncol)) +
-      theme(legend.title.align=0.5)
+      guides(col = guide_legend(title= legend.title, ncol = ncol)) +
+      theme(legend.position = legend.position)
     )
 }
 

@@ -19,6 +19,13 @@ knitr::opts_chunk$set(
 ```
 
 ```{r}
+library(corgi)
+library(scmap)
+library(knitr) # for printing nice looking tables
+library(ggplot2) # for creating pretty plots
+library(cowplot) # for creating panel of plots
+library(forcats) # for concatenating factors
+library(scmap) # for the compared feature selection method
 library(dplyr)
 library(scran)
 library(GEOquery)
@@ -42,7 +49,7 @@ pal_raw[1:10,1:6]
 ```
 
 ```{r}
-pal <- SingleCellExperiment(assay = list(counts = as.matrix(pal_raw[,3:ncol(pal)])))
+pal <- SingleCellExperiment(assay = list(counts = as.matrix(pal_raw[,3:ncol(pal_raw)])))
 dim(pal)
 pal_entrezGeneID <- pal_raw[,1]
 ```
@@ -103,8 +110,8 @@ con <- gzcon(
 txt <- readLines(con)
 giraddi_raw <- read.delim2(file = textConnection(txt))
 
-head(colnames(giraddi))
-head(giraddi$gene_id)
+head(colnames(giraddi_raw))
+head(giraddi_raw$gene_id)
 head(giraddi_raw$X) # the "X" column is where the MGI symbol for the gene names are stored
 
 # remove duplicated MGI symbols
@@ -172,7 +179,7 @@ data("corgi_output_MG_devel")
 sample_cells <- function(object, n){
   return(object[,sample(1:ncol(object),n)])
 }
-giraddi <- subsample_cells(giraddi,1000)
+giraddi <- sample_cells(giraddi,1000)
 cell_type <- forcats::fct_c(giraddi$cell_type,pal$cell_type)
 batch <- c(rep("Giraddi",ncol(giraddi)),rep("Pal",ncol(pal)))
 comb <- cbind(counts(giraddi),counts(pal))
@@ -233,6 +240,23 @@ lapply(gene_sets, length)
 
 
 ```{r}
+my_shape_palette <- scale_shape_manual(values = c(1,16))
+my_color_palette <- scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+get_scatterplots <- function(embeddings, batch, cell_type){
+  lapply(X = names(gene_sets),
+         FUN = function(gs_name) {
+           emb <- embeddings[[gs_name]]
+           plot_dimensionality_reduction(emb, batch, cell_type) +
+             my_shape_palette +
+             my_color_palette + 
+             ggtitle(paste0(gs_name, ", ", round(corgi::batch_mixing(emb, batch), 2)))
+         })
+}
+
+```
+
+
+```{r}
 emb_name <- "MDS"
 
 embeddings <- 
@@ -243,18 +267,27 @@ embeddings <-
       return(cmdscale(D, k = 2))
     }
   )
+```
+
+```{r}
+get_scatterplots(embeddings,batch,cell_type) -> giraddi_pal_plts
+
+get_axes_legend("MDS") -> axes_lgnd
 
 
-lapply(X = seq_along(gene_sets),
-       FUN = function(i){
-         gs_name <- names(gene_sets)[i]
-         emb <- embeddings[[i]]
-         plot_dimensionality_reduction(emb,batch,cell_type,gs_name,"MDS") +
-           scale_shape_manual(values = c(1, 16)) +
-           scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
-       }) -> plts
-plts
+get_shape_legend(batch,my_shape_palette) -> shape_lgnd
+get_color_legend(cell_type[batch == "Giraddi"],
+                 scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442")),
+                 legend.position = "bottom",legend.title = "Giraddi",ncol=2) ->
+  giraddi_color_lgnd
+get_color_legend(cell_type[batch == "Pal"],
+                 scale_color_manual(values = c( "#0072B2", "#D55E00", "#CC79A7")),
+                 legend.title = "Pal") -> pal_color_lgnd
 
+giraddi_pal_plts[[6]] <- plot_grid(plot_grid(axes_lgnd,pal_color_lgnd),giraddi_color_lgnd,nrow=2)
+
+
+do.call(plot_grid,giraddi_pal_plts)
 ```
 
 
@@ -298,7 +331,6 @@ rownames(wuidart) <- unlist(lapply(rownames(wuidart), f))
 Does this cause any duplicates?
 ```{r}
 any(duplicated(rownames(wuidart)))
-
 ```
 
 
@@ -394,19 +426,25 @@ embeddings <-
       return(cmdscale(D, k = 2))
     }
   )
-
-
-lapply(X = seq_along(gene_sets),
-       FUN = function(i){
-         gs_name <- names(gene_sets)[i]
-         emb <- embeddings[[i]]
-         plot_dimensionality_reduction(emb,batch,cell_type,gs_name,"MDS") +
-           scale_shape_manual(values = c(1, 16)) +
-           scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
-       }) -> plts
-plts
-
 ```
+```{r}
+get_scatterplots(embeddings,batch,cell_type) -> giraddi_wuidart_plts
+
+get_axes_legend("MDS") -> axes_lgnd
+
+
+get_shape_legend(batch,my_shape_palette) -> shape_lgnd
+
+get_color_legend(cell_type[batch == "Wuidart"],
+                 scale_color_manual(values = c( "#0072B2", "#D55E00", "#CC79A7")),
+                 legend.title = "Wuidart",legend.position = "top") -> wuidart_color_lgnd
+
+giraddi_wuidart_plts[[6]] <- plot_grid(plot_grid(axes_lgnd,wuidart_color_lgnd),giraddi_color_lgnd,nrow=2)
+
+
+do.call(plot_grid,giraddi_wuidart_plts)
+```
+
 
 
 # Bach et al. 2017 dataset
@@ -458,16 +496,55 @@ embeddings <-
       return(cmdscale(D, k = 2))
     }
   )
+```
+
+```{r}
+get_scatterplots(embeddings,batch,cell_type) -> giraddi_bach_NP_plts
+
+get_axes_legend("MDS") -> axes_lgnd
 
 
-lapply(X = seq_along(gene_sets),
-       FUN = function(i){
-         gs_name <- names(gene_sets)[i]
-         emb <- embeddings[[i]]
-         plot_dimensionality_reduction(emb,batch,cell_type,gs_name,"MDS") +
-           scale_shape_manual(values = c(16, 1)) +
-           scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
-       }) -> plts
-plts
+get_shape_legend(batch,my_shape_palette) -> shape_lgnd
+
+get_color_legend(cell_type[batch == "Bach_NP"],
+                 scale_color_manual(values = c( "#999999")),
+                 legend.title = "Bach_NP",legend.position = "top") -> Bach_NP_color_lgnd
+
+giraddi_bach_NP_plts[[6]] <- plot_grid(plot_grid(axes_lgnd,Bach_NP_color_lgnd),giraddi_color_lgnd,nrow=2)
+
+
+do.call(plot_grid,giraddi_bach_NP_plts)
 
 ```
+
+
+```{r,fig.height=8}
+
+giraddi_bach_NP_plts[[6]] <- Bach_NP_color_lgnd
+giraddi_bach_NP_plts[["ncol"]] <- 1
+giraddi_bach_NP_plts[["rel_heights"]] <- c(1,2,2,2,2,2)
+
+do.call(plot_grid,rev(giraddi_bach_NP_plts)) -> bach_np_panel
+
+
+
+giraddi_wuidart_plts[[6]] <- wuidart_color_lgnd
+giraddi_wuidart_plts[["ncol"]] <- 1
+giraddi_wuidart_plts[["rel_heights"]] <- c(1,2,2,2,2,2)
+
+do.call(plot_grid,rev(giraddi_wuidart_plts)) -> wuidart_panel
+
+
+giraddi_pal_plts[[6]] <- pal_color_lgnd
+giraddi_pal_plts[["ncol"]] <- 1
+giraddi_pal_plts[["rel_heights"]] <- c(1,2,2,2,2,2)
+
+do.call(plot_grid,rev(giraddi_pal_plts)) -> pal_panel
+
+plot_grid(pal_panel,wuidart_panel,bach_np_panel,ncol=3)
+
+
+# plot_grid(wuidart_panel,bach_np_panel)
+
+```
+

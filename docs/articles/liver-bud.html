@@ -56,10 +56,13 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/embryo-devel.html">Pre-implantation embryo development in human and mouse</a>
+    </li>
+    <li>
       <a href="../articles/liver-bud.html">Liver bud development</a>
     </li>
     <li>
-      <a href="../articles/mammary_gland_devel.html">Mammary gland development</a>
+      <a href="../articles/mammary-gland-devel.html">Mammary gland development</a>
     </li>
     <li>
       <a href="../articles/neurogenesis.html">Neurogenesis in the SVZ</a>
@@ -85,7 +88,7 @@
       <h1>Liver bud development</h1>
                         <h4 class="author">Yutong Wang</h4>
             
-            <h4 class="date">2019-01-31</h4>
+            <h4 class="date">2019-02-01</h4>
       
       
       <div class="hidden name"><code>liver-bud.Rmd</code></div>
@@ -102,10 +105,10 @@
 <p>This vignette contains long sections headed by <em>Reproducing paper figures</em>. These sections are not necessary for using CorGI. To see a more user-friendly pipeline for applying CorGI to your research, see <a href="https://yutongwangumich.github.io/corgi/articles/corgi.html">Get Started</a>.</p>
 <p>The section under <em>Exploratory analysis</em> (and in particular, normalization by making the library sizes comparable across batches) is also not necessary to use CorGI. In fact, it makes no difference whether the counts are integers, log-transformed, TPM, FPKM, etc.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi) </a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(knitr) <span class="co"># for creating pretty tables</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(knitr) <span class="co"># for printing nice looking tables</span></a>
 <a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2) <span class="co"># for creating pretty plots</span></a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(cowplot) <span class="co"># for creating pretty panel of plots</span></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(dplyr) <span class="co"># for creating pretty code</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(cowplot) <span class="co"># for creating panel of plots</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(dplyr) <span class="co"># for pretty code</span></a>
 <a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(forcats) <span class="co"># for concatenating factors</span></a>
 <a class="sourceLine" id="cb1-7" data-line-number="7"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scmap) <span class="co"># for the compared feature selection method</span></a></code></pre></div>
 </div>

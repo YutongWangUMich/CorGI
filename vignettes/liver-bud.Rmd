@@ -33,10 +33,10 @@ The section under _Exploratory analysis_ (and in particular, normalization by ma
 
 ```{r}
 library(corgi) 
-library(knitr) # for creating pretty tables
+library(knitr) # for printing nice looking tables
 library(ggplot2) # for creating pretty plots
-library(cowplot) # for creating pretty panel of plots
-library(dplyr) # for creating pretty code
+library(cowplot) # for creating panel of plots
+library(dplyr) # for pretty code
 library(forcats) # for concatenating factors
 library(scmap) # for the compared feature selection method
 ```
