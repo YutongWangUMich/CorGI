@@ -107,17 +107,28 @@ LB <- camp[,camp$LB_status=="Liver_bud"]
 Normalization by making the library sizes comparable across batches
 ```{r}
 out <- scran::multiBatchNorm(IN,LB,assay.type = "logcounts")
-IN <- out[[1]]
-LB <- out[[2]]
+IN_norm <- out[[1]]
+LB_norm <- out[[2]]
+rm(out)
 ```
 
 Combine the datasets
 ```{r}
-combined <- cbind(logcounts(IN),logcounts(LB))
+combined <- cbind(logcounts(IN_norm),logcounts(LB_norm))
 lineage <- fct_c(IN$lineage,LB$lineage)
 batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)))
 ```
 
+Wrapper around qplot for visualization
+```{r}
+my_color_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+my_shape_palette <- c(16,1,2)
+qplot <- function(...){
+  ggplot2::qplot(...) +
+  scale_color_manual(values = my_color_palette) + 
+  scale_shape_manual(values = my_shape_palette)
+}
+```
 
 ## PC plot using all the genes
 
@@ -148,7 +159,10 @@ corgi_gene_set <- select_top_corgi_genes(corgi_output_liver_bud,200)
 ```
 
 
+
 ## PCA on CorGI genes
+
+
 
 
 ```{r}
@@ -169,16 +183,21 @@ HDG_ranking <- function(sce){
 }
 
 gene_sets <- get_compared_gene_sets(
-  batch1_top_genes = HDG_ranking(IN),
+  batch1_top_genes = HDG_ranking(IN_norm),
   batch1_name = "HDG(Input)",
-  batch2_top_genes = HDG_ranking(LB),
+  batch2_top_genes = HDG_ranking(LB_norm),
   batch2_name = "HDG(Liver bud)",
   desired_size = length(corgi_gene_set)
 )
 
 gene_sets[["CorGI"]] <- corgi_gene_set
 
-gene_sets <- gene_sets[6-(1:5)]
+names(gene_sets)
+```
+
+Reorder the gene sets
+```{r}
+gene_sets <- gene_sets[c(5,1,2,3,4)]
 lapply(gene_sets, length)
 ```
 
@@ -195,19 +214,11 @@ embeddings_pca <-
 
 
 ```{r}
-my_shape_palette <- scale_shape_manual(values = c(1, 16))
-my_color_palette <- scale_color_manual(values = c("#000000","#E69F00", "#56B4E9"))
-```
-
-
-```{r}
 get_scatterplots <- function(embeddings, batch, cell_type){
   lapply(X = names(gene_sets),
          FUN = function(gs_name) {
            emb <- embeddings[[gs_name]]
            plot_dimensionality_reduction(emb, batch, cell_type) +
-             my_shape_palette +
-             my_color_palette + 
              ggtitle(paste0(gs_name, ", ", round(corgi::batch_mixing(emb, batch), 2)))
          })
 }
@@ -235,9 +246,9 @@ get_scatterplots(embeddings,
 plot_grid(
   plot_grid(
     get_axes_legend(emb_name),
-    get_shape_legend(batch,my_shape_palette)
+    get_shape_legend(batch, my_shape_palette)
   ),
-  get_color_legend(lineage,my_color_palette),
+  get_color_legend(lineage, my_color_palette),
   nrow = 2) -> legends
 
 dr_plots[[length(dr_plots)+1]] <- legends
@@ -250,7 +261,8 @@ do.call(plot_grid,dr_plots) -> top_panel
 top_panel
 ```
 
-```{r}
+
+```{r,fig.height=2,fig.width=6}
 train <- batch == "Input"
 test <- batch == "Liver bud"
 
@@ -289,7 +301,7 @@ plot_grid(
 bottom_panel
 ```
 
-```{r,include=F,eval=F}
+```{r,include=F}
 liver_bud_panel <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
 
 ggsave(filename = "liver_bud.eps",device = "eps",plot = liver_bud_panel, path = "~/CorGI_figures",width = 8,height = 8)
@@ -344,7 +356,16 @@ mdat$cell_type_raw <-
                          "Endothelial",
                          "Fetal hepatocyte",
                          "Kupffer"))
-qplot(mdat$tSNE_1,mdat$tSNE_2,color = mdat$cell_type_raw)
+```
+
+```{r}
+mdat_ann <- mdat[which(!duplicated(mdat$cell_type_raw)),]
+mdat_ann <- mdat_ann[order(mdat_ann$cell_type_raw),]
+mdat_ann[,4] <- mdat_ann[,4] + 3
+mdat_ann[,3] <- mdat_ann[,3] + 1
+qplot(mdat$tSNE_1,mdat$tSNE_2,color = mdat$cell_type_raw) +
+  annotate("text", x = mdat_ann$tSNE_1, y = mdat_ann$tSNE_2, font = 1, size = 4,
+           label = levels(mdat_ann$cell_type_raw))
 ```
 
 Collapse some of the cell types for visualization
@@ -402,11 +423,6 @@ batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)),rep("Primary",ncol(HL
 ```
 
 
-```{r}
-my_shape_palette <- scale_shape_manual(values = c(1, 16,2))
-my_color_palette <- scale_color_manual(values = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"))
-```
-
 
 ```{r}
 embeddings_mnn <- 
@@ -460,7 +476,7 @@ do.call(plot_grid,dr_plots) -> top_panel
 top_panel
 ```
 
-```{r}
+```{r,fig.height=2,fig.width=6}
 train <- batch %in% c("Input","Liver bud")
 test <- batch == "Primary"
 
@@ -499,7 +515,7 @@ plot_grid(
 bottom_panel
 ```
 
-```{r,include=F,eval=F}
+```{r,include=F}
 human_liver_panel <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
 
 ggsave(filename = "human_liver.eps",device = "eps",plot = human_liver_panel, path = "~/CorGI_figures",width = 8,height = 8)
