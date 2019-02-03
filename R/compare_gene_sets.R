@@ -53,18 +53,55 @@ get_compared_gene_sets <- function(batch1_top_genes,
   gene_sets[[batch1_name]] <- c(batch1_top_genes[1:(desired_size - length(marker_genes))], marker_genes)
   gene_sets[[batch2_name]] <- c(batch2_top_genes[1:(desired_size - length(marker_genes))], marker_genes)
 
+  union_gene_set <- function(x,y){c(union(batch1_top_genes[1:x], batch2_top_genes[1:y]), marker_genes)}
+
+  # gs_func is a function that takes 2 integer inputs, x and y, and output a gene set
+  get_gs_from_gs_func <- function(gs_func){
+    z <- 1
+    while(length(gs_func(z,z)) < desired_size){
+      z <- z+1
+    }
+    if(length(gs_func(z,z)) == desired_size){
+      return(gs_func(z,z))
+    }
+
+    x <- z - 1
+    y <- z - 1
+    i <- 1
+    while(length(gs_func(x,y)) < desired_size){
+      if((i%%2) == 1){
+        x <- x + 1
+      }else{
+        y <- y + 1
+      }
+      i <- i + 1
+    }
+    print(list(x = x, y = y))
+    return(gs_func(x,y))
+  }
+
   gs_func_list <- list()
   gs_func_list[["Union"]] <-
-    function(x){c(union(batch1_top_genes[1:x], batch2_top_genes[1:x]), marker_genes)}
+    function(x, y){c(union(batch1_top_genes[1:x], batch2_top_genes[1:y]), marker_genes)}
   gs_func_list[["Intersection"]] <-
-    function(x){c(intersect(batch1_top_genes[1:x], batch2_top_genes[1:x]), marker_genes)}
+    function(x, y){c(intersect(batch1_top_genes[1:x], batch2_top_genes[1:y]), marker_genes)}
 
   for(gs_name in names(gs_func_list)){
-    gene_sets[[gs_name]] <- get_gene_set_of_size_n(
-      gs_func = gs_func_list[[gs_name]],
-      n = desired_size,
-      LB = 1,
-      UB = n_genes)
+    gene_sets[[gs_name]] <- get_gs_from_gs_func(gs_func_list[[gs_name]])
   }
+
+  # gs_func_list <- list()
+  # gs_func_list[["Union"]] <-
+  #   function(x){c(union(batch1_top_genes[1:x], batch2_top_genes[1:x]), marker_genes)}
+  # gs_func_list[["Intersection"]] <-
+  #   function(x){c(intersect(batch1_top_genes[1:x], batch2_top_genes[1:x]), marker_genes)}
+  #
+  # for(gs_name in names(gs_func_list)){
+  #   gene_sets[[gs_name]] <- get_gene_set_of_size_n(
+  #     gs_func = gs_func_list[[gs_name]],
+  #     n = desired_size,
+  #     LB = 1,
+  #     UB = n_genes)
+  # }
   return(gene_sets)
 }

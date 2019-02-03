@@ -38,3 +38,32 @@ cluster_coherence <- function(emb, cell_type, cell_type_pred, train, test, knn_p
   return(results)
 }
 
+
+#' @export
+run_scmap <- function(query, ref, gene_set, threshold, ...){
+  rowData(ref)$scmap_features <- rowData(ref)$feature_symbol %in% gene_set
+  ref <- scmap::indexCluster(ref)
+
+  scmapCluster_results <- scmap::scmapCluster(
+    projection = query,
+    index_list = list(
+      Reference = metadata(ref)$scmap_cluster_index
+    ),
+    threshold = threshold
+  )
+
+  true_labels <- colData(query)$cell_type1
+  pred_labels <- factor(scmapCluster_results$scmap_cluster_labs[,"Reference"])
+
+  # make the factor levels uniform
+  shared_levels <- union(levels(true_labels),
+                         levels(pred_labels))
+  true_labels <- forcats::fct_expand(true_labels,shared_levels)
+  pred_labels <- forcats::fct_expand(pred_labels,shared_levels)
+
+  caret::confusionMatrix(
+    data = pred_labels,
+    reference = true_labels,
+    ...
+  )
+}

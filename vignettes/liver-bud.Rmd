@@ -121,7 +121,7 @@ batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)))
 
 Wrapper around qplot for visualization
 ```{r}
-my_color_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+my_color_palette <- c("#000000", "#E69F00", "#56B4E9", "#999999", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 my_shape_palette <- c(16,1,2)
 qplot <- function(...){
   ggplot2::qplot(...) +
@@ -155,20 +155,19 @@ data("corgi_output_liver_bud")
 ## Selecting the top CorGI genes
 
 ```{r}
-corgi_gene_set <- select_top_corgi_genes(corgi_output_liver_bud,200)
+corgi_gene_set <- select_top_corgi_genes(corgi_output_liver_bud,500)
 ```
 
 
 
 ## PCA on CorGI genes
 
-
-
-
 ```{r}
 pc <- prcomp(t(combined[corgi_gene_set,]),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
+
+
 
 
 # Reproducing paper figures
@@ -239,44 +238,73 @@ top_panel
 ```
 
 
-```{r,fig.height=2,fig.width=6}
-train <- batch == "Input"
-test <- batch == "Liver bud"
+scmapCluster parameters
 
-# AUC plots
-lapply(
-  X = c("Endothelial","Hepatic","Mesenchymal"),
-  FUN =
-    function(ct) {
-      df <- get_AUC(embeddings, lineage, ct, train, test)
-      df$Gene_set <- factor(df$Gene_set,levels = names(embeddings))
-      ggplot(df, 
-             aes(x = FPR, y = TPR)) + 
-        geom_point(aes(color = Gene_set, shape = Gene_set),size = 3) +
-        scale_shape_manual(values = 65:70) + 
-        theme_bw() +
-        theme(legend.position = "bottom") +
-        scale_x_continuous(limits = c(0,1)) +
-        scale_y_continuous(limits = c(0,1)) +
-        ggtitle(ct)
-    }
-) -> AUC_plts
+```{r}
+rowData(IN_norm)$feature_symbol <- rownames(IN_norm)
+rowData(LB_norm)$feature_symbol <- rownames(LB_norm)
+IN_norm$cell_type1 <- lineage[batch == "Input"]
+LB_norm$cell_type1 <- lineage[batch == "Liver bud"]
 
-AUC_legends <- get_legend(AUC_plts[[1]])
-
-lapply(X = AUC_plts, FUN = function(p) p + theme(legend.position = "none")) -> AUC_plts
-
-AUC_plts[["nrow"]] <- 1
-AUC_plts[["labels"]] <- c("F","G","H")
-
-plot_grid(
-  do.call(what = plot_grid, args = AUC_plts),
-  AUC_legends,
-  nrow = 2,
-  rel_heights = c(10,1)) -> bottom_panel
-
-bottom_panel
+query <- LB_norm
+reference <- IN_norm
+threshold <- 0.3
 ```
+
+
+```{r}
+gene_set <- gene_sets[["CorGI"]]
+corgi::run_scmap(
+  query = query,
+  ref = reference,
+  gene_set = gene_set,
+  threshold = threshold
+)
+```
+
+
+
+Testing 
+
+```{r}
+comparison_results <-
+  run_cluster_coherence_comparison(
+    query = IN_norm,
+    reference = LB_norm
+  )
+
+cluster_coherence_plot_1 <- plot_cluster_coherence_comparison(comparison_results) +
+    ggtitle("Reference = Liver bud \nQuery = Input")
+
+cluster_coherence_plot_1
+```
+
+
+```{r}
+comparison_results <-
+  run_cluster_coherence_comparison(
+    query = LB_norm,
+    reference = IN_norm
+  )
+cluster_coherence_plot_2 <- plot_cluster_coherence_comparison(comparison_results) +
+    ggtitle("Reference = Input \nQuery = Liver bud")
+
+cluster_coherence_plot_2
+```
+
+```{r}
+plot_grid(cluster_coherence_plot_1 + 
+            theme(legend.position = "none") + 
+            theme(plot.title = element_text(size=10)),
+          cluster_coherence_plot_2 + 
+            theme(legend.position = "none") + 
+            theme(plot.title = element_text(size=10)),
+          get_legend(cluster_coherence_plot_1),
+          ncol = 3,
+          labels = c("F","G"),
+          rel_widths = c(2,2,1)) -> bottom_panel
+```
+
 
 ```{r,include=F}
 liver_bud_panel <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
@@ -362,16 +390,16 @@ mdat$lineage_show <-
 
 Collapse _Adult hepatocyte_ and _Immature hepatocyte_ to simply _Hepatic_ for the KNN classification part
 ```{r}
-mdat$lineage_predict <- 
+mdat$lineage_pred <- 
   plyr::mapvalues(mdat$ident,
                   from = 1:7,
-                  to = c("Other",
-                         "Other",
+                  to = c("unassigned",
+                         "unassigned",
                          "Hepatic",
                          "Mesenchymal",
                          "Endothelial",
                          "Hepatic",
-                         "Other"))
+                         "unassigned"))
 ```
 
 
@@ -395,7 +423,7 @@ LB <- out[[2]]
 HL <- out[[3]]
 
 lineage_show <- fct_c(IN$lineage,LB$lineage,HL$lineage_show)
-lineage_pred <- fct_c(IN$lineage,LB$lineage,HL$lineage_predict)
+lineage_pred <- fct_c(IN$lineage,LB$lineage,HL$lineage_pred)
 batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)),rep("Primary",ncol(HL)))
 ```
 
@@ -444,53 +472,81 @@ plot_grid(
   nrow = 2) -> legends
 
 dr_plots[[length(dr_plots)+1]] <- legends
-
 dr_plots[["nrow"]] <- 2
-
 dr_plots[["labels"]] <- c("A","B","C","D","E","")
 
 do.call(plot_grid,dr_plots) -> top_panel
 top_panel
+
 ```
 
-```{r,fig.height=2,fig.width=6}
-train <- batch %in% c("Input","Liver bud")
-test <- batch == "Primary"
 
-# AUC plots
-lapply(
-  X = c("Endothelial","Hepatic","Mesenchymal"),
-  FUN =
-    function(ct) {
-      df <- get_AUC(embeddings, lineage_pred, ct, train, test)
-      df$Gene_set <- factor(df$Gene_set,levels = names(embeddings))
-      ggplot(df, 
-             aes(x = FPR, y = TPR)) + 
-        geom_point(aes(color = Gene_set, shape = Gene_set),size = 3) +
-        scale_shape_manual(values = 65:70) + 
-        theme_bw() +
-        theme(legend.position = "bottom") +
-        scale_x_continuous(limits = c(0,1)) +
-        scale_y_continuous(limits = c(0,1)) +
-        ggtitle(ct)
-    }
-) -> AUC_plts
 
-AUC_legends <- get_legend(AUC_plts[[1]])
+```{r}
+IN_LB <- cbind(IN,LB)
+IN_LB$cell_type1 <- lineage_pred[batch != "Primary"]
+HL$cell_type1 <- lineage_pred[batch == "Primary"]
+IN$cell_type1 <- lineage_pred[batch == "Input"]
+LB$cell_type1 <- lineage_pred[batch == "Liver bud"]
+rowData(IN_LB)$feature_symbol <- rownames(IN_LB)
+rowData(HL)$feature_symbol <- rownames(HL)
+rowData(IN)$feature_symbol <- rownames(IN)
+rowData(LB)$feature_symbol <- rownames(LB)
 
-lapply(X = AUC_plts, FUN = function(p) p + theme(legend.position = "none")) -> AUC_plts
-
-AUC_plts[["nrow"]] <- 1
-AUC_plts[["labels"]] <- c("F","G","H")
-
-plot_grid(
-  do.call(what = plot_grid, args = AUC_plts),
-  AUC_legends,
-  nrow = 2,
-  rel_heights = c(10,1)) -> bottom_panel
-
-bottom_panel
+threshold <- 0.3
 ```
+
+
+```{r}
+comparison_results <-
+  run_cluster_coherence_comparison(
+    query = IN_LB,
+    reference = HL
+  )
+
+cluster_coherence_plot_3 <- plot_cluster_coherence_comparison(comparison_results) +
+    ggtitle("Reference = Human liver \nQuery = Liver bud & input cell lines")
+
+cluster_coherence_plot_3
+```
+
+```{r}
+
+# unique(HL$cell_type1)
+comparison_results <-
+  run_cluster_coherence_comparison(
+    query = HL,
+    reference = IN_LB
+  )
+
+run_scmap(query = HL,
+          ref = IN_LB,
+          gene_set = gene_sets[["CorGI"]],
+          threshold = 0.3,
+          dnn = c("Prediction","Truth"))
+
+cluster_coherence_plot_4 <- plot_cluster_coherence_comparison(comparison_results) +
+    ggtitle("Reference = Liver bud & input cell lines \nQuery = Human liver")
+
+cluster_coherence_plot_4
+
+```
+
+```{r}
+# get_legend(cluster_coherence_plot_3)
+
+plot_grid(cluster_coherence_plot_3 + 
+            theme(legend.position = "none") + 
+            theme(plot.title = element_text(size=10)),
+          cluster_coherence_plot_4 + 
+            theme(legend.position = "none") + 
+            theme(plot.title = element_text(size=10)),
+          get_legend(cluster_coherence_plot_3),
+          ncol = 3,
+          labels = c("F","G"),
+          rel_widths = c(2,2,1)) -> bottom_panel
+```
+
 
 ```{r,include=F}
 human_liver_panel <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))

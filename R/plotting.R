@@ -69,3 +69,57 @@ get_AUC <- function(embeddings, cell_type, cell_type_pred, train, test){
                         }))
   return(knn_results)
 }
+
+
+#' @export
+run_cluster_coherence_comparison <- function(query, reference){
+  thresholds <- 0.1*(1:9)
+  lapply(
+    X = thresholds,
+    FUN = function(threshold) {
+      gene_sets %>%
+        lapply(
+          FUN = function(gene_set) {
+            corgi::run_scmap(
+              query = query,
+              ref = reference,
+              gene_set = gene_set,
+              threshold = threshold
+            )
+          }
+        ) %>%
+        lapply(
+          FUN = function(confusionMat) {
+            confusionMat$overall
+          }
+        ) %>%
+        Reduce(f = rbind) %>%
+        data.frame ->
+        results
+
+      results$Gene_set <- names(gene_sets)
+      results$Threshold <- threshold
+      rownames(results) <- NULL
+      results
+    }) %>%
+    Reduce(f = rbind) -> results
+
+  results$Gene_set <-
+    factor(results$Gene_set,
+           levels = names(gene_sets))
+  return(results)
+}
+
+#' @export
+plot_cluster_coherence_comparison <- function(results){
+  comparison_legend_options <- guide_legend(keywidth = 2, keyheight = 1, title = "Gene set")
+  ggplot(results, aes(x=Threshold, y=Kappa, group=Gene_set)) +
+    geom_line(aes(linetype = Gene_set)) +
+    geom_point(aes(shape = Gene_set))+
+    guides(linetype = comparison_legend_options,
+           shape = comparison_legend_options) +
+    theme_bw() +
+    scale_x_continuous(breaks = 0.1*c(1,3,5,7,9)) +
+    xlab("scmapCluster threshold") +
+    ylab("Cohen's Kappa")
+}
