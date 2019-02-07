@@ -58,10 +58,11 @@ deng <- deng[shared_genes,]
 Normalization is not necessary for running CorGI
 
 ```{r, eval = F}
+set.seed(0)
 corgi_output_embyro_devel <- run_corgi(logcounts(yan),logcounts(deng))
 ```
 
-```{r,eval=F,include=F}
+```{r,eval = F,include=F}
 devtools::use_data(corgi_output_embyro_devel,overwrite = T) # Cache the output so that we don't have to actually rerun corgi. Change to "eval=T" if rerun is necessary.
 ```
 

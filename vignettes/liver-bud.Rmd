@@ -141,6 +141,7 @@ qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 # CorGI unsupervised feature selection
 
 ```{r, eval = F}
+set.seed(0)
 corgi_output_liver_bud <- run_corgi(logcounts(IN),logcounts(LB))
 ```
 
@@ -309,7 +310,7 @@ plot_grid(cluster_coherence_plot_1 +
 ```{r,include=F}
 liver_bud_panel <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
 
-ggsave(filename = "liver_bud.eps",device = "eps",plot = liver_bud_panel, path = "~/CorGI_figures",width = 8,height = 8)
+ggsave(filename = "liver_bud.eps",device = "eps",plot = liver_bud_panel, path = "~/CorGI_figures/liver_bud",width = 8,height = 8)
 ```
 
 
@@ -551,6 +552,30 @@ plot_grid(cluster_coherence_plot_3 +
 ```{r,include=F}
 human_liver_panel <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
 
-ggsave(filename = "human_liver.eps",device = "eps",plot = human_liver_panel, path = "~/CorGI_figures",width = 8,height = 8)
+ggsave(filename = "human_liver.eps",device = "eps",plot = human_liver_panel, path = "~/CorGI_figures/liver_bud",width = 8,height = 8)
+```
+
+
+```{r}
+
+list(cluster_coherence_plot_1,
+     cluster_coherence_plot_2,
+     cluster_coherence_plot_3,
+     cluster_coherence_plot_4) %>%
+  lapply(function(p)
+    p + theme(legend.position = "none")
+    ) -> cc_plts
+cc_plts[["labels"]] <- LETTERS[1:4]
+cc_lgnd <- get_legend(cluster_coherence_plot_1 +
+                        theme(legend.position = "bottom"))
+
+plot_grid(do.call(what = plot_grid,args = cc_plts),
+          cc_lgnd,
+          nrow = 2,
+          rel_heights = c(10,1)) -> kappa_plt
+
+
+ggsave(filename = "kappa.eps",device = "eps",plot = kappa_plt, path = "~/CorGI_figures/liver_bud",width = 8,height = 8)
+
 ```
 

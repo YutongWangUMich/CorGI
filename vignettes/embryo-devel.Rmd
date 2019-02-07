@@ -16,4 +16,551 @@ knitr::opts_chunk$set(
 )
 ```
 
-Under construction!
+
+We illustrate the CorGI feature selection method by analyzing datasets on human and mouse pre-implantation embryo development.
+
+```{r}
+library(corgi)
+library(ggplot2)
+library(cowplot)
+library(scmap)
+library(scran)
+library(M3Drop)
+```
+
+# Preprocessing the data
+
+We download the data from the [Hemberg Lab website](https://hemberg-lab.github.io/scRNA.seq.datasets/). The human dataset is from [Yan et al 2013](http://dx.doi.org/10.1038/nsmb.2660) while the mouse dataset is from [Deng et al 2014](http://dx.doi.org/10.1126/science.1245316).
+
+```{r}
+yan <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"))
+deng <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"))
+```
+
+Get genes common to both datasets
+```{r}
+rownames(yan) <- toupper(rownames(yan))
+rownames(deng) <- toupper(rownames(deng))
+shared_genes <- intersect(rownames(yan),rownames(deng))
+```
+
+
+Get rid of the spike-in genes
+```{r}
+shared_genes <- shared_genes[-grep("ERCC",shared_genes)]
+```
+
+Subset the data
+```{r}
+yan <- yan[shared_genes,]
+deng <- deng[shared_genes,]
+```
+
+# Run CorGI feature selection
+
+Normalization is not necessary for running CorGI
+
+```{r, eval = F}
+corgi_output_embyro_devel <- run_corgi(logcounts(yan),logcounts(deng))
+```
+
+```{r,eval=F,include=F}
+devtools::use_data(corgi_output_embyro_devel,overwrite = T) # Cache the output so that we don't have to actually rerun corgi. Change to "eval=T" if rerun is necessary.
+```
+
+```{r,include=F}
+data("corgi_output_embyro_devel") # Load the cached output
+```
+
+Select top CorGI genes
+```{r}
+corgi_gene_set <- 
+  union(select_top_corgi_genes(corgi_output_embyro_devel,n = 100,SVG_use = 2),
+        select_top_corgi_genes(corgi_output_embyro_devel,n = 100,SVG_use = 3))
+```
+
+# Visualization
+Normalization
+
+Metadata for the combined datasets
+```{r}
+cell_type <- forcats::fct_c(as.factor(yan$cell_type1),as.factor(deng$cell_type1))
+cell_type <- factor(cell_type, levels = c("zygote","2cell","4cell","8cell","16cell","blast"))
+batch <- c(rep("Human",ncol(yan)),rep("Mouse",ncol(deng)))
+```
+
+Wrapper around the qplot `ggplot2::qplot` function with our color scheme
+
+```{r}
+my_color_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+my_shape_palette <- c(16,1)
+qplot <- function(...){
+  ggplot2::qplot(...) +
+  scale_color_manual(values = my_color_palette) +
+  scale_shape_manual(values = my_shape_palette)
+}
+```
+
+## Principal component analysis (PCA)
+
+To use PCA, we first need to adjust the read-depth to be comparable across the two datasets
+```{r}
+library(scran)
+out <- multiBatchNorm(yan,deng,assay.type = "logcounts")
+yan <- out[[1]]
+deng <- out[[2]]
+combined <- cbind(logcounts(yan),logcounts(deng))
+```
+
+
+
+```{r}
+HDG_ranking <- function(sce){
+  rowData(sce)$feature_symbol <- rownames(sce)
+  sce <- scmap::selectFeatures(sce)
+  return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
+}
+
+gene_sets <- get_compared_gene_sets(
+  batch1_top_genes = HDG_ranking(yan),
+  batch1_name = "HDG(Human)",
+  batch2_top_genes = HDG_ranking(deng),
+  batch2_name = "HDG(Mouse)",
+  desired_size = length(corgi_gene_set)
+)
+
+gene_sets[["CorGI"]] <- corgi_gene_set
+
+names(gene_sets)
+```
+
+Reorder the gene sets
+```{r}
+gene_sets <- gene_sets[c(5,1,2,3,4)]
+lapply(gene_sets, length)
+```
+
+
+
+```{r}
+embeddings_pca <- 
+  lapply(
+    X = gene_sets,
+    FUN = function(gene_set) {
+      prcomp(t(combined[gene_set,]),rank. = 2)$x
+    }
+  )
+```
+
+
+```{r}
+emb_name <- "PC"
+embeddings <- embeddings_pca
+
+
+get_scatterplots(embeddings,
+                 as.factor(batch),
+                 cell_type) -> dr_plots
+
+plot_grid(
+  plot_grid(
+    get_axes_legend(emb_name),
+    get_shape_legend(batch, my_shape_palette), nrow = 2
+  ),
+  get_color_legend(cell_type, my_color_palette,ncol = 1),
+  nrow = 1) -> legends
+
+dr_plots[[length(dr_plots)+1]] <- legends
+
+dr_plots[["nrow"]] <- 2
+
+dr_plots[["labels"]] <- c("A","B","C","D","E","")
+
+do.call(plot_grid,dr_plots) -> top_panel
+top_panel
+```
+
+
+
+```{r}
+ggsave(filename = "embryo_devel_PCA_HDG.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel",width = 6,height = 4)
+```
+
+
+
+
+```{r}
+library(ggforce)
+library(limma)
+library(dplyr)
+df.venn <- data.frame(x = c(0, 0.866, -0.866),
+                      y = c(1, -0.5, -0.5),
+                      labels = c('CorGI', 'HDG(Human)', 'HDG(Mouse)'))
+
+all_genes <- Reduce(union, gene_sets[1:3])
+names(gene_sets)[1:3]
+mydata <- 
+  data.frame(CorGI = all_genes %in% gene_sets[["CorGI"]],
+             `HDG(Human)` = all_genes %in% gene_sets[["HDG(Human)"]],
+             `HDG(Mouse)` = all_genes %in% gene_sets[["HDG(Mouse)"]])
+
+vdc <- vennCounts(mydata)
+class(vdc) <- 'matrix'
+df.vdc <- as.data.frame(vdc)[-1,] %>%
+  mutate(x = c(0, 1.2, 0.8, -1.2, -0.8, 0, 0),
+         y = c(1.2, -0.6, 0.5, -0.6, 0.5, -1, 0))
+
+df.gene_set_names <-
+  df.vdc[c(1,2,4),4:6]
+df.gene_set_names
+
+df.gene_set_names$Name <- c("HDG(Mouse)","HDG(Human)","CorGI")
+df.gene_set_names$y[1] <- df.gene_set_names$y[1] + 0.5
+df.gene_set_names$y[2:3] <- df.gene_set_names$y[2:3] -0.5
+df.gene_set_names$x[2:3] <- df.gene_set_names$x[2:3]*1.25
+
+
+ggplot(df.venn) +
+  geom_circle(aes(x0 = x, y0 = y, r = 1.5, fill = labels), alpha = .3, size = 1, colour = 'grey') +
+  coord_fixed() +
+  theme_void() +
+  theme(legend.position = 'none') +
+  scale_fill_manual(values = c('cornflowerblue', 'firebrick',  'gold')) +
+  scale_colour_manual(values = c('cornflowerblue', 'firebrick', 'gold'), guide = FALSE) +
+  labs(fill = NULL) +
+  annotate("text", x = df.vdc$x, y = df.vdc$y, label = df.vdc$Counts, size = 5)+
+  annotate("text", x = df.gene_set_names$x, y = df.gene_set_names$y, label = df.gene_set_names$Name) ->
+  venn_diagram
+
+venn_diagram
+```
+
+```{r}
+ggsave(filename = "venn_diagram_HDG.eps",device = "eps",plot = venn_diagram,path = "~/CorGI_figures/embryo_devel",width = 4,height = 4)
+
+```
+
+
+```{r}
+# plts <- list()
+lapply(names(gene_sets)[1:3],function(gs_name){
+  gene_set <- gene_sets[[gs_name]]
+cbind(
+  cor(t(combined[gene_set,
+                 batch == "Mouse"]),
+      as.numeric(cell_type[batch == "Mouse"]),
+      method = "spearman"),
+  cor(t(combined[gene_set,
+                 batch == "Human"]),
+      as.numeric(cell_type[batch == "Human"]),
+      method = "spearman")) %>%
+    data.frame(stringsAsFactors = F) -> 
+    corr_wrt_devel
+  colnames(corr_wrt_devel) <- c("Mouse","Human")
+  corr_wrt_devel$Gene_set <- gs_name
+  corr_wrt_devel
+}) -> dfs
+
+reshape2::melt(rbind_list(dfs)) -> df
+colnames(df) <- c("Gene_set", "Species","Corr")
+head(df)
+df %>%
+  ggplot(aes(x = Gene_set, y = Corr, fill=Species)) + 
+  geom_violin(adjust = .5) +
+  theme(legend.position = "bottom",axis.title.x = element_blank()) + ylab("Correlation with\n developmental stage")-> corr_violin
+# reshape2::melt(rbind_list(dfs[[1]])) 
+```
+
+```{r}
+plot_grid(venn_diagram,corr_violin, rel_heights = c(1,3)) -> bottom_panel
+```
+
+
+
+
+
+```{r}
+# plts <- list()
+lapply(gene_sets,function(gene_set){
+cbind(
+  cor(t(combined[gene_set,
+                 batch == "Mouse"]),
+      as.numeric(cell_type[batch == "Mouse"]),
+      method = "spearman"),
+  cor(t(combined[gene_set,
+                 batch == "Human"]),
+      as.numeric(cell_type[batch == "Human"]),
+      method = "spearman")) -> 
+  corr_wrt_devel
+
+qplot(corr_wrt_devel[,1],
+      corr_wrt_devel[,2], 
+      xlim = c(-1,1),
+      ylim = c(-1,1))
+}) -> plts
+```
+
+```{r,fig.width=6,fig.height=3}
+lapply(X = names(plts),FUN = function(gs_name){
+  p <- plts[[gs_name]]
+  p +
+    xlab("Mouse") +
+    ylab("Human") +
+    ggtitle(gs_name) +
+    theme_bw() +
+    theme(
+      axis.title = element_blank()
+    ) +
+    coord_fixed()
+  ggExtra::ggMarginal(p+
+                        xlab(NULL) + 
+                        ylab(NULL) + 
+                        theme_bw() +
+                        coord_fixed() +
+                        annotate("text",
+                                 x = -1, 
+                                 y = 1, 
+                                 label = gs_name,
+                                 hjust = 0,
+                                 color = "red") +
+                        theme(plot.title = element_text(vjust = 1)),
+                      type = "histogram")
+}) -> histograms
+
+
+histograms[[6]] <- 
+  qplot(iris[, 1], iris[, 2], shape = NA, na.rm = TRUE,xlim = c(-1,1),
+      ylim = c(-1,1)) +
+  xlab("Correlation w.r.t \ndevelopment in mouse")+
+  ylab("Correlation w.r.t \ndevelopment in human")+
+  # theme_bw() +
+  theme(
+      # axis.title = element_blank(),
+      axis.ticks = element_blank(),
+      axis.text = element_blank(),
+      plot.margin=unit(c(1,1,1,1),"cm")
+    ) +
+  annotate("text",
+           x = 0,
+           y = 0,
+           label = "Each scatter point \nrepresents a gene",
+           hjust = 0.5, 
+           vjust = 0.5)+
+  annotate("text",
+           x = -1,
+           y = 1,
+           label = "Gene set name",
+           hjust = 0, 
+           vjust = 0.5,
+           color = "red")+
+  coord_fixed()
+
+histograms[["labels"]] <- c(LETTERS[1:5],"")
+do.call(plot_grid,histograms) -> devel_plt
+devel_plt
+
+```
+
+```{r, include=F}
+
+ggsave(filename = "embryo_devel_corr.eps",device = "eps",plot = devel_plt,path = "~/CorGI_figures/embryo_devel",width = 10,height = 6)
+```
+
+
+
+
+# Brennecke highly variable genes
+
+
+```{r}
+gene_sets <- get_compared_gene_sets(
+  batch1_top_genes = BrenneckeGetVariableGenes(logcounts(yan)),
+  batch1_name = "HVG(Human)",
+  batch2_top_genes = BrenneckeGetVariableGenes(logcounts(deng)),
+  batch2_name = "HVG(Mouse)",
+  desired_size = length(corgi_gene_set)
+)
+
+gene_sets[["CorGI"]] <- corgi_gene_set
+
+names(gene_sets)
+```
+
+Reorder the gene sets
+```{r}
+gene_sets <- gene_sets[c(5,1,2,3,4)]
+set.seed(0)
+gene_sets[[1]] <- sample(shared_genes,length(gene_sets[[1]]))
+
+# Compare with a random gene set this time
+names(gene_sets)[1] <- "Random"
+lapply(gene_sets, length)
+```
+
+
+
+```{r}
+embeddings_pca <- 
+  lapply(
+    X = gene_sets,
+    FUN = function(gene_set) {
+      prcomp(t(combined[gene_set,]),rank. = 2)$x
+    }
+  )
+```
+
+
+```{r}
+emb_name <- "PC"
+embeddings <- embeddings_pca
+
+
+get_scatterplots(embeddings,
+                 as.factor(batch),
+                 cell_type) -> dr_plots
+
+plot_grid(
+  plot_grid(
+    get_axes_legend(emb_name),
+    get_shape_legend(batch, my_shape_palette), nrow = 2
+  ),
+  get_color_legend(cell_type, my_color_palette,ncol = 1),
+  nrow = 1) -> legends
+
+dr_plots[[length(dr_plots)+1]] <- legends
+
+dr_plots[["nrow"]] <- 2
+
+dr_plots[["labels"]] <- c("A","B","C","D","E","")
+
+do.call(plot_grid,dr_plots) -> top_panel
+top_panel
+```
+
+
+```{r, include = F}
+ggsave(filename = "embryo_devel_PCA_HVG.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel",width = 6,height = 4)
+```
+
+
+
+
+```{r}
+# windows.options(width=10, height=10)
+
+# setEPS()
+# postscript("~/CorGI_figures/SVM.eps",width = 5,height = 5)
+emb <- embeddings_pca[["Random"]]
+emb <- emb
+dat <- data.frame(emb,Batch = batch)
+m <- e1071::svm(Batch~.,data=dat)
+
+
+gx = seq(min(emb[,1]), max(emb[,1]), 0.1)
+gy = seq(min(emb[,2]), max(emb[,2]), 0.1)
+datagrid  = expand.grid(PC1 = gx, PC2 = gy)
+ 
+# predict on it and add prediction to the grid
+pred = predict(m, datagrid, decision.values = TRUE)
+pred = attributes(pred)$decision.values
+datagrid = cbind (datagrid, z = as.vector(pred))
+# 
+# plot(m,data=dat,svSymbol = "o", dataSymbol = "o")
+# dev.off()
+P = 
+  ggplot(dat) + geom_point(aes( x=  PC1, y= PC2, shape = Batch, color = cell_type)) +
+  scale_shape_manual(values = my_shape_palette)+
+  scale_color_manual(values = my_color_palette)+
+  # scale_colour_gradientn(colours=cols) + 
+  # new_theme_empty + xlim(-7.5, 7.5) + ylim(-7.5, 7.5) +
+  geom_contour( data=datagrid, aes(x=PC1, y=PC2, z=z), col = "black", size = 1, breaks=c(0), linetype =2) + theme_bw()+
+  theme(
+      plot.title = element_text(hjust = 0.5),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      legend.position = "none"
+    ) + ggtitle("SVM")
+
+P
+```
+
+
+```{r}
+emb_name <- "PC"
+embeddings <- embeddings_pca
+
+
+get_scatterplots(embeddings,
+                 as.factor(batch),
+                 cell_type) -> dr_plots
+dr_plots[[1]] <- P
+plot_grid(
+  plot_grid(
+    get_axes_legend(emb_name),
+    get_shape_legend(batch, my_shape_palette), nrow = 2
+  ),
+  get_color_legend(cell_type, my_color_palette,ncol = 1),
+  nrow = 1) -> legends
+
+dr_plots[[length(dr_plots)+1]] <- legends
+
+dr_plots[["nrow"]] <- 2
+
+dr_plots[["labels"]] <- c("A","B","C","D","E","")
+
+do.call(plot_grid,dr_plots) -> top_panel
+top_panel
+```
+
+```{r, include = F}
+ggsave(filename = "SVM.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel",width = 6,height = 4)
+```
+
+
+
+
+
+```{r, include = F, eval = F}
+lapply(X = 1:6,function(i){
+  union(select_top_corgi_genes(corgi_output_embyro_devel,
+                               n = 100,SVG_use = 2,phase_use = i),
+        select_top_corgi_genes(corgi_output_embyro_devel,
+                               n = 100,SVG_use = 3,phase_use = i))
+}) -> gene_sets
+names(gene_sets) <- paste0("CorGI",1:6)
+
+embeddings_pca <- 
+  lapply(
+    X = gene_sets,
+    FUN = function(gene_set) {
+      prcomp(t(combined[gene_set,]),rank. = 2)$x
+    }
+  )
+
+emb_name <- "PC"
+embeddings <- embeddings_pca
+
+
+get_scatterplots(embeddings,
+                 as.factor(batch),
+                 cell_type) -> dr_plots
+
+plot_grid(
+  plot_grid(
+    get_axes_legend(emb_name),
+    get_shape_legend(batch, my_shape_palette), nrow = 2
+  ),
+  get_color_legend(cell_type, my_color_palette,ncol = 1),
+  nrow = 1) -> legends
+
+dr_plots[[length(dr_plots)+1]] <- legends
+
+dr_plots[["nrow"]] <- 2
+
+dr_plots[["labels"]] <- c("A","B","C","D","E","")
+
+do.call(plot_grid,dr_plots) -> top_panel
+top_panel
+```

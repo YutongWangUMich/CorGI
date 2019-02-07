@@ -15,17 +15,17 @@ select_top_corgi_genes <- function(corgi_output,n,phase_use = NULL,SVG_use = NUL
     phase_use <- length(corgi_output)
   }
 
-  corgi_output <- corgi_output[[phase_use]]
+  res <- corgi_output[[phase_use]]
 
   if(is.null(SVG_use)){
-    SVG_use <- ncol(corgi_output)-1
+    SVG_use <- ncol(res)-1
   }
+  alignment_score <- res[,SVG_use]/res[,"num.times.sampled"]
 
-  head(
-    names(
-      sort(
-        corgi_output[,SVG_use]/corgi_output[,"num.times.sampled"],
-        decreasing = T)
-      ),
-    n)
+  names(
+    head(
+      sort(alignment_score,
+           decreasing = T),
+      n)
+  )
 }

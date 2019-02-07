@@ -241,11 +241,12 @@ length(consensus34)
 # Semi-supervised CorGI with the consensus genes as markers
 
 ```{r,eval = F}
+set.seed(0)
 corgi_output_neurogenesis <- run_corgi(dulken, llorens, must_have_genes = consensus34)
 ```
 
-```{r,eval=F,include=F}
-devtools::use_data(corgi_output_neurogenesis)
+```{r,eval = F,include=F}
+devtools::use_data(corgi_output_neurogenesis,overwrite = T)
 ```
 
 ```{r,include=F}
@@ -353,7 +354,8 @@ comparison_results <-
 cluster_coherence_plot <- plot_cluster_coherence_comparison(comparison_results) +
     ggtitle("Reference = Dulken (no astrocytes)\nQuery = Llorens-Bobadilla")
 
-cluster_coherence_plot
+cluster_coherence_plot -> cc_plts[[1]]
+cc_plts[[1]]
 ```
 
 
@@ -364,7 +366,8 @@ comparison_results <-
     reference = llorens
   )
 plot_cluster_coherence_comparison(comparison_results) +
-  ggtitle("Reference = Llorens-Bobadilla, query = Dulken (no astrocytes)")
+  ggtitle("Reference = Llorens-Bobadilla, \nquery = Dulken (no astrocytes)") -> cc_plts[[2]]
+cc_plts[[2]]
 ```
 
 
@@ -375,7 +378,9 @@ comparison_results <-
     reference = dulken
   )
 plot_cluster_coherence_comparison(comparison_results) +
-  ggtitle("Reference = Llorens-Bobadilla, query = Dulken")
+  ggtitle("Reference = Llorens-Bobadilla, \nquery = Dulken") -> cc_plts[[3]]
+
+cc_plts[[3]]
 ```
 
 
@@ -388,7 +393,30 @@ comparison_results <-
     reference = llorens
   )
 plot_cluster_coherence_comparison(comparison_results) +
-  ggtitle("Reference = Dulken, query = Llorens-Bobadilla")
+  ggtitle("Reference = Dulken,\nquery = Llorens-Bobadilla") -> cc_plts[[4]]
+
+cc_plts[[4]]
+```
+
+
+```{r, include = F}
+
+cc_plts %>%
+  lapply(function(p)
+    p + theme(legend.position = "none")
+    ) -> cc_plts
+cc_plts[["labels"]] <- LETTERS[1:4]
+cc_lgnd <- get_legend(cluster_coherence_plot_1 +
+                        theme(legend.position = "bottom"))
+
+plot_grid(do.call(what = plot_grid,args = cc_plts),
+          cc_lgnd,
+          nrow = 2,
+          rel_heights = c(10,1)) -> kappa_plt
+
+
+ggsave(filename = "neurogenesis_kappa.eps",device = "eps",plot = kappa_plt, path = "~/CorGI_figures/neurogenesis",width = 8,height = 8)
+
 ```
 
 ```{r}
@@ -459,7 +487,7 @@ panel_plot_mds
 
 
 ```{r, include = F}
-ggsave(filename = "neurogenesis_MDS.eps",device = "eps",plot = panel_plot_mds,path = "~/CorGI_figures",width = 6,height = 6)
+ggsave(filename = "neurogenesis_MDS.eps",device = "eps",plot = panel_plot_mds,path = "~/CorGI_figures/neurogenesis",width = 8,height = 8)
 ```
 
 
@@ -495,38 +523,27 @@ top_panel
 
 ```{r}
 plot_grid(
-  plot_grid(
-    get_axes_legend(emb_name),
-    get_shape_legend(batch, my_shape_palette)
-  ),
+  get_axes_legend(emb_name),
+  get_shape_legend(batch, my_shape_palette),
   get_color_legend(cell_type2, my_color_palette),
-  nrow = 2) -> legends
+  nrow = 3) -> legends
 ```
 
 
 
 
-```{r}
-plot_grid(
-  legends,
-  cluster_coherence_plot,
-  nrow = 1,
-  rel_widths = c(1,2),
-  labels = c("","G")) -> bottom_panel
-
-bottom_panel
-```
 
 
-```{r,fig.width=6,fig.height=6}
-panel_plot_mnn <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
+
+```{r,fig.width=8,fig.height=5}
+panel_plot_mnn <- plot_grid(top_panel,legends,nrow=1,rel_widths = c(6,1))
 panel_plot_mnn
 ```
 
 
 ```{r, include = F}
 
-ggsave(filename = "neurogenesis_MNN.eps",device = "eps",plot = panel_plot_mnn,path = "~/CorGI_figures",width = 6,height = 6)
+ggsave(filename = "neurogenesis_MNN.eps",device = "eps",plot = panel_plot_mnn,path = "~/CorGI_figures/neurogenesis",width = 8,height = 5)
 ```
 
 
