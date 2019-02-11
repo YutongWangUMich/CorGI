@@ -39,7 +39,7 @@ mart <- useMart("ensembl",
 
 # Pal et al. 2017 dataset
 
-```{r}
+```{r, eval = F}
 con <- gzcon(
   url("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE95434&format=file&file=GSE95434%5FGeneCounts%2Etxt%2Egz")
   )
@@ -47,15 +47,9 @@ txt <- readLines(con)
 pal_raw <- read.table(file = textConnection(txt),header = T)
 
 pal_raw[1:10,1:6]
-```
-
-```{r}
 pal <- SingleCellExperiment(assay = list(counts = as.matrix(pal_raw[,3:ncol(pal_raw)])))
 dim(pal)
 pal_entrezGeneID <- pal_raw[,1]
-```
-
-```{r}
 pal$cell_type <- 
   colnames(pal) %>% 
   lapply(FUN = function(x) strsplit(x,split = ".",fixed = T)[[1]][1]) %>%
@@ -64,10 +58,6 @@ pal$cell_type <-
   factor(levels = c("2wk","4wk","10wk"),ordered = T)
 
 table(pal$cell_type)
-```
-
-
-```{r}
 # Change the names from entrezgene to mgi_symbol
 features <- pal_entrezGeneID
 
@@ -80,16 +70,15 @@ dim(out)
 out$is_unique <- !duplicated(out$mgi_symbol)
 out$is_nonempty <- out$mgi_symbol!=""
 out_unique_nonempty <- out %>% filter(is_unique) %>% filter(is_nonempty)
-```
 
-Just to be sure
-```{r}
+
+# Just to be sure
+
 any(duplicated(out_unique_nonempty$mgi_symbol))
 any(out_unique_nonempty$mgi_symbol=="")
-```
 
-Transform to MGI symbols
-```{r}
+# Transform to MGI symbols
+
 genes_use <- which(pal_entrezGeneID %in% out_unique_nonempty$entrezgene)
 
 pal <- pal[genes_use,]
@@ -102,10 +91,14 @@ rownames(pal) <-
   )
 ```
 
+```{r, eval = F, include=F}
+saveRDS(pal,file = "~/CorGI_RDS/MG_devel/pal.rds")
+```
+
 
 # Giraddi et al. 2018 dataset
 
-```{r}
+```{r, eval = F}
 con <- gzcon(
   url("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE111113&format=file&file=GSE111113%5FTable%5FS1%5FFilterNormal10xExpMatrix%2Etxt%2Egz"))
 txt <- readLines(con)
@@ -137,6 +130,15 @@ giraddi$cell_type <- plyr::mapvalues(
   from = levels(giraddi$cell_type),
   to = c("Adu", "Adu", "AduBas", "E16", "E18", "P4")
 )
+```
+
+```{r, eval = F, include = F}
+saveRDS(giraddi, file = "~/CorGI_RDS/MG_devel/giraddi.rds")
+```
+
+
+```{r, include = F}
+giraddi <- readRDS(file = "~/CorGI_RDS/MG_devel/giraddi.rds")
 ```
 
 
@@ -259,45 +261,36 @@ qplot(mds[,1],mds[,2],color = cell_type,shape = batch) +
 
 # Wuidart et al. 2018 dataset
 
-```{r}
+```{r, eval = F}
 con <- gzcon(
   url("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE110nnn/GSE110351/suppl/GSE110351_MG_EMP_LC_BC_raw_counts.csv.gz")
   )
 txt <- readLines(con)
 wuidart_raw <- read.csv(file = textConnection(txt))
 wuidart_raw[1:5,1:5]
-```
-
-```{r}
 wuidart <- SingleCellExperiment(assay = list(counts = as.matrix(wuidart_raw[,2:ncol(wuidart_raw)])))
 # First column of gse is the gene names
 rownames(wuidart) <- wuidart_raw[,1]
-```
 
+# Remove the spike-ins
 
-Remove the spike-ins
-```{r}
 wuidart <- wuidart[grep("ENSMUSG",rownames(wuidart)),]
-```
 
-Let us convert ENSEMBL to MGI symbols for the genes
-```{r}
+# Let us convert ENSEMBL to MGI symbols for the genes
+
 head(rownames(wuidart))
-```
 
-We need to remove the dots
-```{r}
+
+# We need to remove the dots
+
 f <- function(x){ strsplit(x,split = ".",fixed = T)[[1]][1] }
 rownames(wuidart) <- unlist(lapply(rownames(wuidart), f))
-```
 
-Does this cause any duplicates?
-```{r}
+# Does this cause any duplicates?
+
 any(duplicated(rownames(wuidart)))
-```
 
 
-```{r}
 # Get the MGI symbols
 out <- getBM(attributes = c("ensembl_gene_id", "mgi_symbol"), 
              values = rownames(wuidart), 
@@ -312,23 +305,18 @@ wuidart <- wuidart[rownames(wuidart) %in% out$ensembl_gene_id,]
 rownames(wuidart) <- plyr::mapvalues(rownames(wuidart),
                                      from = out$ensembl_gene_id,
                                      to = out$mgi_symbol)
-```
 
+# Now we need to get the metadata
 
-Now we need to get the metadata
-```{r}
 gse <- getGEO("GSE110351")
 md_raw <- as.character(gse$GSE110351_series_matrix.txt.gz$title)
 length(md_raw) == ncol(wuidart)
 md <- data.frame(raw = md_raw,stringsAsFactors = F)
-```
 
-The cell barcodes are the last 17 characters (including the dash)
-```{r}
+
+# The cell barcodes are the last 17 characters (including the dash)
+
 md$raw[1:5]
-```
-
-```{r}
 substrRight <- function(x, n){
   substr(x, nchar(x)-n+1, nchar(x))
 }
@@ -337,39 +325,26 @@ md$barcodes <- gsub("-",".",md$barcodes)
 md <- md[order(md$barcodes),]
 wuidart <- wuidart[,sort(colnames(wuidart))]
 all(colnames(wuidart) == md$barcodes)
-```
 
-```{r}
 removeRight <- function(x, n){
   substr(x, 1, nchar(x)-n)
 }
 md$raw <- unlist(lapply(md$raw,function(x) removeRight(x,18)))
 table(md$raw)
-```
 
-```{r}
 md$is_single_cell <- grepl("Single",md$raw)
 md$cell_type <- NA
 for(ct in c("Basal","Luminal","Embryonal Progenitor")){
   md$cell_type[grepl(ct,md$raw)] <- ct
 }
-```
 
-
-
-```{r}
 wuidart$is_single_cell <- md$is_single_cell
 wuidart$cell_type <- factor(md$cell_type)
 wuidart <- wuidart[,wuidart$is_single_cell]
-```
 
-Did we miss anything?
-```{r}
+# Did we miss anything?
+
 any(is.na(wuidart$cell_type))
-```
-
-
-```{r}
 plyr::mapvalues(
   x = wuidart$cell_type,
   from = c("Basal","Luminal","Embryonal Progenitor"),
@@ -377,8 +352,12 @@ plyr::mapvalues(
 ) -> wuidart$cell_type
 ```
 
+```{r, include = F, eval = F}
+saveRDS(wuidart,file = "~/CorGI_RDS/MG_devel/wuidart.rds")
+```
 
-```{r}
+```{r, include = F}
+wuidart <- readRDS(file = "~/CorGI_RDS/MG_devel/wuidart.rds")
 batches[["Wuidart"]] <- wuidart
 ```
 
@@ -386,7 +365,7 @@ batches[["Wuidart"]] <- wuidart
 # Bach et al. 2017 dataset
 
 
-```{r}
+```{r, eval = F}
 bach_np1 <- readMM(gzcon(url("ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM2834nnn/GSM2834498/suppl/GSM2834498_NP_1_matrix.mtx.gz")))
 dim(bach_np1)
 
@@ -399,13 +378,28 @@ dim(bach_np2)
 
 bach_genes[1:5,]
 
+rownames(bach_np1) <- bach_genes[,2]
+rownames(bach_np2) <- bach_genes[,2]
+```
+
+```{r, eval = F, include = F}
+saveRDS(bach_np1, file = "~/CorGI_RDS/MG_devel/bach_np1.rds")
+saveRDS(bach_np2, file = "~/CorGI_RDS/MG_devel/bach_np2.rds")
+```
+
+```{r, include = F}
+bach_np1 <- readRDS(file = "~/CorGI_RDS/MG_devel/bach_np1.rds")
+bach_np2 <- readRDS(file = "~/CorGI_RDS/MG_devel/bach_np2.rds")
+```
+
+
+```{r}
 set.seed(0)
 bach_np1 <- sample_cells(bach_np1,500)
 bach_np2 <- sample_cells(bach_np2,500)
 bach_np <- cbind(bach_np1,bach_np2)
 
 bach_np <- SingleCellExperiment(assay = list(counts = as.matrix(bach_np)))
-rownames(bach_np) <- bach_genes[,2]
 
 
 bach_np$cell_type <- "Adu"

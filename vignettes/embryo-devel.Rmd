@@ -147,7 +147,8 @@ embeddings_pca <-
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
-      prcomp(t(combined[gene_set,]),rank. = 2)$x
+      D <- sqrt((1-cor(combined[gene_set,],method = "spearman"))/2)
+      mds <- cmdscale(D,k=2)
     }
   )
 ```
@@ -183,7 +184,7 @@ top_panel
 
 
 ```{r}
-ggsave(filename = "embryo_devel_PCA_HDG.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel",width = 6,height = 4)
+ggsave(filename = "embryo_devel_PCA_HDG.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel", width = 8,height = (4*8/6))
 ```
 
 
@@ -439,7 +440,7 @@ top_panel
 
 
 ```{r, include = F}
-ggsave(filename = "embryo_devel_PCA_HVG.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel",width = 6,height = 4)
+ggsave(filename = "embryo_devel_PCA_HVG.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel", width = 8,height = (4*8/6))
 ```
 
 
@@ -515,7 +516,7 @@ top_panel
 ```
 
 ```{r, include = F}
-ggsave(filename = "SVM.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel",width = 6,height = 4)
+ggsave(filename = "SVM.eps",device = "eps",plot = top_panel,path = "~/CorGI_figures/embryo_devel", width = 8,height = (4*8/6))
 ```
 
 

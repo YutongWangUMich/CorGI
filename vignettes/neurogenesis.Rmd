@@ -18,6 +18,17 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+```{r}
+library(corgi)
+library(knitr)
+library(ggplot2)
+library(scran) # we only need to use the multiBatchNorm function
+library(scmap) # scmapCluster and highly dropped-out gene HDG feature selection
+library(cowplot) # we use this to generate the multipanel plots
+library(dplyr)
+```
+
 # Introduction
 
 In this vignette, we use the _semi-supervised_ version of `corgi` applied to the neurogenesis in subventricular zone datasets:
@@ -25,22 +36,12 @@ In this vignette, we use the _semi-supervised_ version of `corgi` applied to the
 - [Dulken et al. 2017](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/)
 - [Llorens-Bobadilla et al. 2015](https://www.ncbi.nlm.nih.gov/pubmed/26235341)
 
-```{r}
-library(corgi)
-library(knitr)
-library(ggplot2)
-library(scran) # we only need to use the multiBatchNorm function
-library(scmap) # we only need to use the selectFeatures function
-library(cowplot) # we use this to generate the multipanel plots
-library(dplyr)
-
-```
 
 # Data cleaning
 
 Load data from Llorens-Bobadilla et al. This code is obtained from the [GitHub code for Figure 6B in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure6_FigureS6/Llorens%20Projections%20_%20Figure%206B%2C%20S6A%2C%20S6B.R)
 
-```{r}
+```{r, eval = F}
 Llorens_allcounts<-read.table(url("https://github.com/bdulken/SVZ_NSC_Dulken_2/raw/master/Files/Llorens_counts_allgenes.txt"))
 
 allcounts_allcells<-Llorens_allcounts
@@ -55,31 +56,30 @@ allcounts_allcells_noblasts_nooligo<-allcounts_allcells_noblasts[,-na.omit(match
 allcounts_allcells_noblasts_nooligo_noERCC<-allcounts_allcells_noblasts_nooligo[!grepl("ERCC-",rownames(allcounts_allcells_noblasts_nooligo)),]
 
 llorens <- allcounts_allcells_noblasts_nooligo_noERCC
-```
 
-Overview of the Llorens-Bobadilla dataset
-```{r}
-kable(llorens[1:10,1:6])
-```
-
-Parse the cell type metadata
-```{r}
 llorens_cell_type <-  factor(
   unlist(
     lapply(X = colnames(llorens),
            FUN = function(x){substr(x,1,1)})
     )
   )
+
+llorens_cell_type <- plyr::mapvalues(x = llorens_cell_type,
+                                     from = c("N","t"),
+                                     to = c("NSC","NPC"))
+
+llorens <- SingleCellExperiment(assay = list(counts = as.matrix(llorens)))
+llorens$cell_type1 <- llorens_cell_type
+```
+
+```{r,include = F, eval = F}
+saveRDS(llorens,file = "~/CorGI_RDS/neurogenesis/llorens.rds")
 ```
 
 
-Make the cluster labels more intuitive
-neural stem and transient transit amplifying cells (NSC and TAP)
 
-```{r}
-llorens_cell_type <- plyr::mapvalues(x = llorens_cell_type,
-                                     from = c("N","t"),
-                                     to = c("NSC","TAP")) 
+```{r, include = F}
+llorens <- readRDS(file = "~/CorGI_RDS/neurogenesis/llorens.rds")
 ```
 
 
@@ -87,7 +87,7 @@ Load Dulken et al 2017 dataset
 
 This code is obtained from the [GitHub code for Figure 1 in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure1/PCA%20-%20Outliers%20Removed%20_%20Figure%201C.R). The difference between our code and theirs is that we don't filter out cell-cycle genes.
 
-```{r}
+```{r, eval = F}
 #Loading all high quality cells and filtering for lowly expressed genes
 spec_pops<-read.table(url("https://raw.githubusercontent.com/bdulken/SVZ_NSC_Dulken_2/master/Files/AllCounts_specPops_read_gene_ERCC_filt_FINAL.txt"))
 
@@ -102,16 +102,11 @@ greaterthan0<-allcounts_allcells_nooligo>10
 greaterthan0sum<-rowSums(greaterthan0)
 allcounts_allcells_nooligo_genefilt<-allcounts_allcells_nooligo[greaterthan0sum>=5,]
 dulken <- allcounts_allcells_nooligo_genefilt
-```
 
-Overview of the Dulken dataset
-```{r}
+# Overview of the Dulken dataset
+
 kable(dulken[1:10,1:6])
-```
 
-Parse the cell type metadata
-
-```{r}
 dulken_cell_type <- 
   factor(
     unlist(
@@ -119,10 +114,27 @@ dulken_cell_type <-
              FUN=function(x){strsplit(x,split = "_",fixed=T)[[1]][1]})
       )
     )
-  
+
+dulken_cell_type <- plyr::mapvalues(x = dulken_cell_type,
+                              from = c("aNSC", "Ast", "NPC", "qNSC", "NSC", "TAP"),
+                              to = c("NSC","Ast","NPC","NSC","NSC","NPC"))
+
+
+dulken <- SingleCellExperiment(assay = list(counts = as.matrix(dulken)))
+dulken$cell_type1 <- dulken_cell_type
 ```
 
 
+```{r,include = F, eval = F}
+saveRDS(dulken,file = "~/CorGI_RDS/neurogenesis/dulken.rds")
+```
+
+```{r, include = F}
+dulken <- readRDS(file = "~/CorGI_RDS/neurogenesis/dulken.rds")
+```
+
+
+# Exploratory analysis
 
 We consider only genes in both datasets.
 ```{r}
@@ -132,18 +144,20 @@ dulken <- dulken[shared_genes,]
 llorens <- llorens[shared_genes,]
 ```
 
-# Exploratory analysis
+
 
 Combine the datasets
 ```{r}
-comb <- cbind(dulken,llorens)
+combined <- cbind(dulken,llorens)
+combined$batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens",ncol(llorens)))
+
 ```
 
 
 Merged metadata for the merged dataset
 ```{r}
-cell_type <- forcats::fct_c(dulken_cell_type,llorens_cell_type)
-batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens",ncol(llorens)))
+cell_type <- combined$cell_type1
+batch <- combined$batch
 ```
 
 Overview of the cell types in each dataset
@@ -151,13 +165,6 @@ Overview of the cell types in each dataset
 kable(table(cell_type, batch))
 ```
 
-Simplify and combine some of the cell-types for visualization
-```{r}
-cell_type2 <- plyr::mapvalues(x = cell_type,
-                              from = c("aNSC", "Ast", "NPC", "qNSC", "NSC", "TAP"),
-                              to = c("NSC","Ast","NPC","NSC","NSC","NPC"))
-kable(table(cell_type2, batch))
-```
 
 ```{r}
 my_shape_palette <- c(1, 16)
@@ -177,22 +184,15 @@ qplot <- function(...){
 Multidimensional-scaling on Spearman rho distance matrix using all the genes results in a scatterplot with clearly separated batches
 
 ```{r}
-D <- sqrt((1-cor(comb,method = "spearman"))/2) # Spearman rho distance matrix
+D <- sqrt((1-cor(counts(combined),method = "spearman"))/2) # Spearman rho distance matrix
 mds <- cmdscale(D,k=2) # Multidimensional-scaling
 
 qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
-
-qplot(mds[,1],mds[,2],color = cell_type2,shape = batch) 
 ```
 
 
 Download the genes ranked by their supervised feature selection method
-```{r}
-library("openxlsx")
-consensus_genes <- read.xlsx("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/bin/NIHMS839312-supplement-7.xlsx")
-dim(consensus_genes)
-kable(consensus_genes[1:10,1:5]) # print a nice looking table of the top-left corner of the data
-```
+
 
 Note:
 
@@ -201,11 +201,12 @@ Note:
 - Each column is the top 100 genes produced by one computed model.
 - A gene that shows up in multiple columns means that there is a _consensus_ across multiple models that the gene should be ranked in the top 100, hence the name.
 
-```{r}
+```{r, eval = F}
+library("openxlsx")
+consensus_genes <- read.xlsx("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/bin/NIHMS839312-supplement-7.xlsx")
+dim(consensus_genes)
+kable(consensus_genes[1:10,1:5]) # print a nice looking table of the top-left corner of the data
 consensus_genes <- consensus_genes[,-c(1)] # remove the first column, which is metadata
-```
-
-```{r}
 
 all_consensus_genes <- intersect(Reduce(union, consensus_genes),
                                  shared_genes)
@@ -221,20 +222,24 @@ all_consensus_genes %>%
   }) %>% 
   sort(decreasing = T) ->
   top_consensus_genes
+saveRDS(top_consensus_genes, file ="~/CorGI_RDS/neurogenesis/top_consensus_genes.rds")
 ```
 
-The vector `top_consensus_genes` counts how many times a given gene show up in the models.
+```{r, include = F}
+top_consensus_genes <- readRDS(file ="~/CorGI_RDS/neurogenesis/top_consensus_genes.rds")
+```
+
+
 ```{r}
+# The vector `top_consensus_genes` counts how many times a given gene show up in the models.
+
 head(top_consensus_genes)
-```
 
-```{r}
 consensus34 <- names(which(top_consensus_genes>50))
-```
 
-There are 34 genes that show up in more than 50% of the models. This is the _consensus-ordering_ gene set used in Dulken et al. 2017.
+# There are 34 genes that show up in more than 50% of the models. This is the _consensus-ordering_ gene set used in Dulken et al. 2017.
 
-```{r}
+
 length(consensus34)
 ```
 
@@ -258,7 +263,8 @@ data("corgi_output_neurogenesis")
 corgi_gene_set <- select_top_corgi_genes(corgi_output_neurogenesis,n = 100, phase_use = 1)
 length(corgi_gene_set)
 
-D <- (1-cor(comb[union(corgi_gene_set,consensus34),],method = "spearman"))/2
+gene_set <- union(corgi_gene_set,consensus34)
+D <- sqrt((1-cor(counts(combined)[gene_set,],method = "spearman"))/2)
 mds <- cmdscale(D,k=2)
 
 qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
@@ -271,11 +277,7 @@ In this section, we recreate the figures in our paper, i.e., comparing with high
 
 ## Normalize the datasets
 ```{r}
-dulken <- SingleCellExperiment(assay = list(counts = as.matrix(dulken)))
-llorens <- SingleCellExperiment(assay = list(counts = as.matrix(llorens)))
-
-out <- multiBatchNorm(dulken,llorens) # the output has logcounts 
-
+out <- multiBatchNorm(dulken,llorens) # the output has logcounts
 dulken <- out[[1]]
 llorens <- out[[2]]
 ```
@@ -285,7 +287,7 @@ llorens <- out[[2]]
 ```{r}
 HDG_ranking <- function(sce){
   rowData(sce)$feature_symbol <- rownames(sce)
-  sce <- selectFeatures(sce)
+  sce <- selectFeatures(sce,suppress_plot = F)
   return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
 }
 
@@ -294,7 +296,7 @@ n <- length(union(corgi_gene_set,consensus34))
 gene_sets <- get_compared_gene_sets(
   batch1_top_genes = HDG_ranking(dulken),
   batch1_name = "HDG(Dulken)",
-  batch2_top_genes = HDG_ranking(llorens), 
+  batch2_top_genes = HDG_ranking(llorens),
   batch2_name = "HDG(Llorens)",
   desired_size = n,
   marker_genes = consensus34)
@@ -312,8 +314,6 @@ scmapCluster parameters
 ```{r}
 rowData(dulken)$feature_symbol <- rownames(dulken)
 rowData(llorens)$feature_symbol <- rownames(llorens)
-dulken$cell_type1 <- cell_type2[batch == "Dulken"]
-llorens$cell_type1 <- cell_type2[batch == "Llorens"]
 
 query <- llorens
 reference <- dulken[,dulken$cell_type1!="Ast"]
@@ -324,8 +324,8 @@ threshold <- 0.3
 ```{r}
 gene_set <- gene_sets[["CorGI"]]
 corgi::run_scmap(
-  query = query,
-  ref = reference,
+  query = llorens,
+  ref = dulken,
   gene_set = gene_set,
   threshold = threshold
 )
@@ -335,8 +335,8 @@ corgi::run_scmap(
 ```{r}
 gene_set <- gene_sets[["C134"]]
 corgi::run_scmap(
-  query = query,
-  ref = reference,
+  query = llorens,
+  ref = dulken,
   gene_set = gene_set,
   threshold = threshold
 )
@@ -366,7 +366,7 @@ comparison_results <-
     reference = llorens
   )
 plot_cluster_coherence_comparison(comparison_results) +
-  ggtitle("Reference = Llorens-Bobadilla, \nquery = Dulken (no astrocytes)") -> cc_plts[[2]]
+  ggtitle("Reference = Llorens-Bobadilla, \nQuery = Dulken (no astrocytes)") -> cc_plts[[2]]
 cc_plts[[2]]
 ```
 
@@ -378,7 +378,7 @@ comparison_results <-
     reference = dulken
   )
 plot_cluster_coherence_comparison(comparison_results) +
-  ggtitle("Reference = Llorens-Bobadilla, \nquery = Dulken") -> cc_plts[[3]]
+  ggtitle("Reference = Dulken, \nQuery = Llorens-Bobadilla") -> cc_plts[[3]]
 
 cc_plts[[3]]
 ```
@@ -393,7 +393,7 @@ comparison_results <-
     reference = llorens
   )
 plot_cluster_coherence_comparison(comparison_results) +
-  ggtitle("Reference = Dulken,\nquery = Llorens-Bobadilla") -> cc_plts[[4]]
+  ggtitle("Reference = Llorens-Bobadilla,\nQuery = Dulken") -> cc_plts[[4]]
 
 cc_plts[[4]]
 ```
@@ -416,7 +416,7 @@ plot_grid(do.call(what = plot_grid,args = cc_plts),
 
 
 ggsave(filename = "neurogenesis_kappa.eps",device = "eps",plot = kappa_plt, path = "~/CorGI_figures/neurogenesis",width = 8,height = 8)
-
+stop()
 ```
 
 ```{r}
@@ -424,7 +424,7 @@ embeddings_mds <-
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
-      D <- (1 - cor(comb[gene_set, ], method = "spearman")) / 2
+      D <- sqrt((1 - cor(comb[gene_set, ], method = "spearman")) / 2)
       return(cmdscale(D, k = 2))
     }
   )
@@ -458,10 +458,6 @@ plot_grid(
   get_color_legend(cell_type2, my_color_palette),
   nrow = 2) -> legends
 ```
-
-
-
-
 
 
 
