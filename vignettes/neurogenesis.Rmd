@@ -177,7 +177,7 @@ qplot <- function(...){
 Multidimensional-scaling on Spearman rho distance matrix using all the genes results in a scatterplot with clearly separated batches
 
 ```{r}
-D <- (1-cor(comb,method = "spearman"))/2 # Spearman rho distance matrix
+D <- sqrt((1-cor(comb,method = "spearman"))/2) # Spearman rho distance matrix
 mds <- cmdscale(D,k=2) # Multidimensional-scaling
 
 qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
@@ -255,7 +255,7 @@ data("corgi_output_neurogenesis")
 
 ## Dimensionality reduction using MDS
 ```{r}
-corgi_gene_set <- select_top_corgi_genes(corgi_output_neurogenesis,n = 100)
+corgi_gene_set <- select_top_corgi_genes(corgi_output_neurogenesis,n = 100, phase_use = 1)
 length(corgi_gene_set)
 
 D <- (1-cor(comb[union(corgi_gene_set,consensus34),],method = "spearman"))/2
@@ -353,7 +353,7 @@ comparison_results <-
 
 cluster_coherence_plot <- plot_cluster_coherence_comparison(comparison_results) +
     ggtitle("Reference = Dulken (no astrocytes)\nQuery = Llorens-Bobadilla")
-
+cc_plts <- list()
 cluster_coherence_plot -> cc_plts[[1]]
 cc_plts[[1]]
 ```
@@ -406,7 +406,7 @@ cc_plts %>%
     p + theme(legend.position = "none")
     ) -> cc_plts
 cc_plts[["labels"]] <- LETTERS[1:4]
-cc_lgnd <- get_legend(cluster_coherence_plot_1 +
+cc_lgnd <- get_legend(cc_plts[[1]] +
                         theme(legend.position = "bottom"))
 
 plot_grid(do.call(what = plot_grid,args = cc_plts),

@@ -156,7 +156,7 @@ data("corgi_output_liver_bud")
 ## Selecting the top CorGI genes
 
 ```{r}
-corgi_gene_set <- select_top_corgi_genes(corgi_output_liver_bud,500)
+corgi_gene_set <- select_top_corgi_genes(corgi_output_liver_bud,1000)
 ```
 
 
