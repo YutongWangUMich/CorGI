@@ -24,14 +24,16 @@ get_shape_legend <- function(batch,my_shape_palette){
 }
 
 #' @export
-get_color_legend <- function(cell_type,my_color_palette,ncol = NULL,legend.position = "right",legend.title = "Cell type"){
+get_color_legend <- function(cell_type,my_color_palette,ncol = NULL,legend.position = "right",legend.title = "Cell type",...){
   n_cells <- length(cell_type)
-  cowplot::get_legend(
-    ggplot2::qplot(1:n_cells, 1:n_cells, color = cell_type) +
-      scale_color_manual(values = my_color_palette) +
-      guides(col = guide_legend(title= legend.title, ncol = ncol)) +
-      theme(legend.position = legend.position)
-    )
+  df <- data.frame(x = 1:n_cells,y = 1:n_cells, cell_type = cell_type)
+
+  ggplot(df,aes(x=x,y=y)) + geom_point(aes(color = cell_type),...)+
+    scale_color_manual(values = my_color_palette) +
+    guides(col = guide_legend(title= legend.title, ncol = ncol)) +
+    theme(legend.position = legend.position) -> plt
+
+  return(cowplot::get_legend(plt))
 }
 
 #' Returns an empty plot with just the axes and the axes labels
@@ -123,3 +125,4 @@ plot_cluster_coherence_comparison <- function(results){
     xlab("scmapCluster threshold") +
     ylab("Cohen's Kappa")
 }
+

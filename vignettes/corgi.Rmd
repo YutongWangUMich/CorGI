@@ -29,16 +29,21 @@ library(ggplot2)
 
 We download the data from the [Hemberg Lab website](https://hemberg-lab.github.io/scRNA.seq.datasets/). The human dataset is from [Yan et al 2013](http://dx.doi.org/10.1038/nsmb.2660) while the mouse dataset is from [Deng et al 2014](http://dx.doi.org/10.1126/science.1245316).
 
-```{r}
+```{r, eval = F}
 yan <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"))
 deng <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"))
+```
+
+```{r, include = F}
+yan <- readRDS(file = "~/CorGI_RDS/embryo_devel/yan.rds")
+deng <- readRDS(file = "~/CorGI_RDS/embryo_devel/deng-reads.rds")
 ```
 
 Get genes common to both datasets
 ```{r}
 rownames(yan) <- toupper(rownames(yan))
 rownames(deng) <- toupper(rownames(deng))
-shared_genes <- intersect(rownames(yan),rownames(deng))
+shared_genes <- intersect(rownames(yan), rownames(deng))
 ```
 
 
@@ -49,8 +54,8 @@ shared_genes <- shared_genes[-grep("ERCC",shared_genes)]
 
 Subset the data
 ```{r}
-yan <- yan[shared_genes,]
-deng <- deng[shared_genes,]
+yan <- yan[shared_genes, ]
+deng <- deng[shared_genes, ]
 ```
 
 # Run CorGI feature selection
@@ -59,11 +64,12 @@ Normalization is not necessary for running CorGI
 
 ```{r, eval = F}
 set.seed(0)
-corgi_output_embyro_devel <- run_corgi(logcounts(yan),logcounts(deng))
+corgi_output_embyro_devel <-
+  run_corgi(logcounts(yan), logcounts(deng))
 ```
 
 ```{r,eval = F,include=F}
-devtools::use_data(corgi_output_embyro_devel,overwrite = T) # Cache the output so that we don't have to actually rerun corgi. Change to "eval=T" if rerun is necessary.
+devtools::use_data(corgi_output_embyro_devel, overwrite = T) # Cache the output so that we don't have to actually rerun corgi. Change to "eval=T" if rerun is necessary.
 ```
 
 ```{r,include=F}
@@ -72,19 +78,24 @@ data("corgi_output_embyro_devel") # Load the cached output
 
 Select top CorGI genes
 ```{r}
-corgi_gene_set <- 
-  union(select_top_corgi_genes(corgi_output_embyro_devel,n = 100,SVG_use = 2),
-        select_top_corgi_genes(corgi_output_embyro_devel,n = 100,SVG_use = 3))
+corgi_gene_set <-
+  union(
+    select_top_corgi_genes(corgi_output_embyro_devel, n = 100, SVG_use = 2),
+    select_top_corgi_genes(corgi_output_embyro_devel, n = 100, SVG_use = 3)
+  )
 ```
 
 # Visualization
 
 Metadata for the combined datasets
 ```{r}
-combined <- cbind(logcounts(yan),logcounts(deng))
-cell_type <- forcats::fct_c(as.factor(yan$cell_type1),as.factor(deng$cell_type1))
-cell_type <- factor(cell_type, levels = c("zygote","2cell","4cell","8cell","16cell","blast"))
-batch <- c(rep("Human",ncol(yan)),rep("Mouse",ncol(deng)))
+combined <- cbind(logcounts(yan), logcounts(deng))
+cell_type <-
+  forcats::fct_c(as.factor(yan$cell_type1), as.factor(deng$cell_type1))
+cell_type <-
+  factor(cell_type,
+         levels = c("zygote", "2cell", "4cell", "8cell", "16cell", "blast"))
+batch <- c(rep("Human", ncol(yan)), rep("Mouse", ncol(deng)))
 ```
 
 Wrapper around the qplot `ggplot2::qplot` function with our color scheme
@@ -101,23 +112,19 @@ qplot <- function(...){
 ## Multidimensional scaling (MDS)
 
 
-### On all genes
+On all genes
 
 ```{r}
-D <- (1-cor(combined,method = "spearman"))/2
-mds <- cmdscale(D,k=2)
-
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
+mds <- spearman_rho_mds(combined)
+qplot(mds[, 1], mds[, 2], color = cell_type, shape = batch)
 ```
 
 
-### On CorGI genes
+On CorGI genes
 
 ```{r}
-D <- (1-cor(combined[corgi_gene_set,],method = "spearman"))/2
-mds <- cmdscale(D,k=2)
-
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
+mds <- spearman_rho_mds(combined[corgi_gene_set, ])
+qplot(mds[, 1], mds[, 2], color = cell_type, shape = batch)
 ```
 
 ## Principal component analysis (PCA)
@@ -125,32 +132,31 @@ qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
 To use PCA, we first need to adjust the read-depth to be comparable across the two datasets
 ```{r}
 library(scran)
-out <- multiBatchNorm(yan,deng,assay.type = "logcounts")
+out <- multiBatchNorm(yan, deng, assay.type = "logcounts")
 yan <- out[[1]]
 deng <- out[[2]]
-combined <- cbind(logcounts(yan),logcounts(deng))
+combined <- cbind(logcounts(yan), logcounts(deng))
 ```
 
 Perform PCA
 ```{r}
-pc <- prcomp(t(combined),rank. = 2)$x
+pc <- prcomp(t(combined), rank. = 2)$x
 ```
 
 
 
-### On all genes
+On all genes
 
 ```{r}
-qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
+qplot(pc[, 1], pc[, 2], color = cell_type, shape = batch)
 ```
 
 
-###  On CorGI genes
+On CorGI genes
 
 ```{r}
-
-pc <- prcomp(t(combined[corgi_gene_set,]),rank. = 2)$x
-qplot(pc[,1],pc[,2],color = cell_type,shape = batch)
+pc <- prcomp(t(combined[corgi_gene_set, ]), rank. = 2)$x
+qplot(pc[, 1], pc[, 2], color = cell_type, shape = batch)
 ```
 
 

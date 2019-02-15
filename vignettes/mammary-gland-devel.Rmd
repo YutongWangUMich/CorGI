@@ -28,14 +28,9 @@ library(forcats) # for concatenating factors
 library(scmap) # for the compared feature selection method
 library(dplyr)
 library(scran)
-library(GEOquery)
 library(Matrix)
-library(biomaRt)
-mart <- useMart("ensembl", 
-                dataset = "mmusculus_gene_ensembl", 
-                host="www.ensembl.org" )
-
 ```
+
 
 # Pal et al. 2017 dataset
 
@@ -60,6 +55,11 @@ pal$cell_type <-
 table(pal$cell_type)
 # Change the names from entrezgene to mgi_symbol
 features <- pal_entrezGeneID
+
+library(biomaRt)
+mart <- useMart("ensembl", 
+                dataset = "mmusculus_gene_ensembl", 
+                host="www.ensembl.org" )
 
 out <- getBM(attributes = c("entrezgene", "mgi_symbol"), 
              values = features, 
@@ -95,6 +95,10 @@ rownames(pal) <-
 saveRDS(pal,file = "~/CorGI_RDS/MG_devel/pal.rds")
 ```
 
+
+```{r, include=F}
+pal <- readRDS(file = "~/CorGI_RDS/MG_devel/pal.rds")
+```
 
 # Giraddi et al. 2018 dataset
 
@@ -163,12 +167,12 @@ table(giraddi$cell_type)
 ```
 
 ```{r}
-plyr::mapvalues(
-  x = pal$cell_type,
-  from = c("2wk","4wk","10wk"),
-  to = c("2wk","4wk","Adu")
-) ->
-  pal$cell_type
+# plyr::mapvalues(
+#   x = pal$cell_type,
+#   from = c("2wk","4wk","10wk"),
+#   to = c("2wk","4wk","Adu")
+# ) ->
+#   pal$cell_type
 ```
 
 
@@ -244,17 +248,24 @@ comb <- cbind(counts(giraddi),counts(pal))
 
 ```{r}
 corgi_gene_set <- select_top_corgi_genes(corgi_output_MG_devel,n = 1000)
+
+
 D <- (1-cor(comb[corgi_gene_set,],method = "spearman"))/2
 mds <- cmdscale(D,k=2)
 ```
 
 
 ```{r}
+my_shape_palette <- c(1,16)
+my_color_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#000000")
 
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch) + 
-  scale_shape_manual(values = c(1,16)) + 
-  scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+qplot <- function(...){
+  ggplot2::qplot(...) +
+  scale_color_manual(values = my_color_palette) +
+  scale_shape_manual(values = my_shape_palette)
+}
 
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
 ```
 
 
@@ -308,6 +319,7 @@ rownames(wuidart) <- plyr::mapvalues(rownames(wuidart),
 
 # Now we need to get the metadata
 
+library(GEOquery)
 gse <- getGEO("GSE110351")
 md_raw <- as.character(gse$GSE110351_series_matrix.txt.gz$title)
 length(md_raw) == ncol(wuidart)
@@ -364,7 +376,7 @@ batches[["Wuidart"]] <- wuidart
 
 # Bach et al. 2017 dataset
 
-
+Data from [Bach et al., 2017](https://www.nature.com/articles/s41467-017-02001-5)
 ```{r, eval = F}
 bach_np1 <- readMM(gzcon(url("ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM2834nnn/GSM2834498/suppl/GSM2834498_NP_1_matrix.mtx.gz")))
 dim(bach_np1)
@@ -393,6 +405,7 @@ bach_np2 <- readRDS(file = "~/CorGI_RDS/MG_devel/bach_np2.rds")
 ```
 
 
+
 ```{r}
 set.seed(0)
 bach_np1 <- sample_cells(bach_np1,500)
@@ -400,9 +413,12 @@ bach_np2 <- sample_cells(bach_np2,500)
 bach_np <- cbind(bach_np1,bach_np2)
 
 bach_np <- SingleCellExperiment(assay = list(counts = as.matrix(bach_np)))
+```
 
 
-bach_np$cell_type <- "Adu"
+From [Bach et al., 2017](https://www.nature.com/articles/s41467-017-02001-5): "Tissue from NP females was harvested at 8 weeks of age."
+```{r}
+bach_np$cell_type <- "8wk"
 bach_np$cell_type <- factor(bach_np$cell_type)
 
 batches[["Bach_NP"]] <- bach_np
@@ -410,26 +426,26 @@ batches[["Bach_NP"]] <- bach_np
 
 # Reproducing the paper figures
 
-```{r}
-
+For each batch, for each gene_set, compute dimensionality reductions, i.e., MNNPC and Spearman rho mds
+```{r, eval = F}
+# Spearman rho multidimensional scaling
 lapply(
-  X = batches,
+  X = batches, # for each batch
   FUN = function(sce){
     shared_genes <- intersect(rownames(giraddi),rownames(sce))
     combined <- cbind(counts(giraddi[shared_genes,]),
                       counts(sce[shared_genes,]))
     lapply(
-      X = gene_sets,
+      X = gene_sets, # for each gene_sets
       FUN = function(gene_set) {
         gene_set <- intersect(gene_set, shared_genes)
-        D <-
-          (1 - cor(combined[gene_set, ], method = "spearman")) / 2
-        return(cmdscale(D, k = 2))
+        mds <- spearman_rho_mds(combined[gene_set, ])
+        return(mds)
       }
     )
   }) -> embeddings_mds
 
-
+# Mutual-nearest-neighbor PCA
 lapply(
   X = batches,
   FUN = function(sce){
@@ -452,19 +468,24 @@ lapply(
   }) -> embeddings_mnn
 ```
 
+```{r, eval = F, include = F}
+saveRDS(embeddings_mds,file = "~/CorGI_RDS/MG_devel/embeddings_mds.rds")
+saveRDS(embeddings_mnn,file = "~/CorGI_RDS/MG_devel/embeddings_mnn.rds")
+```
+
+```{r,include = F}
+embeddings_mds <- readRDS(file = "~/CorGI_RDS/MG_devel/embeddings_mds.rds")
+embeddings_mnn <- readRDS(file = "~/CorGI_RDS/MG_devel/embeddings_mnn.rds")
+```
+
 
 
 ```{r}
-my_shape_palette <- c(1,16)
-my_color_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-
 get_scatterplots <- function(embeddings, batch, cell_type){
   lapply(X = names(gene_sets),
          FUN = function(gs_name) {
            emb <- embeddings[[gs_name]]
            plot_dimensionality_reduction(emb, as.factor(batch), cell_type) +
-             scale_shape_manual(values = my_shape_palette) +
-             scale_color_manual(values = my_color_palette) + 
              ggtitle(paste0(gs_name, ", ", round(corgi::batch_mixing(emb, batch), 2)))
          })
 }
@@ -474,9 +495,9 @@ get_scatterplots <- function(embeddings, batch, cell_type){
 
 ```{r}
 color_palettes <-
-  list(Pal = my_color_palette[c(1, 6, 7)],
-       Wuidart = my_color_palette[c(6, 7, 8)],
-       Bach_NP = my_color_palette[c(1)])
+  list(Pal = my_color_palette[6:8],
+       Wuidart = my_color_palette[6:8],
+       Bach_NP = my_color_palette[c(6)])
 
 
 get_panel_for_dr <- function(embeddings_dr, emb_name,gene_sets_use){
@@ -488,6 +509,7 @@ get_panel_for_dr <- function(embeddings_dr, emb_name,gene_sets_use){
                                   sce$cell_type)
       batch <-
         c(rep("Giraddi", ncol(giraddi)), rep(batch_name, ncol(sce)))
+      batch <- factor(batch,levels = unique(batch))
       get_scatterplots(embeddings_dr[[batch_name]],
                        as.factor(batch),
                        cell_type) -> plts
@@ -505,7 +527,8 @@ get_panel_for_dr <- function(embeddings_dr, emb_name,gene_sets_use){
   get_color_legend(cell_type[batch == "Giraddi"],
                    my_color_palette,
                    legend.title = "Giraddi",
-                   legend.position = "bottom") ->
+                   legend.position = "bottom",
+                   shape = 1) ->
     giraddi_color_lgnd
   get_axes_legend(emb_name) -> axes_lgnd
   
@@ -522,31 +545,45 @@ get_panel_for_dr <- function(embeddings_dr, emb_name,gene_sets_use){
 }
 ```
 
-
-```{r,fig.width=6,fig.height=6}
+Main plots
+```{r}
 mnn_plots <- get_panel_for_dr(embeddings_mnn,"MNNPC",gene_sets_use = 1:3)
 mds_plots <- get_panel_for_dr(embeddings_mds,"MDS",gene_sets_use = 1:3)
 ```
 
-
-```{r}
-ggsave(filename = "MG_devel_MNN.eps",device = "eps",plot = mnn_plots,path = "~/CorGI_figures/MG_devel",width = 8,height = 8)
-
-ggsave(filename = "MG_devel_MDS.eps",device = "eps",plot = mds_plots,path = "~/CorGI_figures/MG_devel",width = 8,height = 8)
-
+Multidimensional scaling plots
+```{r,fig.width=6,fig.height=6}
+mds_plots
 ```
 
-
+Mutual-nearest-neighbor PCA plot
 ```{r,fig.width=6,fig.height=6}
+mnn_plots
+```
+
+```{r, include = F}
+ggsave(filename = "MG_devel_MNN.eps",device = "eps",plot = mnn_plots,path = "~/CorGI_figures/MG_devel",width = 8,height = 8)
+ggsave(filename = "MG_devel_MDS.eps",device = "eps",plot = mds_plots,path = "~/CorGI_figures/MG_devel",width = 8,height = 8)
+```
+
+Supplementary plots
+```{r}
 mnn_plots <- get_panel_for_dr(embeddings_mnn,"MNNPC",gene_sets_use = 4:5)
 mds_plots <- get_panel_for_dr(embeddings_mds,"MDS",gene_sets_use = 4:5)
 ```
 
+Multidimensional scaling plots
+```{r,fig.width=6,fig.height=6}
+mds_plots
+```
 
-```{r}
+Mutual-nearest-neighbor PCA plot
+```{r,fig.width=6,fig.height=6}
+mnn_plots
+```
+
+```{r, include = F}
 ggsave(filename = "MG_devel_MNN_backup.eps",device = "eps",plot = mnn_plots,path = "~/CorGI_figures/MG_devel",width = 8,height = 8)
-
 ggsave(filename = "MG_devel_MDS_backup.eps",device = "eps",plot = mds_plots,path = "~/CorGI_figures/MG_devel",width = 8,height = 8)
-
 ```
 

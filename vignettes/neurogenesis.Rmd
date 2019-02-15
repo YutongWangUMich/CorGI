@@ -39,7 +39,9 @@ In this vignette, we use the _semi-supervised_ version of `corgi` applied to the
 
 # Data cleaning
 
-Load data from Llorens-Bobadilla et al. This code is obtained from the [GitHub code for Figure 6B in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure6_FigureS6/Llorens%20Projections%20_%20Figure%206B%2C%20S6A%2C%20S6B.R)
+Load data from [Dulken et al. 2017](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/)
+
+This code is obtained from the [GitHub code for Figure 6B in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure6_FigureS6/Llorens%20Projections%20_%20Figure%206B%2C%20S6A%2C%20S6B.R)
 
 ```{r, eval = F}
 Llorens_allcounts<-read.table(url("https://github.com/bdulken/SVZ_NSC_Dulken_2/raw/master/Files/Llorens_counts_allgenes.txt"))
@@ -83,7 +85,7 @@ llorens <- readRDS(file = "~/CorGI_RDS/neurogenesis/llorens.rds")
 ```
 
 
-Load Dulken et al 2017 dataset
+Load [Llorens-Bobadilla et al. 2015](https://www.ncbi.nlm.nih.gov/pubmed/26235341) dataset
 
 This code is obtained from the [GitHub code for Figure 1 in Dulken et al 2017](https://github.com/bdulken/SVZ_NSC_Dulken_2/blob/master/Figure1/PCA%20-%20Outliers%20Removed%20_%20Figure%201C.R). The difference between our code and theirs is that we don't filter out cell-cycle genes.
 
@@ -104,9 +106,6 @@ allcounts_allcells_nooligo_genefilt<-allcounts_allcells_nooligo[greaterthan0sum>
 dulken <- allcounts_allcells_nooligo_genefilt
 
 # Overview of the Dulken dataset
-
-kable(dulken[1:10,1:6])
-
 dulken_cell_type <- 
   factor(
     unlist(
@@ -115,6 +114,7 @@ dulken_cell_type <-
       )
     )
 
+# TAP stands for transient amplifying cells, which is equivalent to neural progenitor cells here
 dulken_cell_type <- plyr::mapvalues(x = dulken_cell_type,
                               from = c("aNSC", "Ast", "NPC", "qNSC", "NSC", "TAP"),
                               to = c("NSC","Ast","NPC","NSC","NSC","NPC"))
@@ -136,6 +136,8 @@ dulken <- readRDS(file = "~/CorGI_RDS/neurogenesis/dulken.rds")
 
 # Exploratory analysis
 
+In this section, we examine the amount of batch effects in the data.
+
 We consider only genes in both datasets.
 ```{r}
 shared_genes <- intersect(rownames(dulken),rownames(llorens))
@@ -144,18 +146,10 @@ dulken <- dulken[shared_genes,]
 llorens <- llorens[shared_genes,]
 ```
 
-
-
-Combine the datasets
+Combine the datasets and metadata
 ```{r}
 combined <- cbind(dulken,llorens)
 combined$batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens",ncol(llorens)))
-
-```
-
-
-Merged metadata for the merged dataset
-```{r}
 cell_type <- combined$cell_type1
 batch <- combined$batch
 ```
@@ -170,7 +164,7 @@ kable(table(cell_type, batch))
 my_shape_palette <- c(1, 16)
 my_color_palette <- c("#E69F00", "#000000", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-
+# Wrap around qplot so to use our color settings
 qplot <- function(...){
   ggplot2::qplot(...) +
     scale_shape_manual(values = my_shape_palette) +
@@ -179,20 +173,19 @@ qplot <- function(...){
 ```
 
 
-## Dimensionality reduction using all genes
+__Dimensionality reduction using all genes__
 
 Multidimensional-scaling on Spearman rho distance matrix using all the genes results in a scatterplot with clearly separated batches
 
 ```{r}
-D <- sqrt((1-cor(counts(combined),method = "spearman"))/2) # Spearman rho distance matrix
-mds <- cmdscale(D,k=2) # Multidimensional-scaling
-
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
+mds <- spearman_rho_mds(counts(combined))
+qplot(mds[,1],mds[,2],color = cell_type,shape = batch) + ggtitle("Spearman rho MDS using all the genes")
 ```
 
 
-Download the genes ranked by their supervised feature selection method
+## Supervised feature selection by Dulken et al., 2017
 
+We download the gene ranking produced by a supervised feature selection method as in [Dulken et al. 2017](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5269583/)
 
 Note:
 
@@ -232,18 +225,18 @@ top_consensus_genes <- readRDS(file ="~/CorGI_RDS/neurogenesis/top_consensus_gen
 
 ```{r}
 # The vector `top_consensus_genes` counts how many times a given gene show up in the models.
-
 head(top_consensus_genes)
 
+# Take the genes that show up in more than 50 models. This was used in Dulken et al., 2017.
 consensus34 <- names(which(top_consensus_genes>50))
 
-# There are 34 genes that show up in more than 50% of the models. This is the _consensus-ordering_ gene set used in Dulken et al. 2017.
-
-
+# There are 34 genes that show up in more than 50% of the models. Just to check.
 length(consensus34)
 ```
 
-# Semi-supervised CorGI with the consensus genes as markers
+# Semi-supervised CorGI 
+
+Wwith the 34 consensus genes as markers
 
 ```{r,eval = F}
 set.seed(0)
@@ -264,9 +257,8 @@ corgi_gene_set <- select_top_corgi_genes(corgi_output_neurogenesis,n = 100, phas
 length(corgi_gene_set)
 
 gene_set <- union(corgi_gene_set,consensus34)
-D <- sqrt((1-cor(counts(combined)[gene_set,],method = "spearman"))/2)
-mds <- cmdscale(D,k=2)
 
+mds <- spearman_rho_mds(counts(combined)[gene_set,])
 qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
 ```
 
@@ -276,8 +268,10 @@ qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
 In this section, we recreate the figures in our paper, i.e., comparing with highly dropped-out genes.
 
 ## Normalize the datasets
+
+We use the batch normalization of scran so that we can run the highly dropped-out gene selection.
 ```{r}
-out <- multiBatchNorm(dulken,llorens) # the output has logcounts
+out <- scran::multiBatchNorm(dulken,llorens) # the output has logcounts
 dulken <- out[[1]]
 llorens <- out[[2]]
 ```
@@ -315,34 +309,59 @@ scmapCluster parameters
 rowData(dulken)$feature_symbol <- rownames(dulken)
 rowData(llorens)$feature_symbol <- rownames(llorens)
 
-query <- llorens
-reference <- dulken[,dulken$cell_type1!="Ast"]
 threshold <- 0.3
 ```
 
 
+Use the Dulken dataset (excluding the astrocytes) to predict the cell types in Llorens
+
+Using the CorGI gene set
 ```{r}
 gene_set <- gene_sets[["CorGI"]]
 corgi::run_scmap(
   query = llorens,
-  ref = dulken,
+  ref = dulken[,dulken$cell_type1!="Ast"],
   gene_set = gene_set,
-  threshold = threshold
-)
+  threshold = threshold,
+  dnn = c("Prediction","Truth")
+) -> scmap_output
+
+kable(scmap_output$table)
+
+kable(scmap_output$overall)
 ```
 
-
+Using the C134 gene set
 ```{r}
 gene_set <- gene_sets[["C134"]]
 corgi::run_scmap(
   query = llorens,
-  ref = dulken,
+  ref = dulken[,dulken$cell_type1!="Ast"],
   gene_set = gene_set,
   threshold = threshold
-)
+) -> scmap_output
+
+kable(scmap_output$table)
+
+kable(scmap_output$overall)
 ```
 
+Using the _Union_ gene set
+```{r}
+gene_set <- gene_sets[["Union"]]
+corgi::run_scmap(
+  query = llorens,
+  ref = dulken[,dulken$cell_type1!="Ast"],
+  gene_set = gene_set,
+  threshold = threshold
+) -> scmap_output
 
+kable(scmap_output$table)
+
+kable(scmap_output$overall)
+```
+
+Repeat the result above but for all gene sets sweeping over thresholds in $\{0.1, 0.2,...,0.9\}$
 
 ```{r}
 comparison_results <-
@@ -358,6 +377,7 @@ cluster_coherence_plot -> cc_plts[[1]]
 cc_plts[[1]]
 ```
 
+Swap the query and reference
 
 ```{r}
 comparison_results <-
@@ -406,6 +426,8 @@ cc_plts %>%
     p + theme(legend.position = "none")
     ) -> cc_plts
 cc_plts[["labels"]] <- LETTERS[1:4]
+
+cc_plts <- lapply(cc_plts, function(p) p + ylim(c(0,1)))
 cc_lgnd <- get_legend(cc_plts[[1]] +
                         theme(legend.position = "bottom"))
 
@@ -416,7 +438,6 @@ plot_grid(do.call(what = plot_grid,args = cc_plts),
 
 
 ggsave(filename = "neurogenesis_kappa.eps",device = "eps",plot = kappa_plt, path = "~/CorGI_figures/neurogenesis",width = 8,height = 8)
-stop()
 ```
 
 ```{r}
@@ -424,7 +445,7 @@ embeddings_mds <-
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
-      D <- sqrt((1 - cor(comb[gene_set, ], method = "spearman")) / 2)
+      D <- sqrt((1 - cor(counts(combined)[gene_set, ], method = "spearman")) / 2)
       return(cmdscale(D, k = 2))
     }
   )
@@ -435,8 +456,8 @@ embeddings_mds <-
 emb_name <- "MDS"
 embeddings <- embeddings_mds
 get_scatterplots(embeddings,
-                 batch,
-                 cell_type2) -> dr_plots
+                 combined$batch,
+                 combined$cell_type1) -> dr_plots
 # 
 
 # dr_plots[[length(dr_plots)+1]] <- legends
@@ -455,7 +476,7 @@ plot_grid(
     get_axes_legend(emb_name),
     get_shape_legend(batch, my_shape_palette)
   ),
-  get_color_legend(cell_type2, my_color_palette),
+  get_color_legend(cell_type, my_color_palette),
   nrow = 2) -> legends
 ```
 
@@ -507,7 +528,7 @@ emb_name <- "MNNPC"
 embeddings <- embeddings_mnn_pca
 get_scatterplots(embeddings,
                  batch,
-                 cell_type2) -> dr_plots
+                 cell_type) -> dr_plots
 
 dr_plots[["nrow"]] <- 2
 
@@ -521,7 +542,7 @@ top_panel
 plot_grid(
   get_axes_legend(emb_name),
   get_shape_legend(batch, my_shape_palette),
-  get_color_legend(cell_type2, my_color_palette),
+  get_color_legend(cell_type, my_color_palette),
   nrow = 3) -> legends
 ```
 

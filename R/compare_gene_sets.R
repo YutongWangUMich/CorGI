@@ -56,6 +56,10 @@ get_compared_gene_sets <- function(batch1_top_genes,
   union_gene_set <- function(x,y){c(union(batch1_top_genes[1:x], batch2_top_genes[1:y]), marker_genes)}
 
   # gs_func is a function that takes 2 integer inputs, x and y, and output a gene set
+  # Requirements:
+  # 0 <= gs_func(x+1,y) - gs_func(x,y) <= 1
+  # 0 <= gs_func(x,y+1) - gs_func(x,y) <= 1
+
   get_gs_from_gs_func <- function(gs_func){
     z <- 1
     while(length(gs_func(z,z)) < desired_size){
@@ -90,18 +94,5 @@ get_compared_gene_sets <- function(batch1_top_genes,
     gene_sets[[gs_name]] <- get_gs_from_gs_func(gs_func_list[[gs_name]])
   }
 
-  # gs_func_list <- list()
-  # gs_func_list[["Union"]] <-
-  #   function(x){c(union(batch1_top_genes[1:x], batch2_top_genes[1:x]), marker_genes)}
-  # gs_func_list[["Intersection"]] <-
-  #   function(x){c(intersect(batch1_top_genes[1:x], batch2_top_genes[1:x]), marker_genes)}
-  #
-  # for(gs_name in names(gs_func_list)){
-  #   gene_sets[[gs_name]] <- get_gene_set_of_size_n(
-  #     gs_func = gs_func_list[[gs_name]],
-  #     n = desired_size,
-  #     LB = 1,
-  #     UB = n_genes)
-  # }
   return(gene_sets)
 }

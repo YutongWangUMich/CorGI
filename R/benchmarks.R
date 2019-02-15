@@ -5,7 +5,7 @@
 batch_mixing <- function(emb,batch){
   dat <- data.frame(emb,batch)
   model <- e1071::svm(batch~.,data=dat)
-  return(1- caret::confusionMatrix(model$fitted,dat$batch)$overall[["Accuracy"]])
+  return(caret::confusionMatrix(model$fitted,dat$batch)$overall[["Kappa"]])
 }
 
 

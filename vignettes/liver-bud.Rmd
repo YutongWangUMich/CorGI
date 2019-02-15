@@ -47,39 +47,32 @@ The section under _Exploratory analysis_ (and in particular, normalization by ma
 # Data cleaning
 
 
-Note:
-
-- The first three columns are metadata while the rest are the log2 expressions
-
-- The column `assignment_LB` contains both the lineage and batch information
-
-- EC = endothelial cells, HE = hepatic endoderm, MC = mesenchymal cells
-
-- IN = input cell lines, LB = liver bud
 ```{r, eval = F}
 con <- gzcon(
   url("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE81nnn/GSE81252/suppl/GSE81252_data.cast.log2.liverbud.csv.gz")
   )
 txt <- readLines(con)
 liverbud <- read.csv(file = textConnection(txt))
-kable(liverbud[1:10,1:6])
 
+# The first three columns are metadata while the rest are the log2 expressions
 metadata <- liverbud[,1:3]
 counts <- t(as.matrix(liverbud[,4:ncol(liverbud)]))
+
 colnames(counts) <- metadata$cell_id
 rownames(metadata) <- metadata$cell_id
+
+# The column "assignment_LB" contains both the lineage and batch information
+# IN = input cell lines, LB = liver bud
 metadata$LB_status <- 
   unlist(lapply(X = metadata$assignment_LB,
                 FUN = function(x) ifelse(test = grepl("LB",x),yes = "Liver_bud",no = "Input")
                 ))
-unique(metadata$LB_status)
-
+# EC = endothelial cells, HE = hepatic endoderm, MC = mesenchymal cells
 metadata$lineage <- 
   factor(unlist(
     lapply(X = metadata$assignment_LB,
            FUN = function(x) strsplit(as.character(x),split = "-",fixed = T)[[1]][1])
     ))
-levels(metadata$lineage)
 
 plyr::mapvalues(x = metadata$lineage,
                 from = levels(metadata$lineage),
@@ -87,7 +80,6 @@ plyr::mapvalues(x = metadata$lineage,
 
 
 camp <- SingleCellExperiment(assays = list(logcounts = counts),colData = metadata)
-
 ```
 
 
@@ -107,8 +99,6 @@ camp <- readRDS(file = "~/CorGI_RDS/liver_bud/camp.rds")
 
 Convert to `SingleCellExperiment` objects
 ```{r}
-
-
 IN <- camp[,camp$LB_status=="Input"]
 LB <- camp[,camp$LB_status=="Liver_bud"]
 ```
@@ -123,7 +113,7 @@ rm(out)
 
 Combine the datasets
 ```{r}
-combined <- cbind(IN_norm,LB_norm)
+combined <- cbind(IN,LB)
 combined$batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)))
 lineage <- combined$lineage
 batch <- combined$batch
@@ -190,14 +180,14 @@ Gene sets to compare CorGI against
 ```{r}
 HDG_ranking <- function(sce){
   rowData(sce)$feature_symbol <- rownames(sce)
-  sce <- selectFeatures(sce)
+  sce <- selectFeatures(sce,suppress_plot = F)
   return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
 }
 
 gene_sets <- get_compared_gene_sets(
-  batch1_top_genes = HDG_ranking(IN_norm),
+  batch1_top_genes = HDG_ranking(IN),
   batch1_name = "HDG(Input)",
-  batch2_top_genes = HDG_ranking(LB_norm),
+  batch2_top_genes = HDG_ranking(LB),
   batch2_name = "HDG(Liver bud)",
   desired_size = length(corgi_gene_set)
 )
@@ -309,20 +299,20 @@ cluster_coherence_plot_2
 ```{r}
 plot_grid(cluster_coherence_plot_1 + 
             theme(legend.position = "none") + 
-            theme(plot.title = element_text(size=10)),
+            theme(plot.title = element_text(size=10)) + ylim(c(0,1)),
           cluster_coherence_plot_2 + 
             theme(legend.position = "none") + 
-            theme(plot.title = element_text(size=10)),
+            theme(plot.title = element_text(size=10)) + ylim(c(0,1)),
           get_legend(cluster_coherence_plot_1),
           ncol = 3,
           labels = c("F","G"),
           rel_widths = c(2,2,1)) -> bottom_panel
+
 ```
 
 
 ```{r,include=F}
 liver_bud_panel <- plot_grid(top_panel,bottom_panel,nrow=2,rel_heights = c(2,1))
-
 ggsave(filename = "liver_bud.eps",device = "eps",plot = liver_bud_panel, path = "~/CorGI_figures/liver_bud",width = 8,height = 8)
 ```
 
@@ -331,7 +321,10 @@ ggsave(filename = "liver_bud.eps",device = "eps",plot = liver_bud_panel, path = 
 
 # Out of sample alignment of human liver cells
 
-In the previous sections, we ran CorGI feature selection on the input and liver bud cells. We consider the human liver cells sequenced also by Camp et al. We analyze how genes obtained from the previous section can be used to gain insight in the new data.
+In the previous sections, we ran CorGI feature selection on the input and liver bud cells. We consider the _primary_ human liver cells sequenced also by Camp et al. We analyze how genes obtained from the previous section can be used to gain insight in the new data.
+
+Confer [Camp et al. 2017, Figure 3b](https://www.nature.com/articles/nature22796#f3) for the cluster labels of the primary human liver cells.
+
 
 ## Data cleaning
 ```{r, eval = F}
@@ -342,25 +335,20 @@ txt <- readLines(con)
 human_liver <- read.csv(file = textConnection(txt))
 
 # The first 13 columns are metadata
-
 colnames(human_liver)[1:13]
 mdat <- human_liver[,1:13]
 
 
 # The remaining are genes
-
 colnames(human_liver)[14:20]
 counts <- t(as.matrix(human_liver[,14:ncol(human_liver)]))
 colnames(counts) <- mdat$cell_id
 
 
-# Let us refer back to [Camp et al. 2017, Figure 3b](https://www.nature.com/articles/nature22796#f3) for the cluster labels:
-
 mdat$ident <- as.factor(mdat$ident)
 qplot(mdat$tSNE_1,mdat$tSNE_2,color = mdat$ident)
 
 # Just to double check...
-
 mdat$cell_type_raw <- 
   plyr::mapvalues(mdat$ident,
                   from = 1:7,
@@ -381,7 +369,6 @@ qplot(mdat$tSNE_1,mdat$tSNE_2,color = mdat$cell_type_raw) +
            label = levels(mdat_ann$cell_type_raw))
 
 # Collapse some of the cell types for visualization
-
 mdat$lineage_show <- 
   plyr::mapvalues(mdat$ident,
                   from = 1:7,
@@ -393,7 +380,6 @@ mdat$lineage_show <-
                          "Fetal hepatocyte",
                          "Other"))
 # Collapse _Adult hepatocyte_ and _Immature hepatocyte_ to simply _Hepatic_ for the KNN classification part
-
 mdat$lineage_pred <- 
   plyr::mapvalues(mdat$ident,
                   from = 1:7,
@@ -440,15 +426,10 @@ batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)),rep("Primary",ncol(HL
 
 
 ```{r}
-# combined <- cbind(logcounts(IN),logcounts(LB),logcounts(HL))
-
 embeddings_mnn <- 
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
-      # D <- sqrt((1 - cor(combined[gene_set, ], method = "spearman")) / 2)
-      # return(cmdscale(D, k = 2))
-
       mnn.out <- mnnCorrect(logcounts(IN[gene_set,]),
                             logcounts(LB[gene_set,]),
                             logcounts(HL[gene_set,]))
@@ -460,14 +441,17 @@ embeddings_mnn <-
 ```
 
 
+Shorten the names
 
 ```{r}
-unique(lineage_show)
+before <- unique(lineage_show)
 plyr::mapvalues(
   x = lineage_show,
   from = unique(lineage_show),
   to = c("Hep.","End.","Mes.", "Fetal hep.", "Other", "Adult hep.")
 ) -> lineage_show
+
+data.frame(`Long name` = before,`Short name` = unique(lineage_show))
 ```
 
 
@@ -525,6 +509,40 @@ cluster_coherence_plot_3 <- plot_cluster_coherence_comparison(comparison_results
 cluster_coherence_plot_3
 ```
 
+```{r, eval = F, include = F}
+HL$cell_type1 <- HL$cell_type_raw
+IN$cell_type1 <- lineage_show[batch == "Input"]
+LB$cell_type1 <- lineage_show[batch == "Liver bud"]
+
+IN_LB <- cbind(IN,LB)
+# IN_LB <- 
+  # IN_LB$assignment_LB
+# old <- HL$cell_type_raw
+HL$cell_type_raw <- factor(HL$cell_type_raw,levels = c("Endothelial","Adult hepatocyte","Fetal hepatocyte","Mesenchymal","Lymphoblast","Erythroblast","Kupffer"),ordered = T)
+
+
+IN_LB$cell_type1 <- IN_LB$assignment_LB
+                             
+
+run_scmap(query = IN_LB,
+          ref = HL,
+          gene_set = gene_sets[["CorGI"]],
+          threshold = 0.3,
+          dnn = c("Prediction","Truth")) -> result
+
+result$table[rowSums(result$table)!=0,colSums(result$table)!=0] -> table_show
+table_show
+
+run_scmap(query = IN_LB,
+          ref = HL,
+          gene_set = gene_sets[["Intersection"]],
+          threshold = 0.3,
+          dnn = c("Prediction","Truth")) -> result
+result$table[rowSums(result$table)!=0,colSums(result$table)!=0] -> table_show
+table_show
+```
+
+
 ```{r}
 
 # unique(HL$cell_type1)
@@ -533,12 +551,6 @@ comparison_results <-
     query = HL,
     reference = IN_LB
   )
-
-run_scmap(query = HL,
-          ref = IN_LB,
-          gene_set = gene_sets[["CorGI"]],
-          threshold = 0.3,
-          dnn = c("Prediction","Truth"))
 
 cluster_coherence_plot_4 <- plot_cluster_coherence_comparison(comparison_results) +
     ggtitle("Reference = Liver bud & input cell lines \nQuery = Human liver")
@@ -552,10 +564,10 @@ cluster_coherence_plot_4
 
 plot_grid(cluster_coherence_plot_3 + 
             theme(legend.position = "none") + 
-            theme(plot.title = element_text(size=10)),
+            theme(plot.title = element_text(size=10))+ ylim(c(0,1)),
           cluster_coherence_plot_4 + 
             theme(legend.position = "none") + 
-            theme(plot.title = element_text(size=10)),
+            theme(plot.title = element_text(size=10))+ ylim(c(0,1)),
           get_legend(cluster_coherence_plot_3),
           ncol = 3,
           labels = c("F","G"),
