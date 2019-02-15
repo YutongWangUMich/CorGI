@@ -23,6 +23,10 @@ get_shape_legend <- function(batch,my_shape_palette){
   )
 }
 
+#' Empty plot with just the axes and labels
+#'
+#' Useful for creating axes legend for multiple scatter plots with the same axes names
+#' @param emb_name name of the embedding, for instance \code{emb_name = "PC"}
 #' @export
 get_color_legend <- function(cell_type,my_color_palette,ncol = NULL,legend.position = "right",legend.title = "Cell type",...){
   n_cells <- length(cell_type)
@@ -36,7 +40,10 @@ get_color_legend <- function(cell_type,my_color_palette,ncol = NULL,legend.posit
   return(cowplot::get_legend(plt))
 }
 
-#' Returns an empty plot with just the axes and the axes labels
+#' Empty plot with just the axes and labels
+#'
+#' Useful for creating axes legend for multiple scatter plots with the same axes names
+#' @param emb_name name of the embedding, for instance \code{emb_name = "PC"}
 #' @export
 get_axes_legend <- function(emb_name){
   qplot(iris[, 1], iris[, 2], asp = 1, shape = NA, na.rm = TRUE) +
@@ -59,18 +66,6 @@ get_scatterplots <- function(embeddings, batch, cell_type){
          })
 }
 
-#' @export
-get_AUC <- function(embeddings, cell_type, cell_type_pred, train, test){
-  knn_results <-
-    Reduce(rbind,lapply(X = names(embeddings),
-                        FUN = function(gs_name){
-                          emb <- embeddings[[gs_name]]
-                          results <- corgi::cluster_coherence(emb, cell_type, cell_type_pred, train, test)
-                          results$Gene_set <- gs_name
-                          return(results)
-                        }))
-  return(knn_results)
-}
 
 
 #' @export

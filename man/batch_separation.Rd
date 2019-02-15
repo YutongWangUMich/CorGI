@@ -17,3 +17,11 @@ Cohen's kappa of the the predicted batch labels with the true batch label on the
 \description{
 Compute the batch separation metric
 }
+\examples{
+# suppose that iris[["Species"]] are the batch labels
+batch_separation(emb = iris[,1:2],batch = iris$Species) # lower batch separation present in dim = 1:2
+plot(iris[,1],iris[,2],col = iris[["Species"]])
+
+batch_separation(emb = iris[,3:4],batch = iris$Species) # higher batch separation in dim = 3:4
+plot(iris[,3],iris[,4],col = iris[["Species"]])
+}

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Wrapper around the scmapCluster function from scmap — run_scmap • corgi</title>
+<title>Wrapper for <code>scmap::scmapCluster</code> — run_scmap • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Wrapper around the scmapCluster function from scmap — run_scmap" />
+<meta property="og:title" content="Wrapper for <code>scmap::scmapCluster</code> — run_scmap" />
 
-<meta property="og:description" content="Wrapper around the scmapCluster function from scmap" />
+<meta property="og:description" content="Wrapper for scmap::scmapCluster" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -108,7 +108,12 @@
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/YutongWangUMich/corgi">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -121,14 +126,14 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Wrapper around the scmapCluster function from scmap</h1>
-    
+    <h1>Wrapper for <code>scmap::scmapCluster</code></h1>
+    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/benchmarks.R'><code>R/benchmarks.R</code></a></small>
     <div class="hidden name"><code>run_scmap.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Wrapper around the scmapCluster function from scmap</p>
+    <p>Wrapper for <code><a href='https://www.rdocumentation.org/packages/scmap/topics/scmapCluster'>scmap::scmapCluster</a></code></p>
     
     </div>
 
@@ -153,6 +158,10 @@
       <th>threshold</th>
       <td><p>the threshold parameter used in scmapCluster, between 0 and 1</p></td>
     </tr>
+    <tr>
+      <th>...</th>
+      <td><p>additional parameters passed on to <code><a href='https://www.rdocumentation.org/packages/caret/topics/confusionMatrix'>caret::confusionMatrix</a></code>. For example <code>dnn = c("Prediction","Truth")</code>.</p></td>
+    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
@@ -160,6 +169,73 @@
     <p>confusion matrix of the true labels in `ref` and the `scmapCluster` predicted labels</p>
     
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/options'>options</a></span>(<span class='kw'>warn</span><span class='kw'>=</span>-<span class='fl'>1</span>)
+<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/message'>suppressMessages</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/library'>library</a></span>(<span class='no'>SingleCellExperiment</span>))
+
+<span class='co'># download SingleCellExperiment objects for human and mouse embryogenesis</span>
+<span class='no'>yan</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/readRDS'>readRDS</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/connections'>url</a></span>(<span class='st'>"https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"</span>))
+<span class='no'>deng</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/readRDS'>readRDS</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/connections'>url</a></span>(<span class='st'>"https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"</span>))
+
+<span class='co'># reorder factor levels to be concordant with development</span>
+<span class='no'>reorder_cell_type</span> <span class='kw'>&lt;-</span>
+  <span class='kw'>function</span>(<span class='no'>x</span>)<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/factor'>factor</a></span>(<span class='no'>x</span>,<span class='kw'>levels</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"zygote"</span>, <span class='st'>"2cell"</span>, <span class='st'>"4cell"</span>, <span class='st'>"8cell"</span>, <span class='st'>"16cell"</span>, <span class='st'>"blast"</span>))
+<span class='no'>yan</span>$<span class='no'>cell_type1</span> <span class='kw'>&lt;-</span> <span class='fu'>reorder_cell_type</span>(<span class='no'>yan</span>$<span class='no'>cell_type1</span>)
+<span class='no'>deng</span>$<span class='no'>cell_type1</span> <span class='kw'>&lt;-</span> <span class='fu'>reorder_cell_type</span>(<span class='no'>deng</span>$<span class='no'>cell_type1</span>)
+
+<span class='co'># match up the orthologs</span>
+<span class='fu'>rowData</span>(<span class='no'>deng</span>)$<span class='no'>feature_symbol</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/chartr'>toupper</a></span>(<span class='fu'>rowData</span>(<span class='no'>deng</span>)$<span class='no'>feature_symbol</span>)
+
+<span class='co'># get the CorGI gene set</span>
+<span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/data'>data</a></span>(<span class='st'>"corgi_output_embyro_devel"</span>)
+<span class='no'>corgi_gene_set</span> <span class='kw'>&lt;-</span>
+  <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/sets'>union</a></span>(
+    <span class='fu'><a href='select_top_corgi_genes.html'>select_top_corgi_genes</a></span>(<span class='no'>corgi_output_embyro_devel</span>, <span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>SVG_use</span> <span class='kw'>=</span> <span class='fl'>2</span>),
+    <span class='fu'><a href='select_top_corgi_genes.html'>select_top_corgi_genes</a></span>(<span class='no'>corgi_output_embyro_devel</span>, <span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>SVG_use</span> <span class='kw'>=</span> <span class='fl'>3</span>)
+  )
+
+<span class='co'># Run scmapCluster!</span>
+<span class='fu'>run_scmap</span>(<span class='kw'>query</span> <span class='kw'>=</span> <span class='no'>yan</span>, <span class='kw'>ref</span> <span class='kw'>=</span> <span class='no'>deng</span>, <span class='kw'>gene_set</span> <span class='kw'>=</span> <span class='no'>corgi_gene_set</span>, <span class='kw'>threshold</span> <span class='kw'>=</span> <span class='fl'>0.3</span>,<span class='kw'>dnn</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"Matched mouse cell"</span>, <span class='st'>"True labels for the human cells"</span>))</div><div class='output co'>#&gt; <span class='message'>Creating a generic function for ‘toJSON’ from package ‘jsonlite’ in package ‘googleVis’</span></div><div class='output co'>#&gt; Confusion Matrix and Statistics
+#&gt; 
+#&gt;                   True labels for the human cells
+#&gt; Matched mouse cell zygote 2cell 4cell 8cell 16cell blast
+#&gt;             zygote      6     6    12     0      0     0
+#&gt;             2cell       0     0     0     4      2     0
+#&gt;             4cell       0     0     0    16      0     0
+#&gt;             8cell       0     0     0     0     14     0
+#&gt;             16cell      0     0     0     0      0     0
+#&gt;             blast       0     0     0     0      0    30
+#&gt; 
+#&gt; Overall Statistics
+#&gt;                                           
+#&gt;                Accuracy : 0.4             
+#&gt;                  95% CI : (0.2981, 0.5087)
+#&gt;     No Information Rate : 0.3333          
+#&gt;     P-Value [Acc &gt; NIR] : 0.1104          
+#&gt;                                           
+#&gt;                   Kappa : 0.2578          
+#&gt;  Mcnemar's Test P-Value : NA              
+#&gt; 
+#&gt; Statistics by Class:
+#&gt; 
+#&gt;                      Class: zygote Class: 2cell Class: 4cell Class: 8cell
+#&gt; Sensitivity                1.00000      0.00000       0.0000       0.0000
+#&gt; Specificity                0.78571      0.92857       0.7949       0.8000
+#&gt; Pos Pred Value             0.25000      0.00000       0.0000       0.0000
+#&gt; Neg Pred Value             1.00000      0.92857       0.8378       0.7368
+#&gt; Prevalence                 0.06667      0.06667       0.1333       0.2222
+#&gt; Detection Rate             0.06667      0.00000       0.0000       0.0000
+#&gt; Detection Prevalence       0.26667      0.06667       0.1778       0.1556
+#&gt; Balanced Accuracy          0.89286      0.46429       0.3974       0.4000
+#&gt;                      Class: 16cell Class: blast
+#&gt; Sensitivity                 0.0000       1.0000
+#&gt; Specificity                 1.0000       1.0000
+#&gt; Pos Pred Value                 NaN       1.0000
+#&gt; Neg Pred Value              0.8222       1.0000
+#&gt; Prevalence                  0.1778       0.3333
+#&gt; Detection Rate              0.0000       0.3333
+#&gt; Detection Prevalence        0.0000       0.3333
+#&gt; Balanced Accuracy           0.5000       1.0000</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -167,7 +243,9 @@
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-          </ul>
+      
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
   </div>
 </div>

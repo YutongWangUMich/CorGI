@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Gene sets compared against CorGI in the manuscript — get_compared_gene_sets • corgi</title>
+<title>Get compared gene sets — get_compared_gene_sets • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,10 +30,9 @@
 
 
 
-<meta property="og:title" content="Gene sets compared against CorGI in the manuscript — get_compared_gene_sets" />
+<meta property="og:title" content="Get compared gene sets — get_compared_gene_sets" />
 
-<meta property="og:description" content="Gene sets compared against CorGI in the manuscript
-Gene sets compared against CorGI in the manuscript" />
+<meta property="og:description" content="Gene sets compared against CorGI in the manuscript" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -127,53 +126,24 @@ Gene sets compared against CorGI in the manuscript" />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Gene sets compared against CorGI in the manuscript</h1>
-    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/compare_gene_sets.R'><code>R/compare_gene_sets.R</code></a>, <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/gene_set_manipulators.R'><code>R/gene_set_manipulators.R</code></a></small>
+    <h1>Get compared gene sets</h1>
+    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/gene_set_manipulators.R'><code>R/gene_set_manipulators.R</code></a></small>
     <div class="hidden name"><code>get_compared_gene_sets.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
     <p>Gene sets compared against CorGI in the manuscript</p>
-<p>Gene sets compared against CorGI in the manuscript</p>
     
     </div>
 
     <pre class="usage"><span class='fu'>get_compared_gene_sets</span>(<span class='no'>batch1_top_genes</span>, <span class='kw'>batch1_name</span> <span class='kw'>=</span> <span class='st'>"Batch1"</span>,
-  <span class='no'>batch2_top_genes</span>, <span class='kw'>batch2_name</span> <span class='kw'>=</span> <span class='st'>"Batch2"</span>, <span class='no'>desired_size</span>,
-  <span class='kw'>marker_genes</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>())
-
-<span class='fu'>get_compared_gene_sets</span>(<span class='no'>batch1_top_genes</span>, <span class='kw'>batch1_name</span> <span class='kw'>=</span> <span class='st'>"Batch1"</span>,
   <span class='no'>batch2_top_genes</span>, <span class='kw'>batch2_name</span> <span class='kw'>=</span> <span class='st'>"Batch2"</span>, <span class='no'>desired_size</span>,
   <span class='kw'>marker_genes</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>())</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>batch1_top_genes</th>
-      <td><p>ordered list of genes (e.g., most highly variable to least)</p></td>
-    </tr>
-    <tr>
-      <th>batch1_name</th>
-      <td><p>name of batch1 (e.g., if <code>batch1_top_genes</code> was computed using highly variable genes (HVG), then consider <code>batch1_name &lt;- HVG(Batch1)</code>)</p></td>
-    </tr>
-    <tr>
-      <th>batch2_top_genes</th>
-      <td><p>see <code>batch1_top_genes</code></p></td>
-    </tr>
-    <tr>
-      <th>batch2_name</th>
-      <td><p>see <code>batch1_name</code></p></td>
-    </tr>
-    <tr>
-      <th>desired_size</th>
-      <td><p>how big the output gene_sets should be</p></td>
-    </tr>
-    <tr>
-      <th>marker_genes</th>
-      <td><p>genes that are included in every gene set of the output. Defaults to the empty set, i.e., no markers provided.</p></td>
-    </tr>
     <tr>
       <th>batch1_top_genes</th>
       <td><p>ordered list of genes (e.g., most highly variable to least)</p></td>
@@ -208,36 +178,16 @@ Gene sets compared against CorGI in the manuscript" />
 <li><p><code><a href='https://www.rdocumentation.org/packages/base/topics/sets'>union(batch1_top_genes[1:x], batch2_top_genes[1:y])</a></code> where <code>x</code> and <code>y</code> satisfies <code>|x-y| &lt;= 1</code></p></li>
 <li><p><code><a href='https://www.rdocumentation.org/packages/base/topics/sets'>intersect(batch1_top_genes[1:x],batch2_top_genes[1:y])</a></code> where <code>x</code> and <code>y</code> satisfies <code>|x-y| &lt;= 1</code></p></li>
 </ul><p>If <code>marker_genes</code> is nonempty, then all four gene sets above include <code>marker_genes</code>.</p>
-<p>a list of gene sets, where each item is a gene set of size <code>desired_size</code>. The list is ordered as follows:</p><ul>
-<li><p><code>batch1_top_genes[1:desired_size]</code></p></li>
-<li><p><code>batch2_top_genes[1:desired_size]</code></p></li>
-<li><p><code><a href='https://www.rdocumentation.org/packages/base/topics/sets'>union(batch1_top_genes[1:x], batch2_top_genes[1:y])</a></code> where <code>x</code> and <code>y</code> satisfies <code>|x-y| &lt;= 1</code></p></li>
-<li><p><code><a href='https://www.rdocumentation.org/packages/base/topics/sets'>intersect(batch1_top_genes[1:x],batch2_top_genes[1:y])</a></code> where <code>x</code> and <code>y</code> satisfies <code>|x-y| &lt;= 1</code></p></li>
-</ul><p>If <code>marker_genes</code> is nonempty, then all four gene sets above include <code>marker_genes</code>.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>batch1_top_genes</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>1</span>:<span class='fl'>4</span>),<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>7</span>:<span class='fl'>10</span>))
-<span class='no'>batch2_top_genes</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>3</span>:<span class='fl'>9</span>)
+    <pre class="examples"><div class='input'><span class='no'>HVG_batch1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>1</span>:<span class='fl'>4</span>),<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>7</span>:<span class='fl'>10</span>))
+<span class='no'>HVG_batch2</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>3</span>:<span class='fl'>9</span>)
 <span class='no'>marker_genes</span> <span class='kw'>&lt;-</span> <span class='st'>"g0"</span>
-<span class='fu'>get_compared_gene_sets</span>(<span class='no'>batch1_top_genes</span>,<span class='st'>"RankedList1"</span>, <span class='no'>batch2_top_genes</span>,<span class='st'>"RankedList2"</span>, <span class='fl'>6</span>, <span class='no'>marker_genes</span>)</div><div class='output co'>#&gt; $RankedList1
+<span class='fu'>get_compared_gene_sets</span>(<span class='no'>HVG_batch1</span>, <span class='st'>"HVG(batch1)"</span>, <span class='no'>HVG_batch2</span>, <span class='st'>"HVG(batch2)"</span>, <span class='fl'>6</span>, <span class='no'>marker_genes</span>)</div><div class='output co'>#&gt; $`HVG(batch1)`
 #&gt; [1] "g1" "g2" "g3" "g4" "g7" "g0"
 #&gt; 
-#&gt; $RankedList2
-#&gt; [1] "g3" "g4" "g5" "g6" "g7" "g0"
-#&gt; 
-#&gt; $Union
-#&gt; [1] "g1" "g2" "g3" "g4" "g5" "g0"
-#&gt; 
-#&gt; $Intersection
-#&gt; [1] "g3" "g4" "g7" "g8" "g9" "g0"
-#&gt; </div><div class='input'><span class='no'>batch1_top_genes</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>1</span>:<span class='fl'>4</span>),<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>7</span>:<span class='fl'>10</span>))
-<span class='no'>batch2_top_genes</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/paste'>paste0</a></span>(<span class='st'>"g"</span>,<span class='fl'>3</span>:<span class='fl'>9</span>)
-<span class='no'>marker_genes</span> <span class='kw'>&lt;-</span> <span class='st'>"g0"</span>
-<span class='fu'>get_compared_gene_sets</span>(<span class='no'>batch1_top_genes</span>,<span class='st'>"RankedList1"</span>, <span class='no'>batch2_top_genes</span>,<span class='st'>"RankedList2"</span>, <span class='fl'>6</span>, <span class='no'>marker_genes</span>)</div><div class='output co'>#&gt; $RankedList1
-#&gt; [1] "g1" "g2" "g3" "g4" "g7" "g0"
-#&gt; 
-#&gt; $RankedList2
+#&gt; $`HVG(batch2)`
 #&gt; [1] "g3" "g4" "g5" "g6" "g7" "g0"
 #&gt; 
 #&gt; $Union

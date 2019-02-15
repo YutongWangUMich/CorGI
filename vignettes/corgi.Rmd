@@ -23,6 +23,7 @@ We illustrate the CorGI feature selection method by analyzing datasets on human 
 ```{r}
 library(corgi)
 library(ggplot2)
+library(cowplot)
 ```
 
 # Preprocessing the data
@@ -101,30 +102,52 @@ batch <- c(rep("Human", ncol(yan)), rep("Mouse", ncol(deng)))
 Wrapper around the qplot `ggplot2::qplot` function with our color scheme
 
 ```{r}
+my_color_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+my_shape_palette <- c(16,1)
 qplot <- function(...){
   ggplot2::qplot(...) +
-  scale_color_manual(values = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")) +
-  scale_shape_manual(values = c(16,1))
+    scale_color_manual(values = my_color_palette) +
+    scale_shape_manual(values = my_shape_palette)
 }
+
+color_legend <- get_color_legend(cell_type, my_color_palette, legend.position = "bottom",ncol = 6)
+batch_legend <- get_shape_legend(batch, my_shape_palette)
 ```
 
 
 ## Multidimensional scaling (MDS)
 
 
-On all genes
-
 ```{r}
-mds <- spearman_rho_mds(combined)
-qplot(mds[, 1], mds[, 2], color = cell_type, shape = batch)
+axes_legend <- get_axes_legend("MDS")
+
+mds_all <- spearman_rho_mds(combined)
+plt_all <- plot_dimensionality_reduction(mds_all, batch, cell_type)+
+  ggtitle("No gene filter")
+
+
+mds_corgi <- spearman_rho_mds(combined[corgi_gene_set, ])
+plt_corgi <- plot_dimensionality_reduction(mds_corgi, batch, cell_type)+
+  ggtitle("CorGI gene filter")
+
+plot_grid(
+  plot_grid(
+    plt_all,
+    plt_corgi,
+    plot_grid(axes_legend, batch_legend, nrow = 2), 
+    nrow = 1,
+    rel_widths = c(3, 3, 1)
+  ),
+  color_legend,
+  nrow = 2,
+  rel_heights = c(4,1)
+)
 ```
 
 
 On CorGI genes
 
 ```{r}
-mds <- spearman_rho_mds(combined[corgi_gene_set, ])
-qplot(mds[, 1], mds[, 2], color = cell_type, shape = batch)
 ```
 
 ## Principal component analysis (PCA)
@@ -138,25 +161,33 @@ deng <- out[[2]]
 combined <- cbind(logcounts(yan), logcounts(deng))
 ```
 
-Perform PCA
-```{r}
-pc <- prcomp(t(combined), rank. = 2)$x
-```
 
 
-
-On all genes
 
 ```{r}
-qplot(pc[, 1], pc[, 2], color = cell_type, shape = batch)
-```
+axes_legend <- get_axes_legend("PC")
+
+pc_all <- prcomp(t(combined), rank. = 2)$x
+plt_all <- plot_dimensionality_reduction(pc_all, batch, cell_type)+
+  ggtitle("No gene filter")
 
 
-On CorGI genes
+pc_corgi <- prcomp(t(combined[corgi_gene_set, ]), rank. = 2)$x
+plt_corgi <- plot_dimensionality_reduction(pc_corgi, batch, cell_type)+
+  ggtitle("CorGI gene filter")
 
-```{r}
-pc <- prcomp(t(combined[corgi_gene_set, ]), rank. = 2)$x
-qplot(pc[, 1], pc[, 2], color = cell_type, shape = batch)
+plot_grid(
+  plot_grid(
+    plt_all,
+    plt_corgi,
+    plot_grid(axes_legend, batch_legend, nrow = 2), 
+    nrow = 1,
+    rel_widths = c(3, 3, 1)
+  ),
+  color_legend,
+  nrow = 2,
+  rel_heights = c(4,1)
+)
 ```
 
 

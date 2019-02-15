@@ -73,7 +73,14 @@
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/YutongWangUMich/corgi">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -86,11 +93,11 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1>Pre-implantation embryo development in human and mouse</h1>
-                        <h4 class="author">Vignette Author</h4>
+                        <h4 class="author">Yutong Wang</h4>
             
             <h4 class="date">2019-02-15</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/YutongWangUMich/corgi/blob/master/vignettes/embryo-devel.Rmd"><code>vignettes/embryo-devel.Rmd</code></a></small>
       <div class="hidden name"><code>embryo-devel.Rmd</code></div>
 
     </div>
@@ -167,7 +174,7 @@
 <a class="sourceLine" id="cb11-4" data-line-number="4">  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/function">return</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">rownames</a></span>(sce)[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/order">order</a></span>(<span class="kw">rowData</span>(sce)[[<span class="st">"scmap_scores"</span>]], <span class="dt">decreasing =</span> T, <span class="dt">na.last =</span> T)])</a>
 <a class="sourceLine" id="cb11-5" data-line-number="5">}</a>
 <a class="sourceLine" id="cb11-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb11-7" data-line-number="7">gene_sets &lt;-<span class="st"> </span><span class="kw">get_compared_gene_sets</span>(</a>
+<a class="sourceLine" id="cb11-7" data-line-number="7">gene_sets &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_compared_gene_sets.html">get_compared_gene_sets</a></span>(</a>
 <a class="sourceLine" id="cb11-8" data-line-number="8">  <span class="dt">batch1_top_genes =</span> <span class="kw">HDG_ranking</span>(yan),</a>
 <a class="sourceLine" id="cb11-9" data-line-number="9">  <span class="dt">batch1_name =</span> <span class="st">"HDG(Human)"</span>,</a>
 <a class="sourceLine" id="cb11-10" data-line-number="10">  <span class="dt">batch2_top_genes =</span> <span class="kw">HDG_ranking</span>(deng),</a>
@@ -218,7 +225,7 @@
 <a class="sourceLine" id="cb14-12" data-line-number="12">    <span class="kw">get_shape_legend</span>(batch, my_shape_palette),</a>
 <a class="sourceLine" id="cb14-13" data-line-number="13">    <span class="dt">nrow =</span> <span class="dv">2</span></a>
 <a class="sourceLine" id="cb14-14" data-line-number="14">  ),</a>
-<a class="sourceLine" id="cb14-15" data-line-number="15">  <span class="kw">get_color_legend</span>(cell_type, my_color_palette, <span class="dt">ncol =</span> <span class="dv">1</span>),</a>
+<a class="sourceLine" id="cb14-15" data-line-number="15">  <span class="kw"><a href="../reference/get_color_legend.html">get_color_legend</a></span>(cell_type, my_color_palette, <span class="dt">ncol =</span> <span class="dv">1</span>),</a>
 <a class="sourceLine" id="cb14-16" data-line-number="16">  <span class="dt">nrow =</span> <span class="dv">1</span></a>
 <a class="sourceLine" id="cb14-17" data-line-number="17">) -&gt;<span class="st"> </span>legends</a>
 <a class="sourceLine" id="cb14-18" data-line-number="18"></a>
@@ -248,7 +255,7 @@
 <a class="sourceLine" id="cb16-4" data-line-number="4">    <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/paste">paste0</a></span>(<span class="st">"fake_gene"</span>,<span class="dv">1</span><span class="op">:</span><span class="dv">1000</span>))</a></code></pre></div>
 <p><img src="embryo-devel_files/figure-html/unnamed-chunk-21-2.png" width="700"></p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb17-2" data-line-number="2">gene_sets &lt;-<span class="st"> </span><span class="kw">get_compared_gene_sets</span>(</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2">gene_sets &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_compared_gene_sets.html">get_compared_gene_sets</a></span>(</a>
 <a class="sourceLine" id="cb17-3" data-line-number="3">  <span class="dt">batch1_top_genes =</span> HVG_list_yan,</a>
 <a class="sourceLine" id="cb17-4" data-line-number="4">  <span class="dt">batch1_name =</span> <span class="st">"HVG(Human)"</span>,</a>
 <a class="sourceLine" id="cb17-5" data-line-number="5">  <span class="dt">batch2_top_genes =</span> HVG_list_deng,</a>
@@ -316,7 +323,7 @@
 <a class="sourceLine" id="cb20-11" data-line-number="11">    <span class="kw"><a href="../reference/get_axes_legend.html">get_axes_legend</a></span>(emb_name),</a>
 <a class="sourceLine" id="cb20-12" data-line-number="12">    <span class="kw">get_shape_legend</span>(batch, my_shape_palette), <span class="dt">nrow =</span> <span class="dv">2</span></a>
 <a class="sourceLine" id="cb20-13" data-line-number="13">  ),</a>
-<a class="sourceLine" id="cb20-14" data-line-number="14">  <span class="kw">get_color_legend</span>(cell_type, my_color_palette,<span class="dt">ncol =</span> <span class="dv">1</span>),</a>
+<a class="sourceLine" id="cb20-14" data-line-number="14">  <span class="kw"><a href="../reference/get_color_legend.html">get_color_legend</a></span>(cell_type, my_color_palette,<span class="dt">ncol =</span> <span class="dv">1</span>),</a>
 <a class="sourceLine" id="cb20-15" data-line-number="15">  <span class="dt">nrow =</span> <span class="dv">1</span>) -&gt;<span class="st"> </span>legends</a>
 <a class="sourceLine" id="cb20-16" data-line-number="16"></a>
 <a class="sourceLine" id="cb20-17" data-line-number="17">dr_plots[[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(dr_plots)<span class="op">+</span><span class="dv">1</span>]] &lt;-<span class="st"> </span>legends</a>

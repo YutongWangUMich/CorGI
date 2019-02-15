@@ -1,6 +1,6 @@
 ---
 title: "Pre-implantation embryo development in human and mouse"
-author: "Vignette Author"
+author: "Yutong Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

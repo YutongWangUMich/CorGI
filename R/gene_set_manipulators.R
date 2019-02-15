@@ -1,5 +1,6 @@
-#' Gene sets compared against CorGI in the manuscript
+#' Get compared gene sets
 #'
+#' Gene sets compared against CorGI in the manuscript
 #' @param batch1_top_genes ordered list of genes (e.g., most highly variable to least)
 #' @param batch1_name name of batch1 (e.g., if \code{batch1_top_genes} was computed using highly variable genes (HVG), then consider \code{batch1_name <- HVG(Batch1)})
 #' @param batch2_top_genes see \code{batch1_top_genes}
@@ -15,10 +16,10 @@
 #' }
 #'   If \code{marker_genes} is nonempty, then all four gene sets above include \code{marker_genes}.
 #' @examples
-#' batch1_top_genes <- c(paste0("g",1:4),paste0("g",7:10))
-#' batch2_top_genes <- paste0("g",3:9)
+#' HVG_batch1 <- c(paste0("g",1:4),paste0("g",7:10))
+#' HVG_batch2 <- paste0("g",3:9)
 #' marker_genes <- "g0"
-#' get_compared_gene_sets(batch1_top_genes,"RankedList1", batch2_top_genes,"RankedList2", 6, marker_genes)
+#' get_compared_gene_sets(HVG_batch1, "HVG(batch1)", HVG_batch2, "HVG(batch2)", 6, marker_genes)
 #' @export
 get_compared_gene_sets <- function(batch1_top_genes,
                                    batch1_name = "Batch1",

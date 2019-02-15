@@ -73,7 +73,14 @@
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/YutongWangUMich/corgi">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -88,9 +95,9 @@
       <h1>Get started: Pre-implantation embryo development in human and mouse</h1>
                         <h4 class="author">Yutong Wang</h4>
             
-            <h4 class="date">2019-02-14</h4>
+            <h4 class="date">2019-02-15</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/YutongWangUMich/corgi/blob/master/vignettes/corgi.Rmd"><code>vignettes/corgi.Rmd</code></a></small>
       <div class="hidden name"><code>corgi.Rmd</code></div>
 
     </div>
@@ -99,7 +106,8 @@
     
 <p>We illustrate the CorGI feature selection method by analyzing datasets on human and mouse pre-implantation embryo development.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a></code></pre></div>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(cowplot)</a></code></pre></div>
 <div id="preprocessing-the-data" class="section level1">
 <h1 class="hasAnchor">
 <a href="#preprocessing-the-data" class="anchor"></a>Preprocessing the data</h1>
@@ -142,41 +150,78 @@
 <a class="sourceLine" id="cb8-6" data-line-number="6">         <span class="dt">levels =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"zygote"</span>, <span class="st">"2cell"</span>, <span class="st">"4cell"</span>, <span class="st">"8cell"</span>, <span class="st">"16cell"</span>, <span class="st">"blast"</span>))</a>
 <a class="sourceLine" id="cb8-7" data-line-number="7">batch &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Human"</span>, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(yan)), <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">"Mouse"</span>, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/nrow">ncol</a></span>(deng)))</a></code></pre></div>
 <p>Wrapper around the qplot <code><a href="https://ggplot2.tidyverse.org/reference/qplot.html">ggplot2::qplot</a></code> function with our color scheme</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">qplot &lt;-<span class="st"> </span><span class="cf">function</span>(...){</a>
-<a class="sourceLine" id="cb9-2" data-line-number="2">  ggplot2<span class="op">::</span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(...) <span class="op">+</span></a>
-<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span>(<span class="dt">values =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"#000000"</span>, <span class="st">"#E69F00"</span>, <span class="st">"#56B4E9"</span>, <span class="st">"#009E73"</span>, <span class="st">"#F0E442"</span>, <span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>, <span class="st">"#CC79A7"</span>)) <span class="op">+</span></a>
-<a class="sourceLine" id="cb9-4" data-line-number="4"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span>(<span class="dt">values =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">16</span>,<span class="dv">1</span>))</a>
-<a class="sourceLine" id="cb9-5" data-line-number="5">}</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">my_color_palette &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"#000000"</span>, <span class="st">"#E69F00"</span>, <span class="st">"#56B4E9"</span>, <span class="st">"#009E73"</span>, <span class="st">"#F0E442"</span>, <span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>, <span class="st">"#CC79A7"</span>)</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">my_shape_palette &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">16</span>,<span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">qplot &lt;-<span class="st"> </span><span class="cf">function</span>(...){</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">  ggplot2<span class="op">::</span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(...) <span class="op">+</span></a>
+<a class="sourceLine" id="cb9-5" data-line-number="5"><span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span>(<span class="dt">values =</span> my_color_palette) <span class="op">+</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6"><span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span>(<span class="dt">values =</span> my_shape_palette)</a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">}</a>
+<a class="sourceLine" id="cb9-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">color_legend &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_color_legend.html">get_color_legend</a></span>(cell_type, my_color_palette, <span class="dt">legend.position =</span> <span class="st">"bottom"</span>,<span class="dt">ncol =</span> <span class="dv">6</span>)</a>
+<a class="sourceLine" id="cb9-10" data-line-number="10">batch_legend &lt;-<span class="st"> </span><span class="kw">get_shape_legend</span>(batch, my_shape_palette)</a></code></pre></div>
 <div id="multidimensional-scaling-mds" class="section level2">
 <h2 class="hasAnchor">
 <a href="#multidimensional-scaling-mds" class="anchor"></a>Multidimensional scaling (MDS)</h2>
-<p>On all genes</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">mds &lt;-<span class="st"> </span><span class="kw">spearman_rho_mds</span>(combined)</a>
-<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(mds[, <span class="dv">1</span>], mds[, <span class="dv">2</span>], <span class="dt">color =</span> cell_type, <span class="dt">shape =</span> batch)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">axes_legend &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_axes_legend.html">get_axes_legend</a></span>(<span class="st">"MDS"</span>)</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">mds_all &lt;-<span class="st"> </span><span class="kw">spearman_rho_mds</span>(combined)</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">plt_all &lt;-<span class="st"> </span><span class="kw">plot_dimensionality_reduction</span>(mds_all, batch, cell_type)<span class="op">+</span></a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span>(<span class="st">"No gene filter"</span>)</a>
+<a class="sourceLine" id="cb10-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb10-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb10-8" data-line-number="8">mds_corgi &lt;-<span class="st"> </span><span class="kw">spearman_rho_mds</span>(combined[corgi_gene_set, ])</a>
+<a class="sourceLine" id="cb10-9" data-line-number="9">plt_corgi &lt;-<span class="st"> </span><span class="kw">plot_dimensionality_reduction</span>(mds_corgi, batch, cell_type)<span class="op">+</span></a>
+<a class="sourceLine" id="cb10-10" data-line-number="10"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span>(<span class="st">"CorGI gene filter"</span>)</a>
+<a class="sourceLine" id="cb10-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb10-12" data-line-number="12"><span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(</a>
+<a class="sourceLine" id="cb10-13" data-line-number="13">  <span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(</a>
+<a class="sourceLine" id="cb10-14" data-line-number="14">    plt_all,</a>
+<a class="sourceLine" id="cb10-15" data-line-number="15">    plt_corgi,</a>
+<a class="sourceLine" id="cb10-16" data-line-number="16">    <span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(axes_legend, batch_legend, <span class="dt">nrow =</span> <span class="dv">2</span>), </a>
+<a class="sourceLine" id="cb10-17" data-line-number="17">    <span class="dt">nrow =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb10-18" data-line-number="18">    <span class="dt">rel_widths =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb10-19" data-line-number="19">  ),</a>
+<a class="sourceLine" id="cb10-20" data-line-number="20">  color_legend,</a>
+<a class="sourceLine" id="cb10-21" data-line-number="21">  <span class="dt">nrow =</span> <span class="dv">2</span>,</a>
+<a class="sourceLine" id="cb10-22" data-line-number="22">  <span class="dt">rel_heights =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">4</span>,<span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb10-23" data-line-number="23">)</a></code></pre></div>
 <p><img src="corgi_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>On CorGI genes</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">mds &lt;-<span class="st"> </span><span class="kw">spearman_rho_mds</span>(combined[corgi_gene_set, ])</a>
-<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(mds[, <span class="dv">1</span>], mds[, <span class="dv">2</span>], <span class="dt">color =</span> cell_type, <span class="dt">shape =</span> batch)</a></code></pre></div>
-<p><img src="corgi_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 </div>
 <div id="principal-component-analysis-pca" class="section level2">
 <h2 class="hasAnchor">
 <a href="#principal-component-analysis-pca" class="anchor"></a>Principal component analysis (PCA)</h2>
 <p>To use PCA, we first need to adjust the read-depth to be comparable across the two datasets</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scran)</a>
-<a class="sourceLine" id="cb12-2" data-line-number="2">out &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(yan, deng, <span class="dt">assay.type =</span> <span class="st">"logcounts"</span>)</a>
-<a class="sourceLine" id="cb12-3" data-line-number="3">yan &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]</a>
-<a class="sourceLine" id="cb12-4" data-line-number="4">deng &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]</a>
-<a class="sourceLine" id="cb12-5" data-line-number="5">combined &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(<span class="kw">logcounts</span>(yan), <span class="kw">logcounts</span>(deng))</a></code></pre></div>
-<p>Perform PCA</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined), <span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a></code></pre></div>
-<p>On all genes</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[, <span class="dv">1</span>], pc[, <span class="dv">2</span>], <span class="dt">color =</span> cell_type, <span class="dt">shape =</span> batch)</a></code></pre></div>
-<p><img src="corgi_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
-<p>On CorGI genes</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">pc &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined[corgi_gene_set, ]), <span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
-<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/qplot.html">qplot</a></span>(pc[, <span class="dv">1</span>], pc[, <span class="dv">2</span>], <span class="dt">color =</span> cell_type, <span class="dt">shape =</span> batch)</a></code></pre></div>
-<p><img src="corgi_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(scran)</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">out &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/scran/topics/multiBatchNorm">multiBatchNorm</a></span>(yan, deng, <span class="dt">assay.type =</span> <span class="st">"logcounts"</span>)</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">yan &lt;-<span class="st"> </span>out[[<span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb11-4" data-line-number="4">deng &lt;-<span class="st"> </span>out[[<span class="dv">2</span>]]</a>
+<a class="sourceLine" id="cb11-5" data-line-number="5">combined &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cbind">cbind</a></span>(<span class="kw">logcounts</span>(yan), <span class="kw">logcounts</span>(deng))</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">axes_legend &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_axes_legend.html">get_axes_legend</a></span>(<span class="st">"PC"</span>)</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">pc_all &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined), <span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4">plt_all &lt;-<span class="st"> </span><span class="kw">plot_dimensionality_reduction</span>(pc_all, batch, cell_type)<span class="op">+</span></a>
+<a class="sourceLine" id="cb12-5" data-line-number="5"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span>(<span class="st">"No gene filter"</span>)</a>
+<a class="sourceLine" id="cb12-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb12-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb12-8" data-line-number="8">pc_corgi &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/prcomp">prcomp</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/t">t</a></span>(combined[corgi_gene_set, ]), <span class="dt">rank. =</span> <span class="dv">2</span>)<span class="op">$</span>x</a>
+<a class="sourceLine" id="cb12-9" data-line-number="9">plt_corgi &lt;-<span class="st"> </span><span class="kw">plot_dimensionality_reduction</span>(pc_corgi, batch, cell_type)<span class="op">+</span></a>
+<a class="sourceLine" id="cb12-10" data-line-number="10"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span>(<span class="st">"CorGI gene filter"</span>)</a>
+<a class="sourceLine" id="cb12-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb12-12" data-line-number="12"><span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(</a>
+<a class="sourceLine" id="cb12-13" data-line-number="13">  <span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(</a>
+<a class="sourceLine" id="cb12-14" data-line-number="14">    plt_all,</a>
+<a class="sourceLine" id="cb12-15" data-line-number="15">    plt_corgi,</a>
+<a class="sourceLine" id="cb12-16" data-line-number="16">    <span class="kw"><a href="https://www.rdocumentation.org/packages/cowplot/topics/plot_grid">plot_grid</a></span>(axes_legend, batch_legend, <span class="dt">nrow =</span> <span class="dv">2</span>), </a>
+<a class="sourceLine" id="cb12-17" data-line-number="17">    <span class="dt">nrow =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb12-18" data-line-number="18">    <span class="dt">rel_widths =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb12-19" data-line-number="19">  ),</a>
+<a class="sourceLine" id="cb12-20" data-line-number="20">  color_legend,</a>
+<a class="sourceLine" id="cb12-21" data-line-number="21">  <span class="dt">nrow =</span> <span class="dv">2</span>,</a>
+<a class="sourceLine" id="cb12-22" data-line-number="22">  <span class="dt">rel_heights =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">4</span>,<span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb12-23" data-line-number="23">)</a></code></pre></div>
+<p><img src="corgi_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
 </div>
 </div>
   </div>

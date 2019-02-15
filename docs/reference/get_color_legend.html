@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute the batch separation metric — batch_separation • corgi</title>
+<title>Empty plot with just the axes and labels — get_color_legend • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Compute the batch separation metric — batch_separation" />
+<meta property="og:title" content="Empty plot with just the axes and labels — get_color_legend" />
 
-<meta property="og:description" content="Compute the batch separation metric" />
+<meta property="og:description" content="Useful for creating axes legend for multiple scatter plots with the same axes names" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -126,51 +126,36 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute the batch separation metric</h1>
-    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/benchmarks.R'><code>R/benchmarks.R</code></a></small>
-    <div class="hidden name"><code>batch_separation.Rd</code></div>
+    <h1>Empty plot with just the axes and labels</h1>
+    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/plotting.R'><code>R/plotting.R</code></a></small>
+    <div class="hidden name"><code>get_color_legend.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Compute the batch separation metric</p>
+    <p>Useful for creating axes legend for multiple scatter plots with the same axes names</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>batch_separation</span>(<span class='no'>emb</span>, <span class='no'>batch</span>)</pre>
+    <pre class="usage"><span class='fu'>get_color_legend</span>(<span class='no'>cell_type</span>, <span class='no'>my_color_palette</span>, <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>legend.position</span> <span class='kw'>=</span> <span class='st'>"right"</span>, <span class='kw'>legend.title</span> <span class='kw'>=</span> <span class='st'>"Cell type"</span>, <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>emb</th>
-      <td><p>the embedding of the cells where each row is a cell, and each column is a feature (e.g. principal component)</p></td>
-    </tr>
-    <tr>
-      <th>batch</th>
-      <td><p>the batch labels of the cells</p></td>
+      <th>emb_name</th>
+      <td><p>name of the embedding, for instance <code>emb_name = "PC"</code></p></td>
     </tr>
     </table>
     
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Cohen's kappa of the the predicted batch labels with the true batch label on the entire dataset (i.e., training accuracy)</p>
-    
-
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'># suppose that iris[["Species"]] are the batch labels</span>
-<span class='fu'>batch_separation</span>(<span class='kw'>emb</span> <span class='kw'>=</span> <span class='no'>iris</span>[,<span class='fl'>1</span>:<span class='fl'>2</span>],<span class='kw'>batch</span> <span class='kw'>=</span> <span class='no'>iris</span>$<span class='no'>Species</span>) <span class='co'># lower batch separation present in dim = 1:2</span></div><div class='output co'>#&gt; [1] 0.73</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>iris</span>[,<span class='fl'>1</span>],<span class='no'>iris</span>[,<span class='fl'>2</span>],<span class='kw'>col</span> <span class='kw'>=</span> <span class='no'>iris</span><span class='kw'>[[</span><span class='st'>"Species"</span>]])</div><div class='img'><img src='batch_separation-1.png' alt='' width='700' height='433' /></div><div class='input'>
-<span class='fu'>batch_separation</span>(<span class='kw'>emb</span> <span class='kw'>=</span> <span class='no'>iris</span>[,<span class='fl'>3</span>:<span class='fl'>4</span>],<span class='kw'>batch</span> <span class='kw'>=</span> <span class='no'>iris</span>$<span class='no'>Species</span>) <span class='co'># higher batch separation in dim = 3:4</span></div><div class='output co'>#&gt; [1] 0.94</div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>iris</span>[,<span class='fl'>3</span>],<span class='no'>iris</span>[,<span class='fl'>4</span>],<span class='kw'>col</span> <span class='kw'>=</span> <span class='no'>iris</span><span class='kw'>[[</span><span class='st'>"Species"</span>]])</div><div class='img'><img src='batch_separation-2.png' alt='' width='700' height='433' /></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
+                </ul>
 
   </div>
 </div>
