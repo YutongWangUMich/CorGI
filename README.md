@@ -1,12 +1,13 @@
 # corgi: Correlation matrix singular value Gap Inflation
-
-<style>
+(setq markdown-xhtml-header-content
+      "<style type='text/css'>
 image {
   width: 60%;
   display: block; 
   margin-left: auto; 
-  margin-right: auto;}
-</style>
+  margin-right: auto;
+  }
+</style>")
 
 
 CorGI a gene filter for comparative analysis between two single-cell RNAseq datasets. Conceptually, CorGI selects genes that highlight the _shared heterogenity_ in both datasets while rejecting genes that contributes to _batch effects_.
