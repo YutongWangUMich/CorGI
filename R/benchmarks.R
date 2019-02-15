@@ -1,4 +1,5 @@
-#' Compute the batch separtion metric
+#' Compute the batch separation metric
+#'
 #' @param emb the embedding of the cells where each row is a cell, and each column is a feature (e.g. principal component)
 #' @param batch the batch labels of the cells
 #' @return Cohen's kappa of the the predicted batch labels with the true batch label on the entire dataset (i.e., training accuracy)
@@ -16,7 +17,6 @@ batch_separation <- function(emb,batch){
 #' @param gene_set a list of characters representing the genes
 #' @param threshold the threshold parameter used in scmapCluster, between 0 and 1
 #' @return confusion matrix of the true labels in `ref` and the `scmapCluster` predicted labels
-#' @example
 #' @export
 run_scmap <- function(query, ref, gene_set, threshold, ...){
   # Specify the gene set used for scmapCluster

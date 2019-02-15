@@ -2,7 +2,7 @@
 % Please edit documentation in R/benchmarks.R
 \name{batch_separation}
 \alias{batch_separation}
-\title{Compute the batch separtion metric}
+\title{Compute the batch separation metric}
 \usage{
 batch_separation(emb, batch)
 }
@@ -15,5 +15,5 @@ batch_separation(emb, batch)
 Cohen's kappa of the the predicted batch labels with the true batch label on the entire dataset (i.e., training accuracy)
 }
 \description{
-Compute the batch separtion metric
+Compute the batch separation metric
 }
