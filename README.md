@@ -2,7 +2,7 @@
 
 CorGI a gene filter for comparative analysis between two single-cell RNAseq datasets. Conceptually, CorGI selects genes that highlight the _shared heterogenity_ in both datasets while rejecting genes that contributes to _batch effects_.
 
-For example, PCA run on _genes selected by CorGI_ can remove the "batch effect" between mouse and human pre-implantation embryogenesis:
+For example, PCA run on genes selected by CorGI can remove the "batch effect" between mouse and human pre-implantation embryogenesis:
 
 
 <img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-16-1.png" alt="drawing" width = "60%"/>
