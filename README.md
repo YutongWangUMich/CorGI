@@ -5,12 +5,12 @@ CorGI a gene filter for comparative analysis between two single-cell RNAseq data
 For example, PCA run on _genes selected by CorGI_ can remove the "batch effect" between mouse and human pre-implantation embryogenesis:
 
 
-<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-18-1.png" alt="drawing" width="50%" align="middle"/>
+<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-18-1.png" alt="drawing" width="50%" style="display: block; margin-left: auto; margin-right: auto"/>
 
 
 In contrast, PCA run on _all genes_ results in significant batch effect, even with batch normalization:
 
-<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-17-1.png" alt="drawing" width="50%" align="middle"/>
+<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-17-1.png" alt="drawing" width="50%" style="display: block; margin-left: auto; margin-right: auto"/>
 
 
 ## Installation
