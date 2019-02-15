@@ -118,7 +118,7 @@ batch_legend <- get_shape_legend(batch, my_shape_palette)
 ## Multidimensional scaling (MDS)
 
 
-```{r}
+```{r,fig.width=6,fig.height=3}
 axes_legend <- get_axes_legend("MDS")
 
 mds_all <- spearman_rho_mds(combined)
@@ -164,7 +164,7 @@ combined <- cbind(logcounts(yan), logcounts(deng))
 
 
 
-```{r}
+```{r,fig.width=6,fig.height=3}
 axes_legend <- get_axes_legend("PC")
 
 pc_all <- prcomp(t(combined), rank. = 2)$x
