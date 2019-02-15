@@ -145,10 +145,6 @@ plot_grid(
 ```
 
 
-On CorGI genes
-
-```{r}
-```
 
 ## Principal component analysis (PCA)
 
@@ -160,7 +156,6 @@ yan <- out[[1]]
 deng <- out[[2]]
 combined <- cbind(logcounts(yan), logcounts(deng))
 ```
-
 
 
 

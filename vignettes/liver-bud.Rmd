@@ -272,12 +272,13 @@ Testing
 
 ```{r}
 comparison_results <-
-  run_cluster_coherence_comparison(
+  run_mapping_accuracy_comparison(
     query = IN_norm,
-    reference = LB_norm
+    reference = LB_norm,
+    gene_sets = gene_sets
   )
 
-cluster_coherence_plot_1 <- plot_cluster_coherence_comparison(comparison_results) +
+cluster_coherence_plot_1 <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Liver bud \nQuery = Input")
 
 cluster_coherence_plot_1
@@ -286,11 +287,12 @@ cluster_coherence_plot_1
 
 ```{r}
 comparison_results <-
-  run_cluster_coherence_comparison(
+  run_mapping_accuracy_comparison(
     query = LB_norm,
-    reference = IN_norm
+    reference = IN_norm,
+    gene_sets = gene_sets
   )
-cluster_coherence_plot_2 <- plot_cluster_coherence_comparison(comparison_results) +
+cluster_coherence_plot_2 <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Input \nQuery = Liver bud")
 
 cluster_coherence_plot_2
@@ -498,12 +500,13 @@ threshold <- 0.3
 
 ```{r}
 comparison_results <-
-  run_cluster_coherence_comparison(
+  run_mapping_accuracy_comparison(
     query = IN_LB,
-    reference = HL
+    reference = HL,
+    gene_sets = gene_sets
   )
 
-cluster_coherence_plot_3 <- plot_cluster_coherence_comparison(comparison_results) +
+cluster_coherence_plot_3 <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Human liver \nQuery = Liver bud & input cell lines")
 
 cluster_coherence_plot_3
@@ -547,12 +550,13 @@ table_show
 
 # unique(HL$cell_type1)
 comparison_results <-
-  run_cluster_coherence_comparison(
+  run_mapping_accuracy_comparison(
     query = HL,
-    reference = IN_LB
+    reference = IN_LB,
+    gene_sets = gene_sets
   )
 
-cluster_coherence_plot_4 <- plot_cluster_coherence_comparison(comparison_results) +
+cluster_coherence_plot_4 <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Liver bud & input cell lines \nQuery = Human liver")
 
 cluster_coherence_plot_4
@@ -589,7 +593,7 @@ list(cluster_coherence_plot_1,
      cluster_coherence_plot_3,
      cluster_coherence_plot_4) %>%
   lapply(function(p)
-    p + theme(legend.position = "none")
+    p + theme(legend.position = "none") + ylim(c(0,1))
     ) -> cc_plts
 cc_plts[["labels"]] <- LETTERS[1:4]
 cc_lgnd <- get_legend(cluster_coherence_plot_1 +

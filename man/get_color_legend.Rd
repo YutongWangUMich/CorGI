@@ -2,14 +2,16 @@
 % Please edit documentation in R/plotting.R
 \name{get_color_legend}
 \alias{get_color_legend}
-\title{Empty plot with just the axes and labels}
+\title{Legend for colors in a scatter plot}
 \usage{
 get_color_legend(cell_type, my_color_palette, ncol = NULL,
   legend.position = "right", legend.title = "Cell type", ...)
 }
 \arguments{
-\item{emb_name}{name of the embedding, for instance \code{emb_name = "PC"}}
+\item{cell_type}{factor or vector of the batch labels}
+
+\item{my_color_palette}{a vector of colors e.g., \code{c("red","blue","green")} or hex color codes}
 }
 \description{
-Useful for creating axes legend for multiple scatter plots with the same axes names
+Useful for creating common color legend for multiple scatter plots
 }

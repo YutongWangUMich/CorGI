@@ -365,12 +365,13 @@ Repeat the result above but for all gene sets sweeping over thresholds in $\{0.1
 
 ```{r}
 comparison_results <-
-  run_cluster_coherence_comparison(
+  run_mapping_accuracy_comparison(
     query = llorens,
-    reference = dulken[,dulken$cell_type1!="Ast"]
+    reference = dulken[,dulken$cell_type1!="Ast"],
+    gene_sets = gene_sets
   )
 
-cluster_coherence_plot <- plot_cluster_coherence_comparison(comparison_results) +
+cluster_coherence_plot <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Dulken (no astrocytes)\nQuery = Llorens-Bobadilla")
 cc_plts <- list()
 cluster_coherence_plot -> cc_plts[[1]]
@@ -381,11 +382,12 @@ Swap the query and reference
 
 ```{r}
 comparison_results <-
-  run_cluster_coherence_comparison(
+  run_mapping_accuracy_comparison(
     query = dulken[,dulken$cell_type1!="Ast"],
-    reference = llorens
+    reference = llorens,
+    gene_sets = gene_sets
   )
-plot_cluster_coherence_comparison(comparison_results) +
+plot_mapping_accuracy_comparison(comparison_results) +
   ggtitle("Reference = Llorens-Bobadilla, \nQuery = Dulken (no astrocytes)") -> cc_plts[[2]]
 cc_plts[[2]]
 ```
@@ -393,11 +395,12 @@ cc_plts[[2]]
 
 ```{r}
 comparison_results <-
-  run_cluster_coherence_comparison(
+  run_mapping_accuracy_comparison(
     query = llorens,
-    reference = dulken
+    reference = dulken,
+    gene_sets = gene_sets
   )
-plot_cluster_coherence_comparison(comparison_results) +
+plot_mapping_accuracy_comparison(comparison_results) +
   ggtitle("Reference = Dulken, \nQuery = Llorens-Bobadilla") -> cc_plts[[3]]
 
 cc_plts[[3]]
@@ -408,11 +411,12 @@ cc_plts[[3]]
 
 ```{r}
 comparison_results <-
-  run_cluster_coherence_comparison(
+  run_mapping_accuracy_comparison(
     query = dulken,
-    reference = llorens
+    reference = llorens,
+    gene_sets = gene_sets
   )
-plot_cluster_coherence_comparison(comparison_results) +
+plot_mapping_accuracy_comparison(comparison_results) +
   ggtitle("Reference = Llorens-Bobadilla,\nQuery = Dulken") -> cc_plts[[4]]
 
 cc_plts[[4]]

@@ -1,5 +1,9 @@
+#' Wrapper around qplot for make cell scatter plots
+#' @param emb n-by-2 matrix of cell coordinates, where n is the number of cells
+#' @param batch factor or vector of length n
+#' @param cell_type factor or vector of length n
 #' @export
-plot_dimensionality_reduction <- function(emb,batch,cell_type){
+plot_dimensionality_reduction <- function(emb, batch, cell_type) {
   qplot(emb[, 1], emb[, 2], color = cell_type, shape = batch) +
     theme_bw() +
     theme(
@@ -12,33 +16,70 @@ plot_dimensionality_reduction <- function(emb,batch,cell_type){
     )
 }
 
+
+#' Return a list of scatter plots
+#'
+#' @param embeddings a list of cell embeddings, i.e., \code{embeddings[[i]]} is an n-by-2 matrix of coordinates where n is the number of cells
+#' @param batch factor or vector of length n
+#' @param cell_type factor or vector of length n
+#' @return a list of scatter plots corresponding to each embedding in \code{embeddings}
 #' @export
-get_shape_legend <- function(batch,my_shape_palette){
+get_scatterplots <- function(embeddings, batch, cell_type) {
+  lapply(
+    X = names(embeddings),
+    FUN = function(gs_name) {
+      emb <- embeddings[[gs_name]]
+      plot_dimensionality_reduction(emb, batch, cell_type) +
+        ggtitle(paste0(gs_name, ", ", round(
+          corgi::batch_separation(emb, batch), 2
+        )))
+    }
+  )
+}
+
+
+#' Legend for shapes in a scatter plot
+#'
+#' Useful for creating common shape legend for multiple scatter plots
+#' @param batch factor or vector of the batch labels
+#' @param my_shape_palette a vector of numbers corresponding to the shape palette http://www.sthda.com/english/wiki/ggplot2-point-shapes
+#' @export
+get_shape_legend <- function(batch, my_shape_palette) {
   n_cells <- length(batch)
   cowplot::get_legend(
     ggplot2::qplot(1:n_cells, 1:n_cells, shape = batch) +
       scale_shape_manual(values = my_shape_palette) +
-      guides(shape=guide_legend(title="Batch")) +
-      theme(legend.title.align=0.5)
+      guides(shape = guide_legend(title = "Batch")) +
+      theme(legend.title.align = 0.5)
   )
 }
 
-#' Empty plot with just the axes and labels
+#' Legend for colors in a scatter plot
 #'
-#' Useful for creating axes legend for multiple scatter plots with the same axes names
-#' @param emb_name name of the embedding, for instance \code{emb_name = "PC"}
+#' Useful for creating common color legend for multiple scatter plots
+#' @param cell_type factor or vector of the batch labels
+#' @param my_color_palette a vector of colors e.g., \code{c("red","blue","green")} or hex color codes
 #' @export
-get_color_legend <- function(cell_type,my_color_palette,ncol = NULL,legend.position = "right",legend.title = "Cell type",...){
-  n_cells <- length(cell_type)
-  df <- data.frame(x = 1:n_cells,y = 1:n_cells, cell_type = cell_type)
+get_color_legend <-
+  function(cell_type,
+           my_color_palette,
+           ncol = NULL,
+           legend.position = "right",
+           legend.title = "Cell type",
+           ...) {
+    n_cells <- length(cell_type)
+    df <-
+      data.frame(x = 1:n_cells,
+                 y = 1:n_cells,
+                 cell_type = cell_type)
 
-  ggplot(df,aes(x=x,y=y)) + geom_point(aes(color = cell_type),...)+
-    scale_color_manual(values = my_color_palette) +
-    guides(col = guide_legend(title= legend.title, ncol = ncol)) +
-    theme(legend.position = legend.position) -> plt
+    ggplot(df, aes(x = x, y = y)) + geom_point(aes(color = cell_type), ...) +
+      scale_color_manual(values = my_color_palette) +
+      guides(col = guide_legend(title = legend.title, ncol = ncol)) +
+      theme(legend.position = legend.position) -> plt
 
-  return(cowplot::get_legend(plt))
-}
+    return(cowplot::get_legend(plt))
+  }
 
 #' Empty plot with just the axes and labels
 #'
@@ -56,59 +97,13 @@ get_axes_legend <- function(emb_name){
     )
 }
 
-#' @export
-get_scatterplots <- function(embeddings, batch, cell_type){
-  lapply(X = names(gene_sets),
-         FUN = function(gs_name) {
-           emb <- embeddings[[gs_name]]
-           plot_dimensionality_reduction(emb, batch, cell_type) +
-             ggtitle(paste0(gs_name, ", ", round(corgi::batch_separation(emb, batch), 2)))
-         })
-}
+
+
 
 
 
 #' @export
-run_cluster_coherence_comparison <- function(query, reference){
-  thresholds <- 0.1*(1:9)
-  lapply(
-    X = thresholds,
-    FUN = function(threshold) {
-      gene_sets %>%
-        lapply(
-          FUN = function(gene_set) {
-            corgi::run_scmap(
-              query = query,
-              ref = reference,
-              gene_set = gene_set,
-              threshold = threshold
-            )
-          }
-        ) %>%
-        lapply(
-          FUN = function(confusionMat) {
-            confusionMat$overall
-          }
-        ) %>%
-        Reduce(f = rbind) %>%
-        data.frame ->
-        results
-
-      results$Gene_set <- names(gene_sets)
-      results$Threshold <- threshold
-      rownames(results) <- NULL
-      results
-    }) %>%
-    Reduce(f = rbind) -> results
-
-  results$Gene_set <-
-    factor(results$Gene_set,
-           levels = names(gene_sets))
-  return(results)
-}
-
-#' @export
-plot_cluster_coherence_comparison <- function(results){
+plot_mapping_accuracy_comparison <- function(results){
   comparison_legend_options <- guide_legend(keywidth = 2, keyheight = 1, title = "Gene set")
   ggplot(results, aes(x=Threshold, y=Kappa, group=Gene_set)) +
     geom_line(aes(linetype = Gene_set)) +

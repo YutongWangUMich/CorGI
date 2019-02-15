@@ -80,3 +80,47 @@ run_scmap <- function(query, ref, gene_set, threshold, ...){
                          reference = true_labels,
                          ...)
 }
+
+
+
+
+#' Run scmap over a range of parameters
+#' @export
+run_mapping_accuracy_comparison <- function(query, reference, gene_sets){
+
+  thresholds <- 0.1*(1:9)
+  lapply(
+    X = thresholds,
+    FUN = function(threshold) {
+      gene_sets %>%
+        lapply(
+          FUN = function(gene_set) {
+            corgi::run_scmap(
+              query = query,
+              ref = reference,
+              gene_set = gene_set,
+              threshold = threshold
+            )
+          }
+        ) %>%
+        lapply(
+          FUN = function(confusionMat) {
+            confusionMat$overall
+          }
+        ) %>%
+        Reduce(f = rbind) %>%
+        data.frame ->
+        results
+
+      results$Gene_set <- names(gene_sets)
+      results$Threshold <- threshold
+      rownames(results) <- NULL
+      results
+    }) %>%
+    Reduce(f = rbind) -> results
+
+  results$Gene_set <-
+    factor(results$Gene_set,
+           levels = names(gene_sets))
+  return(results)
+}
