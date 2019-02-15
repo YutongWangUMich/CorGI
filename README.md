@@ -1,26 +1,16 @@
 # corgi: Correlation matrix singular value Gap Inflation
-(setq markdown-xhtml-header-content
-      "<style type='text/css'>
-image {
-  width: 60%;
-  display: block; 
-  margin-left: auto; 
-  margin-right: auto;
-  }
-</style>")
-
 
 CorGI a gene filter for comparative analysis between two single-cell RNAseq datasets. Conceptually, CorGI selects genes that highlight the _shared heterogenity_ in both datasets while rejecting genes that contributes to _batch effects_.
 
 For example, PCA run on _genes selected by CorGI_ can remove the "batch effect" between mouse and human pre-implantation embryogenesis:
 
 
-<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-18-1.png" alt="drawing"/>
+<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-18-1.png" alt="drawing" width = "60%"/>
 
 
 In contrast, PCA run on _all genes_ results in significant batch effect, even with batch normalization:
 
-<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-17-1.png" alt="drawing"/>
+<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-17-1.png" alt="drawing" width = "60%"/>
 
 
 ## Installation
