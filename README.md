@@ -5,7 +5,7 @@ CorGI a gene filter for comparative analysis between two single-cell RNAseq data
 For example, PCA run on _genes selected by CorGI_ can remove the "batch effect" between mouse and human pre-implantation embryogenesis:
 
 
-<img src="file:///Users/girasole/github_repos/corgi/docs/articles/corgi_files/figure-html/unnamed-chunk-16-1.png" alt="drawing" width = "60%"/>
+<img src="https://yutongwangumich.github.io/corgi/articles/corgi_files/figure-html/unnamed-chunk-16-1.png" alt="drawing" width = "60%"/>
 
 ## Installation
 
