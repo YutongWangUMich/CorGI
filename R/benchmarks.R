@@ -1,69 +1,47 @@
-#' Compute the batch mixing metric
-#' @param emb the embedding of the cells where each row is a cell
+#' Compute the batch separtion metric
+#' @param emb the embedding of the cells where each row is a cell, and each column is a feature (e.g. principal component)
 #' @param batch the batch labels of the cells
+#' @return Cohen's kappa of the the predicted batch labels with the true batch label on the entire dataset (i.e., training accuracy)
 #' @export
-batch_mixing <- function(emb,batch){
-  dat <- data.frame(emb,batch)
-  model <- e1071::svm(batch~.,data=dat)
-  return(caret::confusionMatrix(model$fitted,dat$batch)$overall[["Kappa"]])
+batch_separation <- function(emb,batch){
+  dat <- data.frame(emb, batch)
+  model <- e1071::svm(batch ~ ., data = dat)
+  return(caret::confusionMatrix(model$fitted, dat$batch)$overall[["Kappa"]])
 }
 
 
-
-#' @export
-cluster_coherence <- function(emb, cell_type, cell_type_pred, train, test, knn_params = 5*(1:6)){
-  results <- data.frame(
-    knn_param = numeric(0),
-    TPR = numeric(0),
-    FPR = numeric(0),
-    stringsAsFactors = F
-  )
-  i <- 1
-  for (k in knn_params) {
-    results[i, "knn_param"] <- k
-    class::knn(
-      train = emb[train,],
-      test = emb[test,],
-      cl = cell_type[train],
-      k = k
-    ) -> cell_type_knn
-
-    caret::confusionMatrix(data = cell_type_knn,
-                           reference = cell_type[test]) -> output
-
-    results[i, "TPR"] <- output$byClass[paste("Class:", cell_type_pred), "Sensitivity"]
-    results[i, "FPR"] <- 1 - output$byClass[paste("Class:", cell_type_pred), "Specificity"]
-    i <- i + 1
-  }
-  return(results)
-}
-
-
+#' Wrapper around the scmapCluster function from scmap
+#' @param query the query dataset (SingleCellExperiment object)
+#' @param ref the reference dataset (SingleCellExperiment object)
+#' @param gene_set a list of characters representing the genes
+#' @param threshold the threshold parameter used in scmapCluster, between 0 and 1
+#' @return confusion matrix of the true labels in `ref` and the `scmapCluster` predicted labels
+#' @example
 #' @export
 run_scmap <- function(query, ref, gene_set, threshold, ...){
-  rowData(ref)$scmap_features <- rowData(ref)$feature_symbol %in% gene_set
+  # Specify the gene set used for scmapCluster
+  rowData(ref)$scmap_features <-
+    rowData(ref)$feature_symbol %in% gene_set
+
   ref <- scmap::indexCluster(ref)
 
   scmapCluster_results <- scmap::scmapCluster(
     projection = query,
-    index_list = list(
-      Reference = metadata(ref)$scmap_cluster_index
-    ),
+    index_list = list(Reference = metadata(ref)$scmap_cluster_index),
     threshold = threshold
   )
 
   true_labels <- colData(query)$cell_type1
-  pred_labels <- factor(scmapCluster_results$scmap_cluster_labs[,"Reference"])
+  pred_labels <-
+    factor(scmapCluster_results$scmap_cluster_labs[, "Reference"])
 
   # make the factor levels uniform
   shared_levels <- union(levels(true_labels),
                          levels(pred_labels))
-  true_labels <- forcats::fct_expand(true_labels,shared_levels)
-  pred_labels <- forcats::fct_expand(pred_labels,shared_levels)
+  true_labels <- forcats::fct_expand(true_labels, shared_levels)
+  pred_labels <- forcats::fct_expand(pred_labels, shared_levels)
 
-  caret::confusionMatrix(
-    data = pred_labels,
-    reference = true_labels,
-    ...
-  )
+  caret::confusionMatrix(data = pred_labels,
+                         reference = true_labels,
+                         ...)
 }

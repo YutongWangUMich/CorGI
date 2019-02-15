@@ -55,7 +55,7 @@ get_scatterplots <- function(embeddings, batch, cell_type){
          FUN = function(gs_name) {
            emb <- embeddings[[gs_name]]
            plot_dimensionality_reduction(emb, batch, cell_type) +
-             ggtitle(paste0(gs_name, ", ", round(corgi::batch_mixing(emb, batch), 2)))
+             ggtitle(paste0(gs_name, ", ", round(corgi::batch_separation(emb, batch), 2)))
          })
 }
 

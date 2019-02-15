@@ -27,14 +27,19 @@ get_gene_set_of_size_n <- function(gs_func,n,LB,UB){
   return(gs_func(x_test))
 }
 
-
+#' Return gene sets that is compared against CorGI in the manuscript
+#'
 #' @param batch1_top_genes ordered list of genes (e.g., most highly variable to least)
 #' @param batch1_name name of batch1 (e.g., if \code{batch1_top_genes} was computed using highly variable genes (HVG), then consider \code{batch1_name <- HVG(Batch1)})
-#' @param batch2_top_genes see above
-#' @param batch2_name see above
+#' @param batch2_top_genes see `batch1_top_genes`
+#' @param batch2_name see `batch1_name`
 #' @param desired_size how big the output gene_sets should be
 #' @param marker_genes genes that are included in every gene set of the output. Defaults to the empty set, i.e., no markers provided.
-#' @return a list of gene sets
+#' @return a list of gene sets, where each item is a gene set of size `desired_size`. The list is ordered as follows:
+#' 1. `batch1_top_genes[1:desired_size]`
+#' 2. `batch2_top_genes[1:desired_size]`
+#' 3. `union(batch1_top_genes[1:x],batch2_top_genes[1:y])` so that `x` and `y` are chosen so that the union consists of `desired_size` elements and `|x-y| <= 1` is true
+#' 4. `intersect(batch1_top_genes[1:x],batch2_top_genes[1:y])` so that `x` and `y` are chosen so that the intersection consists of `desired_size` elements and `|x-y| <= 1` is true
 #' @export
 get_compared_gene_sets <- function(batch1_top_genes,
                                    batch1_name = "Batch1",
@@ -59,7 +64,6 @@ get_compared_gene_sets <- function(batch1_top_genes,
   # Requirements:
   # 0 <= gs_func(x+1,y) - gs_func(x,y) <= 1
   # 0 <= gs_func(x,y+1) - gs_func(x,y) <= 1
-
   get_gs_from_gs_func <- function(gs_func){
     z <- 1
     while(length(gs_func(z,z)) < desired_size){
