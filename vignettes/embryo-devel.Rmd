@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-Testing new branch.
 
 We illustrate the CorGI feature selection method by analyzing datasets on human and mouse pre-implantation embryo development.
 
@@ -84,11 +83,10 @@ data("corgi_output_embyro_devel") # Load the cached output
 
 Select top CorGI genes
 ```{r}
-corgi_gene_set <-
-  union(
-    select_top_corgi_genes(corgi_output_embyro_devel, n = 100, SVG_use = 2),
-    select_top_corgi_genes(corgi_output_embyro_devel, n = 100, SVG_use = 3)
-  )
+corgi_scores <- corgi_output_embyro_devel
+corgi_scores <- corgi_scores[,1:3]/corgi_scores[,4]
+
+corgi_gene_set <- top_n_genes(-corgi_scores[ ,"principal_curve"], 100)
 ```
 
 # Visualization
@@ -155,6 +153,17 @@ gene_sets <- gene_sets[c(5, 1, 2, 3, 4)]
 lapply(gene_sets, length)
 ```
 
+```{r, eval = F}
+library(Seurat)
+a <- Seurat_CCA_GeneLoading(normcounts(yan),counts(deng),k = 3)
+```
+
+```{r}
+CCA_genes <- top_n_genes(rowSums(a^2),100)
+gene_sets[["HDG(Human)"]] <- CCA_genes
+
+names(gene_sets)[2] <- "CCA"
+```
 
 
 ```{r}
@@ -166,6 +175,8 @@ embeddings_mds <-
     }
   )
 ```
+
+
 
 
 ```{r}
