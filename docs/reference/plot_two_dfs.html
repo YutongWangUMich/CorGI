@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • corgi</title>
+<title>Plot scatterplots for each pair of columns in df1 and df2 — plot_two_dfs • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,7 +30,10 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Plot scatterplots for each pair of columns in df1 and df2 — plot_two_dfs" />
+
+<meta property="og:description" content="Code by Ben Bolker, see this stackoverflow answer" />
+<meta name="twitter:card" content="summary" />
 
 
 
@@ -47,7 +50,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -121,132 +124,48 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Plot scatterplots for each pair of columns in df1 and df2</h1>
+    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/plotting.R'><code>R/plotting.R</code></a></small>
+    <div class="hidden name"><code>plot_two_dfs.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    
+    <p>Code by Ben Bolker, see this <a href='https://stackoverflow.com/a/40455040/636276'>stackoverflow answer</a></p>
+    
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
-
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="batch_separation.html">batch_separation()</a></code> </p>
-        </td>
-        <td><p>Compute the batch separation metric</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_axes_legend.html">get_axes_legend()</a></code> </p>
-        </td>
-        <td><p>Empty plot with just the axes and labels</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_color_legend.html">get_color_legend()</a></code> </p>
-        </td>
-        <td><p>Legend for colors in a scatter plot</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_compared_gene_sets.html">get_compared_gene_sets()</a></code> </p>
-        </td>
-        <td><p>Get compared gene sets</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_scatterplots.html">get_scatterplots()</a></code> </p>
-        </td>
-        <td><p>Return a list of scatter plots</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_shape_legend.html">get_shape_legend()</a></code> </p>
-        </td>
-        <td><p>Legend for shapes in a scatter plot</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="plot_dimensionality_reduction.html">plot_dimensionality_reduction()</a></code> </p>
-        </td>
-        <td><p>Wrapper around qplot for make cell scatter plots</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="plot_two_dfs.html">plot_two_dfs()</a></code> </p>
-        </td>
-        <td><p>Plot scatterplots for each pair of columns in df1 and df2</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="run_corgi.html">run_corgi()</a></code> </p>
-        </td>
-        <td><p>Corgi feature selection</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="run_diagnostics.html">run_diagnostics()</a></code> </p>
-        </td>
-        <td><p>The inner loop of corgi but with more time</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="run_mapping_accuracy_comparison.html">run_mapping_accuracy_comparison()</a></code> </p>
-        </td>
-        <td><p>Run scmap over a range of parameters</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="run_par.html">run_par()</a></code> </p>
-        </td>
-        <td><p>The inner loop of corgi</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="run_scmap.html">run_scmap()</a></code> </p>
-        </td>
-        <td><p>Wrapper for <code>scmap::scmapCluster</code></p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="select_outlier_corgi_genes.html">select_outlier_corgi_genes()</a></code> </p>
-        </td>
-        <td><p>Get the gene set after running corgi</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="select_top_corgi_genes.html">select_top_corgi_genes()</a></code> </p>
-        </td>
-        <td><p>Get the gene set after running corgi</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="spearman_rho_mds.html">spearman_rho_mds()</a></code> </p>
-        </td>
-        <td><p>Multidimensional scaling on Spearman rho correlation distance</p></td>
-      </tr>
-    </tbody>
+    <pre class="usage"><span class='fu'>plot_two_dfs</span>(<span class='no'>df1</span>, <span class='no'>df2</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>df1</th>
+      <td><p>the first dataframe</p></td>
+    </tr>
+    <tr>
+      <th>df2</th>
+      <td><p>the second dataframe, rownames(df1) == rownames(df2) must hold</p></td>
+    </tr>
     </table>
-  </div>
+    
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='fu'>plot_two_dfs</span>(<span class='no'>iris</span>[,<span class='fl'>1</span>:<span class='fl'>2</span>],<span class='no'>iris</span>[,<span class='fl'>3</span>:<span class='fl'>4</span>])</div><div class='output co'>#&gt; <span class='warning'>Warning: `panel.margin` is deprecated. Please use `panel.spacing` property instead</span></div><div class='img'><img src='plot_two_dfs-1.png' alt='' width='700' height='433' /></div></pre>
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#arguments">Arguments</a></li>
+            
+      <li><a href="#examples">Examples</a></li>
     </ul>
+
+    <h2>Author</h2>
+    <p>Ben Bolker</p>
   </div>
 </div>
 

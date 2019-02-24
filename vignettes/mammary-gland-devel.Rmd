@@ -161,19 +161,12 @@ table(pal$cell_type)
 ```
 
 ```{r}
-table(giraddi$cell_type)
+before <- table(giraddi$cell_type)
 giraddi <- giraddi[,colMeans(counts(giraddi)>0)>0.05]
-table(giraddi$cell_type)
+data.frame(before, after = as.numeric(table(giraddi$cell_type)))
 ```
 
-```{r}
-# plyr::mapvalues(
-#   x = pal$cell_type,
-#   from = c("2wk","4wk","10wk"),
-#   to = c("2wk","4wk","Adu")
-# ) ->
-#   pal$cell_type
-```
+
 
 
 ```{r}
@@ -184,11 +177,15 @@ batches <- list(Pal = pal)
 # CorGI feature selection on the Pal and Giraddi datasets
 ```{r,eval = F}
 set.seed(0)
-corgi_output_MG_devel <- run_corgi(counts(pal),counts(giraddi))
+corgi_output_MG_devel <- run_corgi(counts(pal),
+                                   counts(giraddi),
+                                   time_per_phase = 60*60, 
+                                   n_phases = 6)
 ```
 
 ```{r, eval = F,include=F}
-devtools::use_data(corgi_output_MG_devel,overwrite = T)
+devtools::use_data(corgi_output_MG_devel,
+                   overwrite = T)
 ```
 
 ```{r, include=F}
@@ -196,19 +193,59 @@ data("corgi_output_MG_devel")
 ```
 
 
+```{r, eval = T}
+# stop()
+
+corgi_res <- corgi_output_MG_devel[[6]]
+corgi_scores <- corgi_res[,1:3]/corgi_res[,4]
+
+gs <- rownames(corgi_res)
+gene_loadings <- CCSpearman_GeneLoading(
+  counts(giraddi)[gs, ], 
+  counts(pal)[gs, ], 
+  k = 3)
+
+```
+
+```{r}
+top_n_genes((gene_loadings^2)[,3],500) -> cca_genes
+# library(Seurat)
+# gene_loadings <- Seurat_CCA_GeneLoading(
+#   counts(giraddi)[gs, ], 
+#   counts(pal)[gs, ]
+#   )
+
+gs <- intersect(rownames(gene_loadings), rownames(corgi_res))
+
+df1 <- data.frame(scale(corgi_scores[gs, ]))
+df2 <- data.frame(scale(gene_loadings[gs ,1:3]))
+library(tidyr)
+colnames(df1) <- paste0("corgi", 1:3)
+colnames(df2) <- paste0("CC", 1:3)
+plot_two_dfs(df1,df2) + 
+  xlab("Singular value gap (CorGI)") + 
+  ylab("Canonical correlation gene loading") +
+  ggtitle("Mammary gland developmental datasets")
+# stop()
+```
+
 # Curate the gene sets for comparison
 ```{r}
 rowData(pal)$feature_symbols <- rownames(pal)
 rowData(giraddi)$feature_symbols <- rownames(giraddi)
-corgi_gene_set <- select_top_corgi_genes(corgi_output_MG_devel,n = 1000)
-
+# corgi_gene_set <- union(
+#   select_top_corgi_genes(corgi_output_MG_devel,n = 200, SVG_use = 2),
+#   select_top_corgi_genes(corgi_output_MG_devel,n = 200, SVG_use = 3)
+#   )
+corgi_gene_set <- select_top_corgi_genes(corgi_output_MG_devel,n = 500)
 # mbn = abbrev for multiBatchNorm
-mbn_out <- multiBatchNorm(pal,giraddi) 
+mbn_out <- multiBatchNorm(pal,giraddi)
 ```
 
 
 
 ```{r}
+# corgi_gene_set <- cca_genes
 HDG_ranking <- function(sce){
   rowData(sce)$feature_symbol <- rownames(sce)
   sce <- scmap::selectFeatures(sce)
@@ -227,7 +264,13 @@ gene_sets <- get_compared_gene_sets(
 
 gene_sets[["CorGI"]] <- corgi_gene_set
 gene_sets <- gene_sets[c(5,1,2,3,4)]
+gene_sets[["CCA"]] <- cca_genes
 lapply(gene_sets, length)
+stop()
+```
+```{r}
+saveRDS(gene_sets, file = "~/CorGI_RDS/MG_devel/gene_sets.rds")
+# stop()
 ```
 
 
@@ -243,15 +286,11 @@ set.seed(0)
 giraddi <- sample_cells(giraddi,1000)
 cell_type <- forcats::fct_c(giraddi$cell_type,pal$cell_type)
 batch <- c(rep("Giraddi",ncol(giraddi)),rep("Pal",ncol(pal)))
-comb <- cbind(counts(giraddi),counts(pal))
+combined <- cbind(counts(giraddi),counts(pal))
 ```
 
 ```{r}
-corgi_gene_set <- select_top_corgi_genes(corgi_output_MG_devel,n = 1000)
-
-
-D <- (1-cor(comb[corgi_gene_set,],method = "spearman"))/2
-mds <- cmdscale(D,k=2)
+mds <- spearman_rho_mds(combined[corgi_gene_set, ])
 ```
 
 
@@ -427,7 +466,7 @@ batches[["Bach_NP"]] <- bach_np
 # Reproducing the paper figures
 
 For each batch, for each gene_set, compute dimensionality reductions, i.e., MNNPC and Spearman rho mds
-```{r, eval = F}
+```{r}
 # Spearman rho multidimensional scaling
 lapply(
   X = batches, # for each batch
@@ -468,7 +507,7 @@ lapply(
   }) -> embeddings_mnn
 ```
 
-```{r, eval = F, include = F}
+```{r, include = F}
 saveRDS(embeddings_mds,file = "~/CorGI_RDS/MG_devel/embeddings_mds.rds")
 saveRDS(embeddings_mnn,file = "~/CorGI_RDS/MG_devel/embeddings_mnn.rds")
 ```
@@ -479,17 +518,8 @@ embeddings_mnn <- readRDS(file = "~/CorGI_RDS/MG_devel/embeddings_mnn.rds")
 ```
 
 
-
 ```{r}
-get_scatterplots <- function(embeddings, batch, cell_type){
-  lapply(X = names(gene_sets),
-         FUN = function(gs_name) {
-           emb <- embeddings[[gs_name]]
-           plot_dimensionality_reduction(emb, as.factor(batch), cell_type) +
-             ggtitle(paste0(gs_name, ", ", round(corgi::batch_mixing(emb, batch), 2)))
-         })
-}
-
+get_scatterplots <- corgi::get_scatterplots
 ```
 
 

@@ -103,6 +103,17 @@ IN <- camp[,camp$LB_status=="Input"]
 LB <- camp[,camp$LB_status=="Liver_bud"]
 ```
 
+```{r}
+gene_loadings <- CCSpearman_GeneLoading(logcounts(IN), logcounts(LB), k = 3)
+
+union(
+  top_n_genes((gene_loadings^2)[,2],250),
+  top_n_genes((gene_loadings^2)[,3],250)
+  ) -> 
+  cca_genes
+```
+
+
 Normalization by making the library sizes comparable across batches
 ```{r}
 out <- scran::multiBatchNorm(IN,LB,assay.type = "logcounts")
@@ -176,6 +187,7 @@ qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 # Reproducing paper figures
 
 Gene sets to compare CorGI against
+
 
 ```{r}
 HDG_ranking <- function(sce){

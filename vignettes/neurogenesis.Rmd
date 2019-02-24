@@ -110,7 +110,7 @@ dulken_cell_type <-
   factor(
     unlist(
       lapply(X=colnames(dulken),
-             FUN=function(x){strsplit(x,split = "_",fixed=T)[[1]][1]})
+             FUN=function(x){strsplit(x,split = "_", fixed=T)[[1]][1]})
       )
     )
 
@@ -301,6 +301,51 @@ gene_sets[["CorGI"]] <- union(corgi_gene_set,consensus34)
 
 gene_sets <- gene_sets[c(6,5,4,3,2,1)]
 lapply(gene_sets, length)
+# stop()
+
+ # <- 
+```
+
+```{r}
+gene_sets[[4]] <- union(top_n_genes(gene_loadings[,1],114), top_consensus)
+gene_sets[[5]] <- union(top_n_genes(gene_loadings[,2],109), top_consensus)
+gene_sets[[6]] <- union(top_n_genes(gene_loadings[,3],105), top_consensus)
+
+names(gene_sets)[c(4,5,6)] <- paste0("CC",1:3)
+
+gene_sets[[3]] <- union(gene_sets[[1]], gene_sets[[6]])
+names(gene_sets)[3] <- "CorGI+CCA3"
+lapply(gene_sets, length)
+```
+
+```{r}
+embeddings_mds <- 
+  lapply(
+    X = gene_sets,
+    FUN = function(gene_set) {
+      D <- sqrt((1 - cor(counts(combined)[gene_set, ], method = "spearman")) / 2)
+      return(cmdscale(D, k = 2))
+    }
+  )
+```
+
+
+```{r}
+emb_name <- "MDS"
+embeddings <- embeddings_mds
+get_scatterplots(embeddings,
+                 combined$batch,
+                 combined$cell_type1) -> dr_plots
+# 
+
+# dr_plots[[length(dr_plots)+1]] <- legends
+
+dr_plots[["nrow"]] <- 2
+
+dr_plots[["labels"]] <- c("A","B","C","D","E","F")
+
+do.call(plot_grid,dr_plots) -> top_panel
+top_panel
 ```
 
 scmapCluster parameters
@@ -348,7 +393,7 @@ kable(scmap_output$overall)
 
 Using the _Union_ gene set
 ```{r}
-gene_set <- gene_sets[["Union"]]
+gene_set <- gene_sets[["CC3"]]
 corgi::run_scmap(
   query = llorens,
   ref = dulken[,dulken$cell_type1!="Ast"],
@@ -442,36 +487,6 @@ plot_grid(do.call(what = plot_grid,args = cc_plts),
 
 
 ggsave(filename = "neurogenesis_kappa.eps",device = "eps",plot = kappa_plt, path = "~/CorGI_figures/neurogenesis",width = 8,height = 8)
-```
-
-```{r}
-embeddings_mds <- 
-  lapply(
-    X = gene_sets,
-    FUN = function(gene_set) {
-      D <- sqrt((1 - cor(counts(combined)[gene_set, ], method = "spearman")) / 2)
-      return(cmdscale(D, k = 2))
-    }
-  )
-```
-
-
-```{r}
-emb_name <- "MDS"
-embeddings <- embeddings_mds
-get_scatterplots(embeddings,
-                 combined$batch,
-                 combined$cell_type1) -> dr_plots
-# 
-
-# dr_plots[[length(dr_plots)+1]] <- legends
-
-dr_plots[["nrow"]] <- 2
-
-dr_plots[["labels"]] <- c("A","B","C","D","E","F")
-
-do.call(plot_grid,dr_plots) -> top_panel
-top_panel
 ```
 
 ```{r}

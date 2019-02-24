@@ -116,3 +116,31 @@ plot_mapping_accuracy_comparison <- function(results){
     ylab("Cohen's Kappa")
 }
 
+
+#' Plot scatterplots for each pair of columns in df1 and df2
+#'
+#' Code by Ben Bolker, see this \href{https://stackoverflow.com/a/40455040/636276}{stackoverflow answer}
+#' @param df1 the first dataframe
+#' @param df2 the second dataframe, rownames(df1) == rownames(df2) must hold
+#' @author Ben Bolker
+#' @examples
+#' plot_two_dfs(iris[,1:2],iris[,3:4])
+#' @export
+plot_two_dfs <- function(df1,df2){
+  library(dplyr)
+  mfun <- function(x) {
+    x %>%
+      mutate(obs=seq(n())) %>%    ## add obs numbers
+      gather(key=var,value=value,-obs)  ## reshape
+  }
+  ## combine
+  df12 <- mfun(df1) %>% full_join(mfun(df2),by="obs")
+
+
+  library(ggplot2);
+  ggplot(df12,aes(value.x,value.y)) +
+    geom_point(size=0.1)+
+    facet_grid(var.y~var.x, scales = "free")+
+    theme_bw() +
+    theme(panel.margin=grid::unit(0,"lines")) ## squash panels together
+}

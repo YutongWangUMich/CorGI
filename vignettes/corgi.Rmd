@@ -187,3 +187,13 @@ plot_grid(
 
 
 
+```{r, eval = F, include = F}
+# for Laura's presentation
+pc_corgi <- prcomp(t(combined[corgi_gene_set, ]), rank. = 2)$x
+qplot(pc_corgi[ ,1], pc_corgi[ ,2], color = cell_type, batch =)
+
+
+plot_dimensionality_reduction(pc_corgi, batch, cell_type)+
+  ggtitle("CorGI gene filter") + theme_classic() + xlab("PC1") + ylab("PC2") +ggtitle("")
+```
+
