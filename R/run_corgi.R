@@ -69,6 +69,16 @@ corgi <- function(X,
   return(corgi_out)
 }
 
+#' Select genes
+#'
+#' @param corgi_output the output of the corgi algorithm
+#' @param n_genes how many genes to select
+#' @export
+corgi_select_genes <- function(corgi_output, n_genes){
+  corgi_score <- corgi_output/corgi_output[,"num.times.sampled"]
+  return(names(sort(corgi_score[,"principal_curve"]))[1:n_genes])
+}
+
 #' The inner loop of corgi
 #'
 #' @param X gene-by-cell expression matrix for batch 1

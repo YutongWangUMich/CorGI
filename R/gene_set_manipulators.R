@@ -103,6 +103,8 @@ get_compared_gene_sets <- function(batch1_top_genes,
 }
 
 
+#' Return the top genes according to a named vector.
+#'
 #' @param x named numeric vector where the names are the gene names and the numbers are gene scores
 #' @param n how many genes to return
 #' @export

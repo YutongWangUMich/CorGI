@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Highly dropped-out gene selection — HDG_ranking • corgi</title>
+<title>Return the top genes according to a named vector. — top_n_genes • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Highly dropped-out gene selection — HDG_ranking" />
+<meta property="og:title" content="Return the top genes according to a named vector. — top_n_genes" />
 
-<meta property="og:description" content="Highly dropped-out gene selection" />
+<meta property="og:description" content="Return the top genes according to a named vector." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -102,35 +102,31 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Highly dropped-out gene selection</h1>
+    <h1>Return the top genes according to a named vector.</h1>
     <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/gene_set_manipulators.R'><code>R/gene_set_manipulators.R</code></a></small>
-    <div class="hidden name"><code>HDG_ranking.Rd</code></div>
+    <div class="hidden name"><code>top_n_genes.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Highly dropped-out gene selection</p>
+    <p>Return the top genes according to a named vector.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>HDG_ranking</span>(<span class='no'>sce</span>, <span class='kw'>do_normalize</span> <span class='kw'>=</span> <span class='no'>T</span>)</pre>
+    <pre class="usage"><span class='fu'>top_n_genes</span>(<span class='no'>x</span>, <span class='no'>n</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>sce</th>
-      <td><p>SingleCellExperiment object to be normalized</p></td>
+      <th>x</th>
+      <td><p>named numeric vector where the names are the gene names and the numbers are gene scores</p></td>
     </tr>
     <tr>
-      <th>do_normalize</th>
-      <td><p>boolean value of whether <code>sce</code> should be normalized prior to feature selection. Consider setting this to false if you prefer a different normalization technique.</p></td>
+      <th>n</th>
+      <td><p>how many genes to return</p></td>
     </tr>
     </table>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>ranked list such that most informative genes are at the top of the list</p>
     
 
   </div>
@@ -138,9 +134,7 @@
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-          </ul>
+                </ul>
 
   </div>
 </div>
