@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Legend for colors in a scatter plot — get_color_legend • corgi</title>
+<title>Subsample cells random — sample_cells • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Legend for colors in a scatter plot — get_color_legend" />
+<meta property="og:title" content="Subsample cells random — sample_cells" />
 
-<meta property="og:description" content="Useful for creating common color legend for multiple scatter plots" />
+<meta property="og:description" content="Subsample cells random" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -102,30 +102,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Legend for colors in a scatter plot</h1>
-    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/plotting.R'><code>R/plotting.R</code></a></small>
-    <div class="hidden name"><code>get_color_legend.Rd</code></div>
+    <h1>Subsample cells random</h1>
+    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/utilities.R'><code>R/utilities.R</code></a></small>
+    <div class="hidden name"><code>sample_cells.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Useful for creating common color legend for multiple scatter plots</p>
+    <p>Subsample cells random</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>get_color_legend</span>(<span class='no'>cell_type</span>, <span class='no'>my_color_palette</span>, <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>legend.position</span> <span class='kw'>=</span> <span class='st'>"right"</span>, <span class='kw'>legend.title</span> <span class='kw'>=</span> <span class='st'>"Cell type"</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>sample_cells</span>(<span class='no'>object</span>, <span class='no'>n</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>cell_type</th>
-      <td><p>factor or vector of the batch labels</p></td>
+      <th>object</th>
+      <td><p>an object that is column-subsettable, e.g., a matrix or a SingleCellExperiment object</p></td>
     </tr>
     <tr>
-      <th>my_color_palette</th>
-      <td><p>a vector of colors e.g., <code><a href='https://www.rdocumentation.org/packages/base/topics/c'>c("red","blue","green")</a></code> or hex color codes</p></td>
+      <th>n</th>
+      <td><p>how many cells do you want</p></td>
     </tr>
     </table>
     

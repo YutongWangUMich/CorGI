@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plot_dimensionality_reduction}
 \alias{plot_dimensionality_reduction}
-\title{Wrapper around qplot for make cell scatter plots}
+\title{Wrapper around qplot for making cell scatter plots}
 \usage{
 plot_dimensionality_reduction(emb, batch, cell_type)
 }
@@ -14,5 +14,5 @@ plot_dimensionality_reduction(emb, batch, cell_type)
 \item{cell_type}{factor or vector of length n}
 }
 \description{
-Wrapper around qplot for make cell scatter plots
+Wrapper around qplot for making cell scatter plots
 }

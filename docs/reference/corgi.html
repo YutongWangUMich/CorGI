@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Corgi feature selection — corgi • corgi</title>
+<title>The user friendly version of corgi — corgi • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Corgi feature selection — corgi" />
+<meta property="og:title" content="The user friendly version of corgi — corgi" />
 
-<meta property="og:description" content="Corgi feature selection" />
+<meta property="og:description" content="The user friendly version of corgi" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -81,28 +81,15 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Articles
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="../articles/liver-bud.html">Liver bud development</a>
-    </li>
-    <li>
-      <a href="../articles/neurogenesis.html">Neurogenesis in the SVZ</a>
-    </li>
-    <li>
-      <a href="../articles/toy-example.html">Using CorGI on a synthetic example</a>
-    </li>
-  </ul>
-</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/YutongWangUMich/corgi">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -115,20 +102,18 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Corgi feature selection</h1>
-    
+    <h1>The user friendly version of corgi</h1>
+    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/run_corgi.R'><code>R/run_corgi.R</code></a></small>
     <div class="hidden name"><code>corgi.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Corgi feature selection</p>
+    <p>The user friendly version of corgi</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>corgi</span>(<span class='no'>X</span>, <span class='no'>Y</span>, <span class='kw'>n_phases</span> <span class='kw'>=</span> <span class='fl'>6</span>, <span class='kw'>time_per_phase</span> <span class='kw'>=</span> <span class='fl'>20</span> * <span class='fl'>60</span>,
-  <span class='kw'>must_have_genes</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(), <span class='kw'>n_singular_gaps</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>n_genes_sample</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>n_cells_X_sample</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>n_cells_Y_sample</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>corgi</span>(<span class='no'>X</span>, <span class='no'>Y</span>, <span class='no'>run_time</span>, <span class='kw'>must_have_genes</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(), <span class='kw'>k</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>fast</span> <span class='kw'>=</span> <span class='no'>T</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -142,38 +127,18 @@
       <td><p>gene-by-cell expression matrix for batch 2</p></td>
     </tr>
     <tr>
-      <th>n_phases</th>
-      <td><p>how many phases of successive halving to do</p></td>
-    </tr>
-    <tr>
-      <th>time_per_phase</th>
-      <td><p>how long each phase is (in seconds)</p></td>
+      <th>run_time</th>
+      <td><p>how long to run for</p></td>
     </tr>
     <tr>
       <th>must_have_genes</th>
       <td><p>the set of marker genes that is used in every sampled gene set</p></td>
     </tr>
-    <tr>
-      <th>n_singular_gaps</th>
-      <td><p>how many singular value gaps to examine</p></td>
-    </tr>
-    <tr>
-      <th>n_genes_sample</th>
-      <td><p>what size gene set to use</p></td>
-    </tr>
-    <tr>
-      <th>n_cells_X_sample</th>
-      <td><p>how many cells to sample from X</p></td>
-    </tr>
-    <tr>
-      <th>n_cells_Y_sample</th>
-      <td><p>how many cells to sample from Y</p></td>
-    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a list of list of scores</p>
+    <p>a list of scores</p>
     
 
   </div>

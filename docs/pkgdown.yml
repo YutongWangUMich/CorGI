@@ -3,9 +3,4 @@ pkgdown: 1.3.0
 pkgdown_sha: ~
 articles:
   corgi: corgi.html
-  embryo-devel: embryo-devel.html
-  liver-bud: liver-bud.html
-  mammary-gland-devel: mammary-gland-devel.html
-  neurogenesis: neurogenesis.html
-  toy-example: toy-example.html
 

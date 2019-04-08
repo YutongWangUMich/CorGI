@@ -1,6 +1,6 @@
 ---
 title: "Get started: Pre-implantation embryo development in human and mouse"
-author: "Yutong Wang"
+author: "Vignette Author"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -18,88 +18,78 @@ knitr::opts_chunk$set(
 )
 ```
 
-We illustrate the CorGI feature selection method by analyzing datasets on human and mouse pre-implantation embryo development.
-
 ```{r}
 library(corgi)
 library(ggplot2)
 library(cowplot)
 ```
 
-# Preprocessing the data
-
-We download the data from the [Hemberg Lab website](https://hemberg-lab.github.io/scRNA.seq.datasets/). The human dataset is from [Yan et al 2013](http://dx.doi.org/10.1038/nsmb.2660) while the mouse dataset is from [Deng et al 2014](http://dx.doi.org/10.1126/science.1245316).
-
+# Download data
 ```{r, eval = F}
 yan <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"))
 deng <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"))
 ```
 
 ```{r, include = F}
-yan <- readRDS(file = "~/CorGI_RDS/embryo_devel/yan.rds")
-deng <- readRDS(file = "~/CorGI_RDS/embryo_devel/deng-reads.rds")
+deng <- readRDS(file = "/Users/girasole/github_repos/scRNAseq_datasets/aux_files/2019-03-10-deng-science-2014-dynamic-random-monoallelic-gene-expression/deng.Rds")
+yan <- readRDS(file = "/Users/girasole/github_repos/scRNAseq_datasets/aux_files/2019-03-10-yan-nature-2013-human-preimplantation-embryos/yan.Rds")
 ```
 
-Get genes common to both datasets
+# Preprocess data
+
 ```{r}
 rownames(yan) <- toupper(rownames(yan))
 rownames(deng) <- toupper(rownames(deng))
 shared_genes <- intersect(rownames(yan), rownames(deng))
-```
 
+# Get rid of the spike-in genes
 
-Get rid of the spike-in genes
-```{r}
-shared_genes <- shared_genes[-grep("ERCC",shared_genes)]
-```
-
-Subset the data
-```{r}
+shared_genes <- shared_genes[-grep("ERCC", shared_genes)]
 yan <- yan[shared_genes, ]
 deng <- deng[shared_genes, ]
 ```
 
-# Run CorGI feature selection
-
-Normalization is not necessary for running CorGI
+# Run CORGI
 
 ```{r, eval = F}
-set.seed(0)
-corgi_output_embyro_devel <-
-  run_corgi(logcounts(yan), logcounts(deng))
+corgi(
+  normcounts(yan),
+  counts(deng),
+  run_time = 3*60*60
+) -> corgi_output
 ```
 
-```{r,eval = F,include=F}
-devtools::use_data(corgi_output_embyro_devel, overwrite = T) # Cache the output so that we don't have to actually rerun corgi. Change to "eval=T" if rerun is necessary.
+```{r, include = F}
+data("corgi_output")
 ```
 
-```{r,include=F}
-data("corgi_output_embyro_devel") # Load the cached output
-```
-
-Select top CorGI genes
+# Select the genes
 ```{r}
-corgi_gene_set <-
-  union(
-    select_top_corgi_genes(corgi_output_embyro_devel, n = 100, SVG_use = 2),
-    select_top_corgi_genes(corgi_output_embyro_devel, n = 100, SVG_use = 3)
+corgi_gene_set <- corgi_select_genes(corgi_output, 100)
+```
+
+# Combine the datasets
+```{r}
+combined <- 
+  combine_sces(
+    sce_list = list(Yan = yan, Deng = deng),
+    levels = c("zygote", "2cell", "4cell", "8cell", "16cell", "blast")
   )
+cell_type <- combined$cell_type
+batch <- combined$batch
 ```
 
-# Visualization
 
-Metadata for the combined datasets
+
+# Perform dimensionality reduction
+
 ```{r}
-combined <- cbind(logcounts(yan), logcounts(deng))
-cell_type <-
-  forcats::fct_c(as.factor(yan$cell_type1), as.factor(deng$cell_type1))
-cell_type <-
-  factor(cell_type,
-         levels = c("zygote", "2cell", "4cell", "8cell", "16cell", "blast"))
-batch <- c(rep("Human", ncol(yan)), rep("Mouse", ncol(deng)))
+mds_all_genes <- spearman_rho_mds(counts(combined))
+mds_corgi <- spearman_rho_mds(counts(combined)[corgi_gene_set, ])
 ```
 
-Wrapper around the qplot `ggplot2::qplot` function with our color scheme
+
+# Plotting
 
 ```{r}
 my_color_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -110,67 +100,18 @@ qplot <- function(...){
     scale_shape_manual(values = my_shape_palette)
 }
 
+plt_all <- plot_dimensionality_reduction(mds_all_genes, batch, cell_type)+
+  ggtitle("No gene filter")
+plt_corgi <- plot_dimensionality_reduction(mds_corgi, batch, cell_type)+
+  ggtitle("CORGI gene filter")
+
+
 color_legend <- get_color_legend(cell_type, my_color_palette, legend.position = "bottom",ncol = 6)
 batch_legend <- get_shape_legend(batch, my_shape_palette)
-```
-
-
-## Multidimensional scaling (MDS)
-
-
-```{r,fig.width=6,fig.height=3}
 axes_legend <- get_axes_legend("MDS")
-
-mds_all <- spearman_rho_mds(combined)
-plt_all <- plot_dimensionality_reduction(mds_all, batch, cell_type)+
-  ggtitle("No gene filter")
-
-
-mds_corgi <- spearman_rho_mds(combined[corgi_gene_set, ])
-plt_corgi <- plot_dimensionality_reduction(mds_corgi, batch, cell_type)+
-  ggtitle("CorGI gene filter")
-
-plot_grid(
-  plot_grid(
-    plt_all,
-    plt_corgi,
-    plot_grid(axes_legend, batch_legend, nrow = 2), 
-    nrow = 1,
-    rel_widths = c(3, 3, 1)
-  ),
-  color_legend,
-  nrow = 2,
-  rel_heights = c(4,1)
-)
 ```
-
-
-
-## Principal component analysis (PCA)
-
-To use PCA, we first need to adjust the read-depth to be comparable across the two datasets
-```{r}
-library(scran)
-out <- multiBatchNorm(yan, deng, assay.type = "logcounts")
-yan <- out[[1]]
-deng <- out[[2]]
-combined <- cbind(logcounts(yan), logcounts(deng))
-```
-
-
 
 ```{r,fig.width=6,fig.height=3}
-axes_legend <- get_axes_legend("PC")
-
-pc_all <- prcomp(t(combined), rank. = 2)$x
-plt_all <- plot_dimensionality_reduction(pc_all, batch, cell_type)+
-  ggtitle("No gene filter")
-
-
-pc_corgi <- prcomp(t(combined[corgi_gene_set, ]), rank. = 2)$x
-plt_corgi <- plot_dimensionality_reduction(pc_corgi, batch, cell_type)+
-  ggtitle("CorGI gene filter")
-
 plot_grid(
   plot_grid(
     plt_all,
@@ -183,17 +124,6 @@ plot_grid(
   nrow = 2,
   rel_heights = c(4,1)
 )
-```
 
-
-
-```{r, eval = F, include = F}
-# for Laura's presentation
-pc_corgi <- prcomp(t(combined[corgi_gene_set, ]), rank. = 2)$x
-qplot(pc_corgi[ ,1], pc_corgi[ ,2], color = cell_type, batch =)
-
-
-plot_dimensionality_reduction(pc_corgi, batch, cell_type)+
-  ggtitle("CorGI gene filter") + theme_classic() + xlab("PC1") + ylab("PC2") +ggtitle("")
 ```
 

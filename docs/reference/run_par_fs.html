@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Legend for colors in a scatter plot — get_color_legend • corgi</title>
+<title>The inner loop of corgi — run_par_fs • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Legend for colors in a scatter plot — get_color_legend" />
+<meta property="og:title" content="The inner loop of corgi — run_par_fs" />
 
-<meta property="og:description" content="Useful for creating common color legend for multiple scatter plots" />
+<meta property="og:description" content="The inner loop of corgi" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -102,32 +102,69 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Legend for colors in a scatter plot</h1>
-    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/plotting.R'><code>R/plotting.R</code></a></small>
-    <div class="hidden name"><code>get_color_legend.Rd</code></div>
+    <h1>The inner loop of corgi</h1>
+    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/run_corgi.R'><code>R/run_corgi.R</code></a></small>
+    <div class="hidden name"><code>run_par_fs.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Useful for creating common color legend for multiple scatter plots</p>
+    <p>The inner loop of corgi</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>get_color_legend</span>(<span class='no'>cell_type</span>, <span class='no'>my_color_palette</span>, <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>legend.position</span> <span class='kw'>=</span> <span class='st'>"right"</span>, <span class='kw'>legend.title</span> <span class='kw'>=</span> <span class='st'>"Cell type"</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>run_par_fs</span>(<span class='no'>X</span>, <span class='no'>Y</span>, <span class='no'>run_time</span>, <span class='no'>fs</span>, <span class='kw'>genes_use</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>must_have_genes</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(),
+  <span class='kw'>n_genes_sample</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>n_cells_X_sample</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>n_cells_Y_sample</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>n_cores_use</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>cell_type</th>
-      <td><p>factor or vector of the batch labels</p></td>
+      <th>X</th>
+      <td><p>gene-by-cell expression matrix for batch 1</p></td>
     </tr>
     <tr>
-      <th>my_color_palette</th>
-      <td><p>a vector of colors e.g., <code><a href='https://www.rdocumentation.org/packages/base/topics/c'>c("red","blue","green")</a></code> or hex color codes</p></td>
+      <th>Y</th>
+      <td><p>gene-by-cell expression matrix for batch 2</p></td>
+    </tr>
+    <tr>
+      <th>run_time</th>
+      <td><p>how long to run for</p></td>
+    </tr>
+    <tr>
+      <th>fs</th>
+      <td><p>a list of scoring functions f(X[F, ], Y[F, ]) -&gt; real number</p></td>
+    </tr>
+    <tr>
+      <th>must_have_genes</th>
+      <td><p>the set of marker genes that is used in every sampled gene set</p></td>
+    </tr>
+    <tr>
+      <th>n_genes_sample</th>
+      <td><p>what size gene set to use</p></td>
+    </tr>
+    <tr>
+      <th>n_cells_X_sample</th>
+      <td><p>how many cells to sample from X</p></td>
+    </tr>
+    <tr>
+      <th>n_cells_Y_sample</th>
+      <td><p>how many cells to sample from Y</p></td>
+    </tr>
+    <tr>
+      <th>fs_var</th>
+      <td><p>global variables, to save time</p></td>
+    </tr>
+    <tr>
+      <th>gene_use</th>
+      <td><p>the set of genes used for sampling</p></td>
     </tr>
     </table>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>a list of scores</p>
     
 
   </div>
@@ -135,7 +172,9 @@
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+      
+      <li><a href="#value">Value</a></li>
+          </ul>
 
   </div>
 </div>

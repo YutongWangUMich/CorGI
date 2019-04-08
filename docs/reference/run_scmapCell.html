@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Legend for colors in a scatter plot — get_color_legend • corgi</title>
+<title>Wrapper for <code>scmap::scmapCell</code> — run_scmapCell • corgi</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Legend for colors in a scatter plot — get_color_legend" />
+<meta property="og:title" content="Wrapper for <code>scmap::scmapCell</code> — run_scmapCell" />
 
-<meta property="og:description" content="Useful for creating common color legend for multiple scatter plots" />
+<meta property="og:description" content="Wrapper for scmap::scmapCell" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -102,32 +102,47 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Legend for colors in a scatter plot</h1>
-    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/plotting.R'><code>R/plotting.R</code></a></small>
-    <div class="hidden name"><code>get_color_legend.Rd</code></div>
+    <h1>Wrapper for <code>scmap::scmapCell</code></h1>
+    <small class="dont-index">Source: <a href='https://github.com/YutongWangUMich/corgi/blob/master/R/benchmarking.R'><code>R/benchmarking.R</code></a></small>
+    <div class="hidden name"><code>run_scmapCell.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Useful for creating common color legend for multiple scatter plots</p>
+    <p>Wrapper for <code><a href='https://www.rdocumentation.org/packages/scmap/topics/scmapCell'>scmap::scmapCell</a></code></p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>get_color_legend</span>(<span class='no'>cell_type</span>, <span class='no'>my_color_palette</span>, <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>legend.position</span> <span class='kw'>=</span> <span class='st'>"right"</span>, <span class='kw'>legend.title</span> <span class='kw'>=</span> <span class='st'>"Cell type"</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>run_scmapCell</span>(<span class='no'>query</span>, <span class='no'>ref</span>, <span class='no'>gene_set</span>, <span class='no'>param</span>, <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>cell_type</th>
-      <td><p>factor or vector of the batch labels</p></td>
+      <th>query</th>
+      <td><p>the query dataset (SingleCellExperiment object)</p></td>
     </tr>
     <tr>
-      <th>my_color_palette</th>
-      <td><p>a vector of colors e.g., <code><a href='https://www.rdocumentation.org/packages/base/topics/c'>c("red","blue","green")</a></code> or hex color codes</p></td>
+      <th>ref</th>
+      <td><p>the reference dataset (SingleCellExperiment object)</p></td>
+    </tr>
+    <tr>
+      <th>gene_set</th>
+      <td><p>a list of characters representing the genes</p></td>
+    </tr>
+    <tr>
+      <th>param</th>
+      <td><p>the number of nearest neighbors in scmapCell, an integer</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>additional parameters passed on to <code><a href='https://www.rdocumentation.org/packages/caret/topics/confusionMatrix'>caret::confusionMatrix</a></code>. For example <code>dnn = c("Prediction","Truth")</code>.</p></td>
     </tr>
     </table>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>confusion matrix of the true labels in `ref` and the `scmapCluster` predicted labels</p>
     
 
   </div>
@@ -135,7 +150,9 @@
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+      
+      <li><a href="#value">Value</a></li>
+          </ul>
 
   </div>
 </div>

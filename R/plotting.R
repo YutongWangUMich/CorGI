@@ -1,4 +1,4 @@
-#' Wrapper around qplot for make cell scatter plots
+#' Wrapper around qplot for making cell scatter plots
 #' @param emb n-by-2 matrix of cell coordinates, where n is the number of cells
 #' @param batch factor or vector of length n
 #' @param cell_type factor or vector of length n
@@ -97,50 +97,23 @@ get_axes_legend <- function(emb_name){
     )
 }
 
-
-
-
-
-
 #' @export
 plot_mapping_accuracy_comparison <- function(results){
+  library(ggplot2)
   comparison_legend_options <- guide_legend(keywidth = 2, keyheight = 1, title = "Gene set")
-  ggplot(results, aes(x=Threshold, y=Kappa, group=Gene_set)) +
+  ggplot(results, aes(x=Param, y=Kappa, group=Gene_set)) +
     geom_line(aes(linetype = Gene_set)) +
     geom_point(aes(shape = Gene_set))+
     guides(linetype = comparison_legend_options,
            shape = comparison_legend_options) +
     theme_bw() +
-    scale_x_continuous(breaks = 0.1*c(1,3,5,7,9)) +
-    xlab("scmapCluster threshold") +
+    scale_x_continuous(breaks = unique(results$Param)) +
+    theme(panel.grid.minor.x = element_blank()) +
+    xlab("scmap Parameter") +
     ylab("Cohen's Kappa")
 }
 
 
-#' Plot scatterplots for each pair of columns in df1 and df2
-#'
-#' Code by Ben Bolker, see this \href{https://stackoverflow.com/a/40455040/636276}{stackoverflow answer}
-#' @param df1 the first dataframe
-#' @param df2 the second dataframe, rownames(df1) == rownames(df2) must hold
-#' @author Ben Bolker
-#' @examples
-#' plot_two_dfs(iris[,1:2],iris[,3:4])
-#' @export
-plot_two_dfs <- function(df1,df2){
-  library(dplyr)
-  mfun <- function(x) {
-    x %>%
-      mutate(obs=seq(n())) %>%    ## add obs numbers
-      gather(key=var,value=value,-obs)  ## reshape
-  }
-  ## combine
-  df12 <- mfun(df1) %>% full_join(mfun(df2),by="obs")
 
 
-  library(ggplot2);
-  ggplot(df12,aes(value.x,value.y)) +
-    geom_point(size=0.1)+
-    facet_grid(var.y~var.x, scales = "free")+
-    theme_bw() +
-    theme(panel.margin=grid::unit(0,"lines")) ## squash panels together
-}
+

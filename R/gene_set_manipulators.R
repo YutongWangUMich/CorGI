@@ -1,3 +1,19 @@
+#' Highly dropped-out gene selection
+#'
+#' @param sce SingleCellExperiment object to be normalized
+#' @param do_normalize boolean value of whether \code{sce} should be normalized prior to feature selection. Consider setting this to false if you prefer a different normalization technique.
+#' @return ranked list such that most informative genes are at the top of the list
+#' @export
+HDG_ranking <- function(sce, do_normalize = T){
+  library(SingleCellExperiment)
+  if(do_normalize){
+    sce <- scater::normalize(sce)
+  }
+  rowData(sce)$feature_symbol <- rownames(sce)
+  sce <- scmap::selectFeatures(sce,suppress_plot = F)
+  return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
+}
+
 #' Get compared gene sets
 #'
 #' Gene sets compared against CorGI in the manuscript
@@ -84,4 +100,16 @@ get_compared_gene_sets <- function(batch1_top_genes,
   }
 
   return(gene_sets)
+}
+
+
+#' Return the top genes according to a named vector.
+#'
+#' @param x named numeric vector where the names are the gene names and the numbers are gene scores
+#' @param n how many genes to return
+#' @export
+top_n_genes <- function(x,n) {
+  return(
+    head(names(sort(x,decreasing = T)),n)
+  )
 }
