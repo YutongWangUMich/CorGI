@@ -104,7 +104,7 @@ LB <- camp[,camp$LB_status=="Liver_bud"]
 ```
 
 ```{r}
-gene_loadings <- CCSpearman_GeneLoading(logcounts(IN), logcounts(LB), k = 3)
+gene_loadings <- Seurat_CCA_GeneLoading(logcounts(IN), logcounts(LB), k = 3)
 
 union(
   top_n_genes((gene_loadings^2)[,2],250),
@@ -143,7 +143,7 @@ qplot <- function(...){
 
 ## PC plot using all the genes
 
-```{r}
+```{r, eval = F}
 pc <- prcomp(t(logcounts(combined)),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
 ```
@@ -162,14 +162,15 @@ devtools::use_data(corgi_output_liver_bud,overwrite = T)
 
 ```{r,include = F}
 data("corgi_output_liver_bud")
+
+corgi_scores <- corgi_output_liver_bud[,1]/corgi_output_liver_bud[,2]
+names(corgi_scores) <- rownames(corgi_output_liver_bud)
 ```
 
 ## Selecting the top CorGI genes
 
 ```{r}
-corgi_gene_set <- union(
-  select_top_corgi_genes(corgi_output_liver_bud,250,SVG_use = 2),
-  select_top_corgi_genes(corgi_output_liver_bud,250,SVG_use = 3))
+corgi_gene_set <- top_n_genes(-corgi_scores, 100)
 ```
 
 
@@ -179,6 +180,7 @@ corgi_gene_set <- union(
 ```{r}
 pc <- prcomp(t(logcounts(combined)[corgi_gene_set,]),rank. = 2)$x
 qplot(pc[,1],pc[,2],color = lineage,shape = batch)
+# stop()
 ```
 
 
@@ -195,13 +197,14 @@ HDG_ranking <- function(sce){
   sce <- selectFeatures(sce,suppress_plot = F)
   return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
 }
+n_genes <- length(corgi_gene_set)
 
 gene_sets <- get_compared_gene_sets(
   batch1_top_genes = HDG_ranking(IN),
   batch1_name = "HDG(Input)",
   batch2_top_genes = HDG_ranking(LB),
   batch2_name = "HDG(Liver bud)",
-  desired_size = length(corgi_gene_set)
+  desired_size = n_genes
 )
 
 gene_sets[["CorGI"]] <- corgi_gene_set
@@ -215,42 +218,78 @@ gene_sets <- gene_sets[c(5,1,2,3,4)]
 lapply(gene_sets, length)
 ```
 
+```{r}
+library(Seurat)
+CCA_gene_loading <- Seurat_CCA_GeneLoading(logcounts(IN),logcounts(LB),k = 3)
+# CCA_gene_loading <-CCSpearman_GeneLoading(normcounts(yan),counts(deng),k = 4)[,2:4]
+for(i in 1:3){
+  gene_sets[[paste0("CCA",i)]] <- top_n_genes(CCA_gene_loading[ , i]^2, n_genes)
+}
+
+leverage_scores <- rowSums(CCA_gene_loading^2)
+gene_sets[["Leverage"]] <- top_n_genes(leverage_scores, n_genes)
+
+lapply(gene_sets, length)
+```
 
 ```{r}
-embeddings_mds <- 
+b <- intersect(rownames(data.frame(corgi_scores)), rownames(gene_loadings))
+
+plot_two_dfs(data.frame(gene_loadings[b, ]^2, 
+                        lev_score = rowSums(gene_loadings[b, ]^2)),
+             data.frame(corgi_scores[b]))
+
+
+
+```
+
+
+```{r}
+get_embeddings <- function(gene_sets) {
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
-      D <- sqrt((1 - cor(logcounts(combined)[gene_set, ], method = "spearman")) / 2)
+      D <-
+        sqrt((1 - cor(logcounts(combined)[gene_set,], method = "spearman")) / 2)
       return(cmdscale(D, k = 2))
     }
   )
+}
 ```
 
 
 ```{r}
 emb_name <- "MDS"
-embeddings <- embeddings_mds
-get_scatterplots(embeddings,
-                 batch,
-                 lineage) -> dr_plots
-
-plot_grid(
+# embeddings <- embeddings_mds
+get_top_panel <- function(embeddings) {
+  get_scatterplots(embeddings,
+                   batch,
+                   lineage) -> dr_plots
+  
   plot_grid(
-    get_axes_legend(emb_name),
-    get_shape_legend(batch, my_shape_palette)
-  ),
-  get_color_legend(lineage, my_color_palette),
-  nrow = 2) -> legends
+    plot_grid(
+      get_axes_legend(emb_name),
+      get_shape_legend(batch, my_shape_palette)
+    ),
+    get_color_legend(lineage, my_color_palette),
+    nrow = 2
+  ) -> legends
+  
+  dr_plots[[length(dr_plots) + 1]] <- legends
+  
+  dr_plots[["nrow"]] <- 2
+  
+  dr_plots[["labels"]] <- c("A", "B", "C", "D", "E", "")
+  
+  do.call(plot_grid, dr_plots) -> top_panel
+  top_panel
+}
 
-dr_plots[[length(dr_plots)+1]] <- legends
+get_top_panel(get_embeddings(gene_sets[1:5]))
 
-dr_plots[["nrow"]] <- 2
 
-dr_plots[["labels"]] <- c("A","B","C","D","E","")
+get_top_panel(get_embeddings(gene_sets[c(1,6:9)]))
 
-do.call(plot_grid,dr_plots) -> top_panel
-top_panel
 ```
 
 
@@ -287,8 +326,18 @@ comparison_results <-
   run_mapping_accuracy_comparison(
     query = IN_norm,
     reference = LB_norm,
-    gene_sets = gene_sets
+    gene_sets = gene_sets[1:5]
   )
+plot_mapping_accuracy_comparison(comparison_results)
+
+
+comparison_results <-
+  run_mapping_accuracy_comparison(
+    query = IN_norm,
+    reference = LB_norm,
+    gene_sets = gene_sets[c(1,6:9)]
+  )
+plot_mapping_accuracy_comparison(comparison_results)
 
 cluster_coherence_plot_1 <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Liver bud \nQuery = Input")
@@ -298,12 +347,24 @@ cluster_coherence_plot_1
 
 
 ```{r}
+
 comparison_results <-
   run_mapping_accuracy_comparison(
     query = LB_norm,
     reference = IN_norm,
-    gene_sets = gene_sets
+    gene_sets = gene_sets[1:5]
   )
+plot_mapping_accuracy_comparison(comparison_results)
+
+
+comparison_results <-
+  run_mapping_accuracy_comparison(
+    query = LB_norm,
+    reference = IN_norm,
+    gene_sets = gene_sets[c(1,6:9)]
+  )
+plot_mapping_accuracy_comparison(comparison_results)
+
 cluster_coherence_plot_2 <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Input \nQuery = Liver bud")
 
@@ -440,7 +501,7 @@ batch <- c(rep("Input",ncol(IN)),rep("Liver bud",ncol(LB)),rep("Primary",ncol(HL
 
 
 ```{r}
-embeddings_mnn <- 
+get_mnn_embeddings <- function(gene_sets){
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
@@ -452,6 +513,18 @@ embeddings_mnn <-
       return(pca.mnn$x)
     }
   )
+}
+
+get_mds_embeddings <- function(gene_sets){
+  lapply(
+    X = gene_sets,
+    FUN = function(gene_set) {
+      spearman_rho_mds(cbind(logcounts(IN[gene_set,]),
+                            logcounts(LB[gene_set,]),
+                            logcounts(HL[gene_set,])))
+    }
+  )
+}
 ```
 
 
@@ -471,25 +544,41 @@ data.frame(`Long name` = before,`Short name` = unique(lineage_show))
 
 ```{r}
 emb_name <- "MNNPC"
-embeddings <- embeddings_mnn
-get_scatterplots(embeddings,
-                 batch,
-                 lineage_show) -> dr_plots
-
-plot_grid(
+get_top_panel2 <- function(embeddings) {
+  get_scatterplots(embeddings,
+                   batch,
+                   lineage_show) -> dr_plots
+  
   plot_grid(
-    get_axes_legend(emb_name),
-    get_shape_legend(batch,my_shape_palette)
-  ),
-  get_color_legend(lineage_show,my_color_palette,ncol = 2),
-  nrow = 2) -> legends
+    plot_grid(
+      get_axes_legend(emb_name),
+      get_shape_legend(batch, my_shape_palette)
+    ),
+    get_color_legend(lineage_show, my_color_palette, ncol = 2),
+    nrow = 2
+  ) -> legends
+  
+  dr_plots[[length(dr_plots) + 1]] <- legends
+  dr_plots[["nrow"]] <- 2
+  dr_plots[["labels"]] <- c("A", "B", "C", "D", "E", "")
+  
+  do.call(plot_grid, dr_plots) -> top_panel
+  top_panel
+}
 
-dr_plots[[length(dr_plots)+1]] <- legends
-dr_plots[["nrow"]] <- 2
-dr_plots[["labels"]] <- c("A","B","C","D","E","")
+get_top_panel2(get_mnn_embeddings(gene_sets[1:5]))
 
-do.call(plot_grid,dr_plots) -> top_panel
-top_panel
+
+get_top_panel2(get_mnn_embeddings(gene_sets[c(1,6:9)]))
+```
+
+```{r}
+emb_name <- "MDS"
+
+get_top_panel2(get_mds_embeddings(gene_sets[1:5]))
+
+
+get_top_panel2(get_mds_embeddings(gene_sets[c(1,6:9)]))
 
 ```
 
@@ -515,8 +604,17 @@ comparison_results <-
   run_mapping_accuracy_comparison(
     query = IN_LB,
     reference = HL,
-    gene_sets = gene_sets
+    gene_sets = gene_sets[1:5]
   )
+plot_mapping_accuracy_comparison(comparison_results)
+
+comparison_results <-
+  run_mapping_accuracy_comparison(
+    query = IN_LB,
+    reference = HL,
+    gene_sets = gene_sets[c(1,6:9)]
+  )
+plot_mapping_accuracy_comparison(comparison_results)
 
 cluster_coherence_plot_3 <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Human liver \nQuery = Liver bud & input cell lines")
@@ -559,14 +657,24 @@ table_show
 
 
 ```{r}
-
-# unique(HL$cell_type1)
 comparison_results <-
   run_mapping_accuracy_comparison(
     query = HL,
     reference = IN_LB,
-    gene_sets = gene_sets
+    gene_sets = gene_sets[1:5]
   )
+plot_mapping_accuracy_comparison(comparison_results)
+
+comparison_results <-
+  run_mapping_accuracy_comparison(
+    query = HL,
+    reference = IN_LB,
+    gene_sets = gene_sets[c(1,6:9)]
+  )
+plot_mapping_accuracy_comparison(comparison_results)
+
+# unique(HL$cell_type1)
+
 
 cluster_coherence_plot_4 <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Liver bud & input cell lines \nQuery = Human liver")

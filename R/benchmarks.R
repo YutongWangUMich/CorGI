@@ -53,7 +53,12 @@ batch_separation <- function(emb,batch){
 #' # Run scmapCluster!
 #' run_scmap(query = yan, ref = deng, gene_set = corgi_gene_set, threshold = 0.3,dnn = c("Matched mouse cell", "True labels for the human cells"))
 #' @export
-run_scmap <- function(query, ref, gene_set, threshold, ...){
+run_scmapCluster <- function(query, ref, gene_set, param, ...){
+
+  # scmap requires the "feature_symbol" slot to be filled
+  rowData(query)$feature_symbol <- rownames(query)
+  rowData(ref)$feature_symbol <- rownames(ref)
+
   # Specify the gene set used for scmapCluster
   rowData(ref)$scmap_features <-
     rowData(ref)$feature_symbol %in% gene_set
@@ -63,7 +68,7 @@ run_scmap <- function(query, ref, gene_set, threshold, ...){
   scmapCluster_results <- scmap::scmapCluster(
     projection = query,
     index_list = list(Reference = metadata(ref)$scmap_cluster_index),
-    threshold = threshold
+    threshold = param
   )
 
   true_labels <- colData(query)$cell_type1
@@ -82,24 +87,80 @@ run_scmap <- function(query, ref, gene_set, threshold, ...){
 }
 
 
+#' Wrapper for \code{scmap::scmapCell}
+#' @param query the query dataset (SingleCellExperiment object)
+#' @param ref the reference dataset (SingleCellExperiment object)
+#' @param gene_set a list of characters representing the genes
+#' @param param the number of nearest neighbors in scmapCell, an integer
+#' @param ... additional parameters passed on to \code{caret::confusionMatrix}. For example \code{dnn = c("Prediction","Truth")}.
+#' @return confusion matrix of the true labels in `ref` and the `scmapCluster` predicted labels
+#' @export
+run_scmapCell <- function(query, ref, gene_set, param, ...) {
+
+  # scmap requires the "feature_symbol" slot to be filled
+  rowData(query)$feature_symbol <- rownames(query)
+  rowData(ref)$feature_symbol <- rownames(ref)
+
+  # Specify the gene set used for scmapCluster
+  rowData(ref)$scmap_features <-
+    rowData(ref)$feature_symbol %in% gene_set
+
+  ref <- indexCell(ref)
+
+  scmapCell_results <- scmapCell(
+    projection = query,
+    index_list = list(Reference = metadata(ref)$scmap_cell_index),
+    w = param)
+
+  scmapCell_clusters <- scmapCell2Cluster(scmapCell_results,
+                                          list(as.character(colData(ref)$cell_type1)))
+
+
+  true_labels <- colData(query)$cell_type1
+  pred_labels <-
+    factor(scmapCell_clusters$scmap_cluster_labs[, "Reference"])
+
+  # make the factor levels uniform
+  shared_levels <- union(levels(true_labels),
+                         levels(pred_labels))
+  true_labels <- forcats::fct_expand(true_labels, shared_levels)
+  pred_labels <- forcats::fct_expand(pred_labels, shared_levels)
+  caret::confusionMatrix(data = pred_labels,
+                         reference = true_labels,
+                         ...)
+}
+
+
 
 
 #' Run scmap over a range of parameters
 #' @export
-run_mapping_accuracy_comparison <- function(query, reference, gene_sets){
+run_mapping_accuracy_comparison <-
+  function(query,
+           reference,
+           gene_sets,
+           method_use = "scmapCluster") {
 
-  thresholds <- 0.1*(1:9)
+  f <- NULL
+  if(method_use == "scmapCluster"){
+    params <- 0.1*(1:9)
+    f <- corgi::run_scmapCluster
+  }
+  if(method_use == "scmapCell"){
+    params <- 5*(1:6)
+    f <- corgi::run_scmapCell
+  }
   lapply(
-    X = thresholds,
-    FUN = function(threshold) {
+    X = params,
+    FUN = function(param) {
       gene_sets %>%
         lapply(
           FUN = function(gene_set) {
-            corgi::run_scmap(
+            f(
               query = query,
               ref = reference,
               gene_set = gene_set,
-              threshold = threshold
+              param = param
             )
           }
         ) %>%
@@ -113,7 +174,7 @@ run_mapping_accuracy_comparison <- function(query, reference, gene_sets){
         results
 
       results$Gene_set <- names(gene_sets)
-      results$Threshold <- threshold
+      results$Param <- param
       rownames(results) <- NULL
       results
     }) %>%

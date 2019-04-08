@@ -4,7 +4,8 @@
 \alias{run_mapping_accuracy_comparison}
 \title{Run scmap over a range of parameters}
 \usage{
-run_mapping_accuracy_comparison(query, reference, gene_sets)
+run_mapping_accuracy_comparison(query, reference, gene_sets,
+  method_use = "scmapCluster")
 }
 \description{
 Run scmap over a range of parameters

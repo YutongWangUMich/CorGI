@@ -78,8 +78,6 @@ llorens$cell_type1 <- llorens_cell_type
 saveRDS(llorens,file = "~/CorGI_RDS/neurogenesis/llorens.rds")
 ```
 
-
-
 ```{r, include = F}
 llorens <- readRDS(file = "~/CorGI_RDS/neurogenesis/llorens.rds")
 ```
@@ -146,22 +144,29 @@ dulken <- dulken[shared_genes,]
 llorens <- llorens[shared_genes,]
 ```
 
+```{r}
+shin <- readRDS(file = "/Users/girasole/github_repos/scRNAseq_datasets/aux_files/2019-03-03-shin-cell-stem-cell-2015-adult-neurogenesis/shin.Rds")
+shin$cell_type1 <- "Shin"
+```
+
+
 Combine the datasets and metadata
 ```{r}
-combined <- cbind(dulken,llorens)
-combined$batch <- c(rep("Dulken",ncol(dulken)),rep("Llorens",ncol(llorens)))
-cell_type <- combined$cell_type1
-batch <- combined$batch
+combined <-
+  combine_sces(
+    sce_list = list(Dulken = dulken, Llorens = llorens),
+  )
+
 ```
 
 Overview of the cell types in each dataset
 ```{r}
-kable(table(cell_type, batch))
+table(combined$cell_type, combined$batch)
 ```
 
 
 ```{r}
-my_shape_palette <- c(1, 16)
+my_shape_palette <- c(1, 16, 2)
 my_color_palette <- c("#E69F00", "#000000", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Wrap around qplot so to use our color settings
@@ -179,7 +184,7 @@ Multidimensional-scaling on Spearman rho distance matrix using all the genes res
 
 ```{r}
 mds <- spearman_rho_mds(counts(combined))
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch) + ggtitle("Spearman rho MDS using all the genes")
+qplot(mds[,1],mds[,2],color = combined$cell_type,shape = combined$batch) + ggtitle("Spearman rho MDS using all the genes")
 ```
 
 
@@ -236,7 +241,46 @@ length(consensus34)
 
 # Semi-supervised CorGI 
 
-Wwith the 34 consensus genes as markers
+
+```{r, eval = F}
+fs_var <- list(
+  emb = function(X, Y){
+    corgi::dhillon_emb(X, Y, 3)
+  }
+)
+fs <- list(
+  principal_curve = function(X, Y){
+    emb <- fs_var_o[["emb"]]
+    princurve::principal_curve(emb)$dist
+  },
+  kmeans_obj = function(X, Y){
+    emb <- fs_var_o[["emb"]]
+    kmeans_output <- cluster::clara(emb, k = 3) 
+    kmeans_output$objective/mean(kmeans_output$diss)
+  },
+  kmmd_statistic = function(X, Y){
+    rk <- function(x) apply(x, 2, rank)
+    capture.output(kmmd_out <- kernlab::kmmd(t(rk(X)), t(rk(Y))))
+    kmmd_out@mmdstats[2]
+  }
+)
+
+
+corgi::run_par_fs(
+  counts(dulken),
+  counts(llorens),
+  run_time = 1*1*60,
+  fs = fs,
+  fs_var = fs_var,
+  must_have_genes = consensus34
+  ) -> corgi_out
+
+saveRDS(corgi_out, file = "~/corgi_output_neurogenesis_semisupervised.rds")
+
+rm(corgi_output_neurogenesis)
+corgi_output_neurogenesis <- corgi_out
+devtools::use_data(corgi_output_neurogenesis,overwrite = T)
+```
 
 ```{r,eval = F}
 set.seed(0)
@@ -249,17 +293,31 @@ devtools::use_data(corgi_output_neurogenesis,overwrite = T)
 
 ```{r,include=F}
 data("corgi_output_neurogenesis")
+head(corgi_output_neurogenesis)
+```
+
+```{r}
+corgi_output_neurogenesis <- readRDS(file = "~/corgi_output_neurogenesis_semisupervised.rds")
+# corgi_output_neurogenesis
+corgi_scores <- corgi_output_neurogenesis[,1:3]/corgi_output_neurogenesis[,4]
+plot(corgi_scores[,"principal_curve"], corgi_scores[,"kmmd_statistic"])
+
+hist(corgi_scores[,"kmmd_statistic"])
 ```
 
 ## Dimensionality reduction using MDS
+
 ```{r}
-corgi_gene_set <- select_top_corgi_genes(corgi_output_neurogenesis,n = 100, phase_use = 1)
-length(corgi_gene_set)
-
-gene_set <- union(corgi_gene_set,consensus34)
-
-mds <- spearman_rho_mds(counts(combined)[gene_set,])
-qplot(mds[,1],mds[,2],color = cell_type,shape = batch)
+kmmd_statistic = function(X, Y){
+    rk <- function(x) apply(x, 2, rank)
+    return(kernlab::kmmd(t(rk(X)), t(rk(Y))))
+    # kmmd_out@mmdstats[2]
+}
+summary(corgi_scores[,"kmmd_statistic"])
+stats::mad(corgi_scores[,"kmmd_statistic"])
+sd(corgi_scores[,"kmmd_statistic"])
+good <- corgi_scores[,"kmmd_statistic"] < median(corgi_scores[,"kmmd_statistic"]) +mad(corgi_scores[,"kmmd_statistic"])
+corgi_gene_set <- top_n_genes(-corgi_scores[good ,"principal_curve"], 100)
 ```
 
 
@@ -285,68 +343,208 @@ HDG_ranking <- function(sce){
   return(rownames(sce)[order(rowData(sce)[["scmap_scores"]],decreasing = T,na.last = T)])
 }
 
-n <- length(union(corgi_gene_set,consensus34))
+n_genes <- length(union(corgi_gene_set,consensus34))
 
 gene_sets <- get_compared_gene_sets(
   batch1_top_genes = HDG_ranking(dulken),
   batch1_name = "HDG(Dulken)",
   batch2_top_genes = HDG_ranking(llorens),
   batch2_name = "HDG(Llorens)",
-  desired_size = n,
+  desired_size = n_genes,
   marker_genes = consensus34)
 
-gene_sets[["C134"]] <- names(top_consensus_genes)[1:n]
+gene_sets[["Cons134"]] <- names(top_consensus_genes)[1:n_genes]
 
-gene_sets[["CorGI"]] <- union(corgi_gene_set,consensus34)
+gene_sets[["CORGI"]] <- union(corgi_gene_set,consensus34)
 
 gene_sets <- gene_sets[c(6,5,4,3,2,1)]
-lapply(gene_sets, length)
-# stop()
 
- # <- 
+
+```
+```{r}
+
+get_gene_set_with_markers <- function(f,target){
+  i <- 1
+  while(length(f(i)) < target){
+    i <- i+1
+  }
+  f(i)
+}
+library(Seurat)
+CCA_gene_loading <- Seurat_CCA_GeneLoading(counts(dulken),counts(llorens),k = 3)
+# CCA_gene_loading <-CCSpearman_GeneLoading(normcounts(yan),counts(deng),k = 4)[,2:4]
+# for(i in 1:3){
+#   f <- function(n) union(top_n_genes(CCA_gene_loading[ , i]^2, n), consensus34)
+#   gene_sets[[paste0("CCA",i)]] <- 
+#     get_gene_set_with_markers(f, n_genes)
+# }
+
+leverage_scores <- rowSums(CCA_gene_loading^2)
+f <- function(n) union(top_n_genes(leverage_scores, n), consensus34)
+gene_sets[["CCA-GL"]] <- 
+  get_gene_set_with_markers(f, n_genes)
+
+lapply(gene_sets, length)
+```
+
+
+```{r, eval = F}
+library(tidyr)
+b <- intersect(rownames(corgi_scores), rownames(CCA_gene_loading))
+plot_two_dfs(data.frame(CCA_gene_loading[b, ]^2, 
+                        lev_score = rowSums(CCA_gene_loading[b, ]^2)),
+             data.frame(corgi_scores[b, ]))
 ```
 
 ```{r}
-gene_sets[[4]] <- union(top_n_genes(gene_loadings[,1],114), top_consensus)
-gene_sets[[5]] <- union(top_n_genes(gene_loadings[,2],109), top_consensus)
-gene_sets[[6]] <- union(top_n_genes(gene_loadings[,3],105), top_consensus)
-
-names(gene_sets)[c(4,5,6)] <- paste0("CC",1:3)
-
-gene_sets[[3]] <- union(gene_sets[[1]], gene_sets[[6]])
-names(gene_sets)[3] <- "CorGI+CCA3"
-lapply(gene_sets, length)
-```
-
-```{r}
-embeddings_mds <- 
+get_embeddings <- function(gene_sets)
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
-      D <- sqrt((1 - cor(counts(combined)[gene_set, ], method = "spearman")) / 2)
-      return(cmdscale(D, k = 2))
+      return(spearman_rho_mds(counts(combined)[gene_set, ]))
     }
   )
 ```
 
+```{r}
+
+gene_set_ordering <- c("CORGI",
+    "HDG(Llorens)",
+    "HDG(Dulken)",
+    "CCA-GL",
+    "Union",
+    "Intersection",
+    "Cons134")
+```
+
 
 ```{r}
-emb_name <- "MDS"
-embeddings <- embeddings_mds
-get_scatterplots(embeddings,
-                 combined$batch,
-                 combined$cell_type1) -> dr_plots
-# 
+comparison_results <-
+  run_mapping_accuracy_comparison(
+    query = llorens,
+    reference = dulken[,dulken$cell_type1!="Ast"],
+    gene_sets = gene_sets[gene_set_ordering],
+    method_use = "scmapCluster"
+  )
+# plot_mapping_accuracy_comparison(comparison_results)
+plot_mapping_accuracy_comparison(comparison_results) + ylim(c(0,1)) + ggtitle("Reference = Dulken,\nQuery = Llorens-Bobadilla")-> cohen_kappa_plot
+stop()
 
-# dr_plots[[length(dr_plots)+1]] <- legends
 
-dr_plots[["nrow"]] <- 2
 
-dr_plots[["labels"]] <- c("A","B","C","D","E","F")
-
-do.call(plot_grid,dr_plots) -> top_panel
-top_panel
+cohen_kappa_plot <- cohen_kappa_plot + scale_shape_manual(values = c(15:17,0:4))
 ```
+
+```{r}
+combined <-
+  combine_sces(
+    sce_list = list(Dulken = dulken[,dulken$cell_type1!="Ast"], Llorens = llorens),
+  )
+emb_name <- "MDS"
+get_top_panel <- function(embeddings,cohen_kappa_plot) {
+  ck_legend <- get_legend(cohen_kappa_plot)
+  
+  get_scatterplots(embeddings,
+                   combined$batch,
+                   combined$cell_type) -> dr_plots
+  plot_grid(
+    ck_legend,
+    plot_grid(
+      get_axes_legend(emb_name),
+      get_shape_legend(combined$batch, my_shape_palette),
+      get_color_legend(combined$cell_type, my_color_palette, ncol = 1),
+      ncol = 1,
+      rel_heights = c(1,1,1)
+    ) ,
+    ncol=2
+  )-> legends
+  
+  
+  cohen_kappa_plot <- cohen_kappa_plot + theme(legend.position = "none")
+  dr_plots[[length(dr_plots)+1]]  <- cohen_kappa_plot
+  dr_plots[[length(dr_plots)+1]]  <- legends
+  dr_plots[["nrow"]] <- 3
+  dr_plots[["ncol"]] <- 3
+  
+  dr_plots[["labels"]] <- LETTERS[1:8]
+  
+  do.call(plot_grid, dr_plots) -> top_panel
+  top_panel
+}
+
+
+get_top_panel(get_embeddings(gene_sets[ gene_set_ordering ]),cohen_kappa_plot) -> neurogenesis_MDS
+
+
+ggsave(filename = "neurogenesis_MDS.eps",device = "eps",plot = neurogenesis_MDS,path = "~/CorGI_figures/neurogenesis",width = 8,height = 8)
+cohen_kappa_plot
+```
+
+
+```{r}
+# stop()
+# combined <- combined
+gene_set_use <- "CorGI"
+gene_set <- intersect(gene_sets[[gene_set_use]], rownames(combined))
+
+
+emb <- get_embeddings(list(gene_set=gene_set))[[1]]
+pcurve_out <- princurve::principal_curve(emb)
+
+
+
+R <- 
+  apply(combined[gene_set,],
+        2,
+        rank)
+
+```
+
+
+
+```{r}
+col_ann <- data.frame(cell_type = cell_type,
+                      batch = batch,
+                      pseudo_time = pcurve_out$lambda)
+
+row_ann <- data.frame(leverage_score = leverage_scores[rownames(R)],
+                      is_consensus = rownames(R) %in% consensus34)
+
+cell_type_colors <- my_color_palette[1:4]
+names(cell_type_colors) <- levels(cell_type)
+
+annotation_colors <- list(cell_type = cell_type_colors,
+                          leverage_score = c("white", "black"),
+                          pseudo_time = c("white","black"))
+rownames(col_ann) <- colnames(R)
+```
+
+
+```{r, fig.height=5}
+plot_gene_by_cell_heatmap(
+  mat = R,
+  annotation_col = col_ann,
+  order_cells_by = "pseudo_time",
+  cluster_rows = T,
+  show_rownames = F,
+  show_colnames = F,
+  annotate_gene_clusters = T,
+  cutree_rows = 8,
+  annotation_row = row_ann,
+  annotation_colors = annotation_colors
+) -> results
+
+
+```
+
+
+
+
+```{r}
+stop()
+```
+
+
 
 scmapCluster parameters
 
@@ -363,58 +561,37 @@ Use the Dulken dataset (excluding the astrocytes) to predict the cell types in L
 Using the CorGI gene set
 ```{r}
 gene_set <- gene_sets[["CorGI"]]
-corgi::run_scmap(
+corgi::run_scmapCluster(
   query = llorens,
   ref = dulken[,dulken$cell_type1!="Ast"],
   gene_set = gene_set,
-  threshold = threshold,
+  param = 0.2,
   dnn = c("Prediction","Truth")
-) -> scmap_output
-
-kable(scmap_output$table)
-
-kable(scmap_output$overall)
+)-> scmap_output
+scmap_output$table
+scmap_output$overall
 ```
 
 Using the C134 gene set
 ```{r}
-gene_set <- gene_sets[["C134"]]
-corgi::run_scmap(
+gene_set <- gene_sets[["Leverage"]]
+corgi::run_scmapCluster(
   query = llorens,
   ref = dulken[,dulken$cell_type1!="Ast"],
   gene_set = gene_set,
-  threshold = threshold
+  param = 0.2
 ) -> scmap_output
-
-kable(scmap_output$table)
-
-kable(scmap_output$overall)
+scmap_output$table
+scmap_output$overall
+# stop()
 ```
 
-Using the _Union_ gene set
-```{r}
-gene_set <- gene_sets[["CC3"]]
-corgi::run_scmap(
-  query = llorens,
-  ref = dulken[,dulken$cell_type1!="Ast"],
-  gene_set = gene_set,
-  threshold = threshold
-) -> scmap_output
-
-kable(scmap_output$table)
-
-kable(scmap_output$overall)
-```
 
 Repeat the result above but for all gene sets sweeping over thresholds in $\{0.1, 0.2,...,0.9\}$
 
 ```{r}
-comparison_results <-
-  run_mapping_accuracy_comparison(
-    query = llorens,
-    reference = dulken[,dulken$cell_type1!="Ast"],
-    gene_sets = gene_sets
-  )
+
+
 
 cluster_coherence_plot <- plot_mapping_accuracy_comparison(comparison_results) +
     ggtitle("Reference = Dulken (no astrocytes)\nQuery = Llorens-Bobadilla")
@@ -423,6 +600,15 @@ cluster_coherence_plot -> cc_plts[[1]]
 cc_plts[[1]]
 ```
 
+
+
+```{r}
+stop()
+
+```
+
+
+
 Swap the query and reference
 
 ```{r}
@@ -430,11 +616,22 @@ comparison_results <-
   run_mapping_accuracy_comparison(
     query = dulken[,dulken$cell_type1!="Ast"],
     reference = llorens,
-    gene_sets = gene_sets
+    gene_sets = gene_sets[grp1]
   )
+plot_mapping_accuracy_comparison(comparison_results)
+
+comparison_results <-
+  run_mapping_accuracy_comparison(
+    query = dulken[,dulken$cell_type1!="Ast"],
+    reference = llorens,
+    gene_sets = gene_sets[grp2]
+  )
+plot_mapping_accuracy_comparison(comparison_results)
+
 plot_mapping_accuracy_comparison(comparison_results) +
   ggtitle("Reference = Llorens-Bobadilla, \nQuery = Dulken (no astrocytes)") -> cc_plts[[2]]
 cc_plts[[2]]
+stop()
 ```
 
 
@@ -528,7 +725,7 @@ ggsave(filename = "neurogenesis_MDS.eps",device = "eps",plot = panel_plot_mds,pa
 
 
 ```{r}
-embeddings_mnn_pca <- 
+get_mnn_embeddings <- function(gene_sets){
   lapply(
     X = gene_sets,
     FUN = function(gene_set) {
@@ -538,13 +735,15 @@ embeddings_mnn_pca <-
       return(pca.mnn$x)
     }
   )
+}
 ```
+
 
 
 
 ```{r}
 emb_name <- "MNNPC"
-embeddings <- embeddings_mnn_pca
+get_top_panel2 <- function(embeddings){
 get_scatterplots(embeddings,
                  batch,
                  cell_type) -> dr_plots
@@ -555,6 +754,9 @@ dr_plots[["labels"]] <- c("A","B","C","D","E","F")
 
 do.call(plot_grid,dr_plots) -> top_panel
 top_panel
+}
+get_top_panel2(get_mnn_embeddings(gene_sets[grp1]))
+get_top_panel2(get_mnn_embeddings(gene_sets[grp2]))
 ```
 
 ```{r}
@@ -566,8 +768,21 @@ plot_grid(
 ```
 
 
+```{r}
+gene_set <- gene_sets[["Leverage"]]
+corgi::run_scmapCell(
+  query = llorens,
+  ref = dulken[,dulken$cell_type1!="Ast"],
+  gene_set = gene_set,
+  w = 50
+) -> scmap_output
+# length(scmap_output$scmap_cluster_labs) == ncol(llorens)
+kable(scmap_output$table)
 
+kable(scmap_output$overall)
 
+# scmap_output$scmap_cluster_labs[,"Reference"]
+```
 
 
 

@@ -1,4 +1,4 @@
-#' Wrapper around qplot for make cell scatter plots
+#' Wrapper around qplot for making cell scatter plots
 #' @param emb n-by-2 matrix of cell coordinates, where n is the number of cells
 #' @param batch factor or vector of length n
 #' @param cell_type factor or vector of length n
@@ -104,15 +104,17 @@ get_axes_legend <- function(emb_name){
 
 #' @export
 plot_mapping_accuracy_comparison <- function(results){
+  library(ggplot2)
   comparison_legend_options <- guide_legend(keywidth = 2, keyheight = 1, title = "Gene set")
-  ggplot(results, aes(x=Threshold, y=Kappa, group=Gene_set)) +
+  ggplot(results, aes(x=Param, y=Kappa, group=Gene_set)) +
     geom_line(aes(linetype = Gene_set)) +
     geom_point(aes(shape = Gene_set))+
     guides(linetype = comparison_legend_options,
            shape = comparison_legend_options) +
     theme_bw() +
-    scale_x_continuous(breaks = 0.1*c(1,3,5,7,9)) +
-    xlab("scmapCluster threshold") +
+    scale_x_continuous(breaks = unique(results$Param)) +
+    theme(panel.grid.minor.x = element_blank()) +
+    xlab("scmap Parameter") +
     ylab("Cohen's Kappa")
 }
 
@@ -144,3 +146,203 @@ plot_two_dfs <- function(df1,df2){
     theme_bw() +
     theme(panel.margin=grid::unit(0,"lines")) ## squash panels together
 }
+
+
+#' Plot a venn diagram
+#'
+#' Code obtained from
+#' https://scriptsandstatistics.wordpress.com/2018/04/26/how-to-plot-venn-diagrams-using-r-ggplot2-and-ggforce/
+#' @param my_sets a named list of three sets
+#' @examples plot_venn_diagram(list(A = 1:5, B = 3:7, C = 5:9))
+#' @export
+plot_venn_diagram <- function(my_sets) {
+  library(ggforce)
+  library(limma)
+  library(dplyr)
+  df.venn <- data.frame(
+    x = c(0, 0.866,-0.866),
+    y = c(1,-0.5,-0.5),
+    labels = names(my_sets)
+  )
+
+  all_genes <- Reduce(union, my_sets)
+  names(my_sets)[1:3]
+  mydata <-
+    data.frame(all_genes %in% my_sets[[1]],
+               all_genes %in% my_sets[[2]],
+               all_genes %in% my_sets[[3]])
+  colnames(mydata) <- names(my_sets)
+
+  vdc <- vennCounts(mydata)
+  class(vdc) <- 'matrix'
+  df.vdc <- as.data.frame(vdc)[-1, ] %>%
+    mutate(
+      x = c(0, 1.2, 0.8,-1.2,-0.8, 0, 0),
+      y = c(1.2,-0.6, 0.5,-0.6, 0.5,-1, 0)
+    )
+
+  df.gene_set_names <-
+    df.vdc[c(1, 2, 4), 4:6]
+  df.gene_set_names
+
+  df.gene_set_names$Name <- rev(names(my_sets))
+  df.gene_set_names$y[1] <- df.gene_set_names$y[1] + 0.5
+  df.gene_set_names$y[2:3] <- df.gene_set_names$y[2:3] - 0.5
+  df.gene_set_names$x[2:3] <- df.gene_set_names$x[2:3] * 1.25
+
+
+  ggplot(df.venn) +
+    geom_circle(
+      aes(
+        x0 = x,
+        y0 = y,
+        r = 1.5,
+        fill = labels
+      ),
+      alpha = .3,
+      size = 1,
+      colour = 'grey'
+    ) +
+    coord_fixed() +
+    theme_void() +
+    theme(legend.position = 'none') +
+    scale_fill_manual(values = c('cornflowerblue', 'firebrick',  'gold')) +
+    scale_colour_manual(values = c('cornflowerblue', 'firebrick', 'gold'),
+                        guide = FALSE) +
+    labs(fill = NULL) +
+    annotate(
+      "text",
+      x = df.vdc$x,
+      y = df.vdc$y,
+      label = df.vdc$Counts,
+      size = 5
+    ) +
+    annotate("text",
+             x = df.gene_set_names$x,
+             y = df.gene_set_names$y,
+             label = df.gene_set_names$Name) ->
+    venn_diagram
+
+  venn_diagram
+}
+
+
+#' Plot gene-by-cell heatmap of a matrix
+#'
+#'
+#' @param mat gene (row) by cell (column) matrix
+#' @param annotation_col a data frame of meta data for the cells
+#' @param order_cells_by which column of annotation_col to use
+#' @param annotation_row a data frame of meta data for the genes
+#' @param cluster_rows whether or not to cluster the rows, see pheatmap
+#' @param cutree_rows number of clusters to be returned by the hiearchical clustering
+#' @param annotate_gene_clusters boolean value of whether the gene cluster labels should be shown in the row annotation. This is because you might want to cluster the genes but not show the colors.
+#' @param annotation_colors a list of color palettes (color hex codes), you don't have to supply all or even any colors. By default, the rainbow palette is applied to discrete color scales. For continuous data, black/white gradient is applied.
+#' @export
+plot_gene_by_cell_heatmap <- function(
+  mat,
+  annotation_col,
+  order_cells_by,
+  annotation_row = NULL,
+  cluster_rows = T,
+  cutree_rows = 7,
+  annotate_gene_clusters = T,
+  annotation_colors = list(),
+  cluster_cols = F,
+  ...
+){
+  cell_type <- annotation_col[[order_cells_by]]
+
+  if(is.null(annotation_row) & cluster_rows & annotate_gene_clusters){
+    annotation_row <- data.frame(row.names = rownames(mat))
+  }
+  if(cluster_rows & annotate_gene_clusters){
+
+    pheatmap::pheatmap(mat[,order(cell_type)], silent = T) -> result
+
+    gene_cluster <- factor(cutree(tree = result$tree_row,k = cutree_rows))
+    annotation_row[["gene_cluster"]] <- gene_cluster
+  }
+
+  # convert logical meta data into factors so that it can be plotted
+  for(md_name in names(annotation_col)){
+    md <- annotation_col[[md_name]]
+    if(is.logical(md)){
+      annotation_col[[md_name]] <- factor(md)
+      md <- annotation_col[[md_name]]
+      if(!(md_name %in% names(annotation_colors))){
+        annotation_colors[[md_name]] <- c("white", "black")
+        names(annotation_colors[[md_name]]) <- c("FALSE", "TRUE")
+      }
+    }
+  }
+
+  for(md_name in names(annotation_row)){
+    md <- annotation_row[[md_name]]
+    if(is.logical(md)){
+      annotation_row[[md_name]] <- factor(md)
+      md <- annotation_row[[md_name]]
+      if(!(md_name %in% names(annotation_colors))){
+        annotation_colors[[md_name]] <- c("gray80", "black")
+        names(annotation_colors[[md_name]]) <- c("FALSE", "TRUE")
+      }
+    }
+  }
+
+  # add the colors for the column
+  for(ann in list(annotation_col, annotation_row)){
+    for(md_name in setdiff(colnames(ann), names(annotation_colors))){
+      md <- ann[[md_name]]
+      if(is.numeric(md)){
+        annotation_colors[[md_name]] <- c("white", "black")
+      }else{
+        my_levels <- levels(droplevels(md))
+        annotation_colors[[md_name]] <- rainbow(length(my_levels))
+        names(annotation_colors[[md_name]]) <- my_levels
+      }
+    }
+  }
+
+  # add the colors for shared meta data between genes and clusters
+  # you might consider having shared meta data when certain genes are markers for certain clusters
+  shared_meta_data_names <- intersect(colnames(annotation_col),
+                                      colnames(annotation_row))
+  for(md_name in setdiff(shared_meta_data_names, names(annotation_colors))){
+    if(!is.factor(annotation_col[[md_name]]) |
+       !is.factor(annotation_row[[md_name]])){
+      stop("shared meta data must both be factors")
+    }
+    md <- forcats::fct_c()
+
+    if(md_name %in% colnames(annotation_col)){
+      md <- forcats::fct_c(md, annotation_col[[md_name]])
+    }
+    if(md_name %in% colnames(annotation_row)){
+      md <- forcats::fct_c(md, annotation_row[[md_name]])
+    }
+    my_levels <- levels(droplevels(md))
+    annotation_colors[[md_name]] <- rainbow(length(my_levels))
+    names(annotation_colors[[md_name]]) <- my_levels
+  }
+
+
+  args <- list(
+    mat[, order(cell_type)],
+    annotation_col = annotation_col,
+    annotation_colors = annotation_colors,
+    cluster_rows = cluster_rows,
+    cluster_cols = cluster_cols,
+    ...
+  )
+
+  if(is.data.frame(annotation_row) & (ncol(annotation_row)>0)){
+    args[["annotation_row"]] <- annotation_row
+  }
+
+  if(is.factor(cell_type)) {
+    args[["gap_cols"]] <-
+      which(c(diff(as.numeric(cell_type[order(cell_type)])), 0) == 1)
+  }
+  do.call(pheatmap::pheatmap, args)
+}
+

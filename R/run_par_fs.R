@@ -20,6 +20,48 @@ dhillon_emb <- function(X, Y, k){
   return(emb)
 }
 
+
+
+#' The user friendly version of corgi
+#'
+#' @param X gene-by-cell expression matrix for batch 1
+#' @param Y gene-by-cell expression matrix for batch 2
+#' @param run_time how long to run for
+#' @param must_have_genes the set of marker genes that is used in every sampled gene set
+#' @return a list of scores
+#' @export
+
+corgi <- function(X,
+                  Y,
+                  run_time,
+                  must_have_genes = c(),
+                  k = 3){
+  X <- as.matrix(X)
+  Y <- as.matrix(Y)
+
+
+  fs <- list(
+    principal_curve = function(X, Y){
+      emb <- corgi::dhillon_emb(X, Y, k)
+      princurve::principal_curve(emb)$dist
+    },
+    kmmd_statistic = function(X, Y){
+      rk <- function(x) apply(x, 2, rank)
+      capture.output(kmmd_out <- kernlab::kmmd(t(rk(X)), t(rk(Y))))
+      kmmd_out@mmdstats[1]
+    }
+  )
+
+  corgi::run_par_fs(
+    X = X,
+    Y = Y,
+    run_time = run_time,
+    fs = fs,
+    must_have_genes = must_have_genes
+  ) -> corgi_out
+  return(corgi_out)
+}
+
 #' The inner loop of corgi
 #'
 #' @param X gene-by-cell expression matrix for batch 1
@@ -39,7 +81,6 @@ run_par_fs <- function(
   Y,
   run_time,
   fs,
-  fs_var,
   genes_use = NULL,
   must_have_genes = c(),
   n_genes_sample = NULL,
@@ -94,15 +135,14 @@ run_par_fs <- function(
     i = 1:(n_cores_use),
     .combine = '+'
   ) %dopar% {
-    res_temp <- matrix(0, length(fs) + 1, length(gene_sample_pool))
+    res_temp <- matrix(0, length(fs) + 2, length(gene_sample_pool))
 
     colnames(res_temp) <- gene_sample_pool
-    rownames(res_temp) <- c(names(fs), "num.times.sampled")
+    rownames(res_temp) <- c(names(fs), c("num.times.sampled", "failed"))
 
     start_time <- Sys.time()
     end_time <- start_time
 
-    fs_var_o <- list() # the global variables for the functions in fs to use
 
     while(as.numeric(difftime(time1 = end_time,
                               time2 = start_time,
@@ -121,18 +161,19 @@ run_par_fs <- function(
       }else{
         Y_use <- Y[gset_use,]
       }
-
       # compute shared global variables
-      fs_var_o <<- lapply(fs_var, function(f_var) f_var(X_use, Y_use))
-
-      for(fname in names(fs)){
-        f <- fs[[fname]]
-        res_temp[fname, gset]<-
-          res_temp[fname, gset] +
-          f(X_use, Y_use)
+      if(min(apply(X_use,2,max),apply(Y_use,2,max))>0){
+        for(fname in names(fs)){
+          f <- fs[[fname]]
+          res_temp[fname, gset]<-
+            res_temp[fname, gset] +
+            f(X_use, Y_use)
+        }
+        res_temp["num.times.sampled",gset] <- res_temp["num.times.sampled",gset] + 1
+      }else{
+        res_temp["failed", gset] <- res_temp["failed", gset] + 1
       }
 
-      res_temp["num.times.sampled",gset] <- res_temp["num.times.sampled",gset] + 1
 
       end_time <- Sys.time()
     }
