@@ -1,6 +1,6 @@
 ---
 title: "Get started: Pre-implantation embryo development in human and mouse"
-author: "Vignette Author"
+author: "Yutong Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -111,7 +111,7 @@ batch_legend <- get_shape_legend(batch, my_shape_palette)
 axes_legend <- get_axes_legend("MDS")
 ```
 
-```{r,fig.width=6,fig.height=3}
+```{r comparison,fig.width=6,fig.height=3}
 plot_grid(
   plot_grid(
     plt_all,
