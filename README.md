@@ -1,4 +1,4 @@
-# corgi: a gene filter for comparative analysis
+# corgi
 
 CORGI (Curve-fit Objective Ranking of Gene Importance) is a gene filter for integrating two single-cell RNAseq trajectory datasets. Conceptually, CORGI selects genes that highlight the _shared heterogenity_ in both datasets while rejecting genes that contributes to _batch effects_.
 
