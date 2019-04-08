@@ -6,6 +6,13 @@
 \usage{
 dhillon_emb(X, Y, k)
 }
+\arguments{
+\item{X}{gene-by-cell expression matrix for batch 1}
+
+\item{Y}{gene-by-cell expression matrix for batch 2}
+
+\item{k}{k-1 is the dimension of the latent embedding}
+}
 \description{
 The embedding as defined in Dhillon, Inderjit S. "Co-clustering documents and words using bipartite spectral graph partitioning." Proceedings of the seventh ACM SIGKDD international conference on Knowledge discovery and data mining. ACM, 2001.
 }

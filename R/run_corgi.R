@@ -8,6 +8,10 @@ normalized_cor <- function(X, Y, normalization = T){
 }
 
 #' The embedding as defined in Dhillon, Inderjit S. "Co-clustering documents and words using bipartite spectral graph partitioning." Proceedings of the seventh ACM SIGKDD international conference on Knowledge discovery and data mining. ACM, 2001.
+#'
+#' @param X gene-by-cell expression matrix for batch 1
+#' @param Y gene-by-cell expression matrix for batch 2
+#' @param k k-1 is the dimension of the latent embedding
 #' @export
 dhillon_emb <- function(X, Y, k){
   R <- corgi::normalized_cor(X, Y, normalization = F)
@@ -30,7 +34,6 @@ dhillon_emb <- function(X, Y, k){
 #' @param must_have_genes the set of marker genes that is used in every sampled gene set
 #' @return a list of scores
 #' @export
-
 corgi <- function(X,
                   Y,
                   run_time,

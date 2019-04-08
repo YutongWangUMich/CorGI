@@ -106,7 +106,11 @@ run_scmapCell <- function(query, ref, gene_set, param, ...) {
 
 
 
-#' Run scmap over a range of parameters
+#' Run scmap over a range of parameters, over multiple gene sets
+#' @param query a SingleCellExperiment object for the query dataset
+#' @param reference a SingleCellExperiment object for the reference dataset
+#' @param gene_sets a named list of gene sets
+#' @param method_use a string denoting whether to use scmapCluster or scmapCell
 #' @export
 run_mapping_accuracy_comparison <-
   function(query,
