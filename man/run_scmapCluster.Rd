@@ -23,31 +23,3 @@ confusion matrix of the true labels in `ref` and the `scmapCluster` predicted la
 \description{
 Wrapper for \code{scmap::scmapCluster}
 }
-\examples{
-options(warn=-1)
-suppressMessages(library(SingleCellExperiment))
-
-# download SingleCellExperiment objects for human and mouse embryogenesis
-yan <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"))
-deng <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"))
-
-# reorder factor levels to be concordant with development
-reorder_cell_type <-
-  function(x)factor(x,levels = c("zygote", "2cell", "4cell", "8cell", "16cell", "blast"))
-yan$cell_type1 <- reorder_cell_type(yan$cell_type1)
-deng$cell_type1 <- reorder_cell_type(deng$cell_type1)
-
-# match up the orthologs
-rowData(deng)$feature_symbol <- toupper(rowData(deng)$feature_symbol)
-
-# get the CorGI gene set
-data("corgi_output_embyro_devel")
-corgi_gene_set <-
-  union(
-    select_top_corgi_genes(corgi_output_embyro_devel, n = 100, SVG_use = 2),
-    select_top_corgi_genes(corgi_output_embyro_devel, n = 100, SVG_use = 3)
-  )
-
-# Run scmapCluster!
-run_scmap(query = yan, ref = deng, gene_set = corgi_gene_set, threshold = 0.3,dnn = c("Matched mouse cell", "True labels for the human cells"))
-}
