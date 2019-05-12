@@ -36,7 +36,7 @@ dhillon_emb <- function(X, Y, k){
 #' @export
 corgi <- function(X,
                   Y,
-                  run_time,
+                  run_time = 2*60*60,
                   must_have_genes = c(),
                   k = 3,
                   fast = T){
