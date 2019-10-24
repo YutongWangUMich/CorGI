@@ -86,7 +86,8 @@
 <p>Run this to install the necessary packages for visualization and data processing</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/install.packages">install.packages</a></span>(<span class="st">"cowplot"</span>) <span class="co"># for making the grid plot</span></a>
 <a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/install.packages">install.packages</a></span>(<span class="st">"BiocManager"</span>)</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3">BiocManager<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/BiocManager/topics/install">install</a></span>(<span class="st">"SingleCellExperiment"</span>) <span class="co"># for using the SingleCellExperiment data format</span></a></code></pre></div>
+<a class="sourceLine" id="cb1-3" data-line-number="3">BiocManager<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/BiocManager/topics/install">install</a></span>(<span class="st">"SingleCellExperiment"</span>) <span class="co"># for using the SingleCellExperiment data format</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">install.packges</span>(<span class="st">"forcats"</span>) <span class="co"># for working with categorical data</span></a></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(corgi)</a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(cowplot)</a></code></pre></div>
@@ -114,6 +115,8 @@
 <div id="run-corgi" class="section level1">
 <h1 class="hasAnchor">
 <a href="#run-corgi" class="anchor"></a>Run CORGI</h1>
+<p><strong>Warning: this code runs for 3 hours. To make it run for 10 minutes, change</strong> <code>run_time = 3*60*60</code> <strong>to</strong> <code>run_time = 10*60</code> <strong>to terminate in 10 minutes.</strong></p>
+<p>You should get reasonable looking results even in 10 minutes. However, the figure in this vignette ran corgi for 3 hours to ensure quality.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw"><a href="../reference/corgi.html">corgi</a></span>(</a>
 <a class="sourceLine" id="cb5-2" data-line-number="2">  <span class="kw">normcounts</span>(yan),</a>
 <a class="sourceLine" id="cb5-3" data-line-number="3">  <span class="kw">counts</span>(deng),</a>
