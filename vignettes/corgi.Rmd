@@ -24,7 +24,7 @@ Run this to install the necessary packages for visualization and data processing
 install.packages("cowplot") # for making the grid plot
 install.packages("BiocManager")
 BiocManager::install("SingleCellExperiment") # for using the SingleCellExperiment data format
-install.packges("forcats") # for working with categorical data
+install.packages("forcats") # for working with categorical data
 ```
 
 
