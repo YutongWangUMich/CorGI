@@ -18,6 +18,15 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Required packages for this vignette
+Run this to install the necessary packages for visualization and data processing
+```{r, eval = F}
+install.packages(cowplot)
+install.packages("BiocManager")
+BiocManager::install("SingleCellExperiment")
+```
+
+
 ```{r}
 library(corgi)
 library(ggplot2)

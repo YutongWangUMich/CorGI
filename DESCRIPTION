@@ -16,4 +16,5 @@ Suggests:
 VignetteBuilder: knitr
 Imports:
     doParallel
+    princurve
 URL: https://github.com/YutongWangUMich/corgi, https://yutongwangumich.github.io/corgi/
