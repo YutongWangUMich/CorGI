@@ -12,8 +12,8 @@ For example, MDS run on genes selected by CORGI can remove the "batch effect" be
 In `R`, run
 
 ```
-library(devtools)
-install_github("YutongWangUMich/corgi")
+install.packages("devtools")
+devtools::install_github("YutongWangUMich/corgi")
 ```
 
 ## Tutorial

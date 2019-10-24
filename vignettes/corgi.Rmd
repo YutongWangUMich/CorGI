@@ -21,9 +21,9 @@ knitr::opts_chunk$set(
 # Required packages for this vignette
 Run this to install the necessary packages for visualization and data processing
 ```{r, eval = F}
-install.packages(cowplot)
+install.packages("cowplot") # for making the grid plot
 install.packages("BiocManager")
-BiocManager::install("SingleCellExperiment")
+BiocManager::install("SingleCellExperiment") # for using the SingleCellExperiment data format
 ```
 
 
@@ -34,6 +34,7 @@ library(cowplot)
 ```
 
 # Download data
+Download data from the [Hemberg lab website](https://hemberg-lab.github.io/scRNA.seq.datasets/)
 ```{r, eval = F}
 yan <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/yan.rds"))
 deng <- readRDS(url("https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/deng-reads.rds"))
