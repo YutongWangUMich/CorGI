@@ -62,7 +62,7 @@ deng <- deng[shared_genes, ]
 
 # Run CORGI
 
-__Warning: the figure displayed below used results that ran for 3 hours. For this vignette, we set the run time to 10 minutes, which should give reasonable looking results. To get a closer to the figure shown below change__ ``run_time = 10*60`` __to__ ``run_time = 3*60*60`` __to terminate in 10 minutes.__
+__Warning: the figure displayed below used results that ran for 3 hours. For this vignette, we set the run time to 10 minutes, which should give reasonable looking results. To get a closer to the figure shown below change__ ``run_time = 10*60`` __to__ ``run_time = 3*60*60``
 
 
 ```{r, eval = F}
