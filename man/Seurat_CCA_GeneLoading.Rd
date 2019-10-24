@@ -4,7 +4,7 @@
 \alias{Seurat_CCA_GeneLoading}
 \title{Wrapper around Seurat's CCA to extract gene loadings}
 \usage{
-Seurat_CCA_GeneLoading(mat1, mat2, k = 3)
+Seurat_CCA_GeneLoading(mat1, mat2)
 }
 \arguments{
 \item{mat1}{batch 1 expression matrix, should be raw}

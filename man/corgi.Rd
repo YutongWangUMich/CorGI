@@ -4,7 +4,8 @@
 \alias{corgi}
 \title{The user friendly version of corgi}
 \usage{
-corgi(X, Y, run_time, must_have_genes = c(), k = 3, fast = T)
+corgi(X, Y, run_time = 2 * 60 * 60, must_have_genes = c(), k = 3,
+  fast = T)
 }
 \arguments{
 \item{X}{gene-by-cell expression matrix for batch 1}

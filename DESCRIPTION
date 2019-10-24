@@ -15,6 +15,6 @@ Suggests:
     e1071
 VignetteBuilder: knitr
 Imports:
-    doParallel
+    doParallel,
     princurve
 URL: https://github.com/YutongWangUMich/corgi, https://yutongwangumich.github.io/corgi/
