@@ -62,15 +62,14 @@ deng <- deng[shared_genes, ]
 
 # Run CORGI
 
-__Warning: this code runs for 3 hours. To make it run for 10 minutes, change__ ``run_time = 3*60*60`` __to__ ``run_time = 10*60`` __to terminate in 10 minutes.__
+__Warning: the figure displayed below used results that ran for 3 hours. For this vignette, we set the run time to 10 minutes, which should give reasonable looking results. To get a closer to the figure shown below change__ ``run_time = 10*60`` __to__ ``run_time = 3*60*60`` __to terminate in 10 minutes.__
 
 
-You should get reasonable looking results even in 10 minutes. However, the figure in this vignette ran corgi for 3 hours to ensure quality.
 ```{r, eval = F}
 corgi(
   normcounts(yan),
   counts(deng),
-  run_time = 3*60*60
+  run_time = 10*60
 ) -> corgi_output
 ```
 

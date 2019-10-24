@@ -115,12 +115,11 @@
 <div id="run-corgi" class="section level1">
 <h1 class="hasAnchor">
 <a href="#run-corgi" class="anchor"></a>Run CORGI</h1>
-<p><strong>Warning: this code runs for 3 hours. To make it run for 10 minutes, change</strong> <code>run_time = 3*60*60</code> <strong>to</strong> <code>run_time = 10*60</code> <strong>to terminate in 10 minutes.</strong></p>
-<p>You should get reasonable looking results even in 10 minutes. However, the figure in this vignette ran corgi for 3 hours to ensure quality.</p>
+<p><strong>Warning: the figure displayed below used results that ran for 3 hours. For this vignette, we set the run time to 10 minutes, which should give reasonable looking results. To get a closer to the figure shown below change</strong> <code>run_time = 10*60</code> <strong>to</strong> <code>run_time = 3*60*60</code> <strong>to terminate in 10 minutes.</strong></p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw"><a href="../reference/corgi.html">corgi</a></span>(</a>
 <a class="sourceLine" id="cb5-2" data-line-number="2">  <span class="kw">normcounts</span>(yan),</a>
 <a class="sourceLine" id="cb5-3" data-line-number="3">  <span class="kw">counts</span>(deng),</a>
-<a class="sourceLine" id="cb5-4" data-line-number="4">  <span class="dt">run_time =</span> <span class="dv">3</span><span class="op">*</span><span class="dv">60</span><span class="op">*</span><span class="dv">60</span></a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">  <span class="dt">run_time =</span> <span class="dv">10</span><span class="op">*</span><span class="dv">60</span></a>
 <a class="sourceLine" id="cb5-5" data-line-number="5">) -&gt;<span class="st"> </span>corgi_output</a></code></pre></div>
 </div>
 <div id="select-the-genes" class="section level1">
